@@ -21,6 +21,11 @@ const catColor: Record<string, string> = {
   'Fermentiertes': '#6B3A4B', 'Getreide & Hülsenfrüchte': '#8B7355', 'Öle & Fette': '#9B6E1A',
 };
 
+const getUnsplashUrl = (name: string) => {
+  const query = encodeURIComponent(name + ',food,ingredient');
+  return `https://source.unsplash.com/400x300/?${query}`;
+};
+
 const flavorLabels = ['Säure', 'Süße', 'Bitter', 'Umami', 'Schärfe', 'Salzig'];
 const flavorKeys = ['acidity', 'sweetness', 'bitterness', 'umami', 'spiciness', 'saltiness'] as const;
 const flavorColors = ['#7BB8D4', '#E8A838', '#7CB87A', '#C9A84C', '#E06B6B', '#A89880'];
@@ -50,40 +55,54 @@ function IngredientCard({ ingredient, onClick }: { ingredient: Ingredient; onCli
 
   return (
     <div onClick={onClick}
-      className="bg-card border border-border rounded-xl p-4 cursor-pointer hover:border-gold/30 transition-all">
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <div className="text-[11px] font-semibold mb-1" style={{ color }}>{ingredient.kategorie}</div>
-          <h3 className="font-heading text-[16px] font-bold text-text-primary leading-snug">{ingredient.name}</h3>
-        </div>
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}18` }}>
-          <Leaf size={18} style={{ color }} strokeWidth={1.5} />
-        </div>
+      className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-gold/30 transition-all">
+      <div style={{
+        width: '100%', height: '160px', overflow: 'hidden',
+        background: 'linear-gradient(135deg, #6B3A4B 0%, #2C2420 100%)',
+      }}>
+        <img
+          src={getUnsplashUrl(ingredient.name)}
+          alt={ingredient.name}
+          loading="lazy"
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
       </div>
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <div className="text-[11px] font-semibold mb-1" style={{ color }}>{ingredient.kategorie}</div>
+            <h3 className="font-heading text-[16px] font-bold text-text-primary leading-snug">{ingredient.name}</h3>
+          </div>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: `${color}18` }}>
+            <Leaf size={18} style={{ color }} strokeWidth={1.5} />
+          </div>
+        </div>
 
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {saison.map(s => (
-          <span key={s} className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-            style={{ background: `${seasonColors[s] ?? '#A89880'}15`, color: seasonColors[s] ?? '#A89880', border: `1px solid ${seasonColors[s] ?? '#A89880'}30` }}>
-            {s}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {saison.map(s => (
+            <span key={s} className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+              style={{ background: `${seasonColors[s] ?? '#A89880'}15`, color: seasonColors[s] ?? '#A89880', border: `1px solid ${seasonColors[s] ?? '#A89880'}30` }}>
+              {s}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {aromas.slice(0, 3).map(a => (
+            <span key={a} className="text-[10px] px-2 py-0.5 rounded-md bg-card-hover text-text-muted border border-border">{a}</span>
+          ))}
+        </div>
+
+        <div className="pt-3 border-t border-border flex items-center justify-between">
+          <span className="text-[11px] text-text-muted flex items-center gap-1.5">
+            <MapPin size={10} />{ingredient.herkunft}
           </span>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {aromas.slice(0, 3).map(a => (
-          <span key={a} className="text-[10px] px-2 py-0.5 rounded-md bg-card-hover text-text-muted border border-border">{a}</span>
-        ))}
-      </div>
-
-      <div className="pt-3 border-t border-border flex items-center justify-between">
-        <span className="text-[11px] text-text-muted flex items-center gap-1.5">
-          <MapPin size={10} />{ingredient.herkunft}
-        </span>
-        <span className="text-[11px] font-semibold" style={{ color: flavorColors[topFlavorIdx] }}>
-          {flavorLabels[topFlavorIdx]} {geschmack[topFlavor] ?? 0}/5
-        </span>
+          <span className="text-[11px] font-semibold" style={{ color: flavorColors[topFlavorIdx] }}>
+            {flavorLabels[topFlavorIdx]} {geschmack[topFlavor] ?? 0}/5
+          </span>
+        </div>
       </div>
     </div>
   );
