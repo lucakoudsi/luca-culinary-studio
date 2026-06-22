@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase-admin';
+const supabase = createAdminClient();
 
 const rezepte = [
   { name: 'Schwarzwälder Kirsch-Tartar', kategorie: 'Vorspeise', tags: ['Fingerfood', 'Modern', 'Sommer'], schwierigkeit: 'Mittel', zubereitungszeit: 45, saison: 'Sommer', status: 'Fertig', bewertung: 5, bild: null, beschreibung: 'Zartes Rinderfilet-Tartar mit eingelegten Kirschen, Walnuss-Crumble und Sauerrahm-Espuma.', zuletzt_bearbeitet: '2026-06-15', aufrufe: 142 },
