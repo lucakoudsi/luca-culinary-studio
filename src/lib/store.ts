@@ -151,9 +151,11 @@ export const useStore = create<StoreState>((set, get) => ({
   getFilteredIngredients: () => {
     const { ingredients, ingredientSearch, ingredientSeasonFilter, ingredientCategoryFilter } = get();
     return ingredients.filter(i => {
-      const matchSearch = !ingredientSearch || i.name.toLowerCase().includes(ingredientSearch.toLowerCase()) || i.aromas.some(a => a.toLowerCase().includes(ingredientSearch.toLowerCase()));
-      const matchSeason = ingredientSeasonFilter === 'Alle' || i.seasons.includes(ingredientSeasonFilter as any);
-      const matchCat    = ingredientCategoryFilter === 'Alle' || i.category === ingredientCategoryFilter;
+      const aromas = Array.isArray(i.aromaprofil) ? i.aromaprofil : [];
+      const saison = Array.isArray(i.saison) ? i.saison : [];
+      const matchSearch = !ingredientSearch || i.name.toLowerCase().includes(ingredientSearch.toLowerCase()) || aromas.some(a => a.toLowerCase().includes(ingredientSearch.toLowerCase()));
+      const matchSeason = ingredientSeasonFilter === 'Alle' || saison.includes(ingredientSeasonFilter);
+      const matchCat    = ingredientCategoryFilter === 'Alle' || i.kategorie === ingredientCategoryFilter;
       return matchSearch && matchSeason && matchCat;
     });
   },

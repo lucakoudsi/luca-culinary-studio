@@ -62,32 +62,27 @@ export interface CreativeResult {
 }
 
 // ─── Zutatenbibliothek ───────────────────────────────────────────────────────
-export type IngredientCategory =
-  | 'Gemüse' | 'Fleisch' | 'Fisch & Meeresfrüchte' | 'Pilze' | 'Kräuter & Gewürze'
-  | 'Obst' | 'Nüsse & Samen' | 'Milchprodukte & Käse' | 'Getreide & Hülsenfrüchte'
-  | 'Öle & Fette' | 'Fermentiertes';
-
 export interface FlavorProfile {
-  acidity: number;    // 0–5
-  sweetness: number;  // 0–5
-  bitterness: number; // 0–5
-  umami: number;      // 0–5
-  spiciness: number;  // 0–5
-  saltiness: number;  // 0–5
+  acidity: number;
+  sweetness: number;
+  bitterness: number;
+  umami: number;
+  spiciness: number;
+  saltiness: number;
 }
 
 export interface Ingredient {
   id: number;
   name: string;
-  category: IngredientCategory;
-  seasons: Season[];
-  origin: string;
-  aromas: string[];
-  flavor: FlavorProfile;
+  kategorie: string;
+  saison: string[];
+  herkunft: string;
+  aromaprofil: string[];
+  geschmack: FlavorProfile;
   pairings: string[];
-  description: string;
-  storageTemp: string;
-  unit: string;
+  beschreibung: string;
+  lagertemp: string;
+  einheit: string;
 }
 
 // ─── Menügenerator ───────────────────────────────────────────────────────────
