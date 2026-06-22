@@ -30,7 +30,7 @@ function toRecipe(row: Record<string, unknown>): Recipe {
 
 export async function GET(req: NextRequest) {
   const user = await getRequestUser(req);
-  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+  if (!user) return NextResponse.json([]);
 
   const { data, error } = await db
     .from('recipes')
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     .eq('user_id', user.id)
     .order('id');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json([]);
   return NextResponse.json((data ?? []).map(toRecipe));
 }
 

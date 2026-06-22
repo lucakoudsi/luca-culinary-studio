@@ -97,10 +97,10 @@ export const useStore = create<StoreState>((set, get) => ({
   generatedMenus:  [],
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
-  fetchRecipes:     async () => { const data = await api.get('/api/rezepte');  set({ recipes:     data }); },
-  fetchIngredients: async () => { const data = await api.get('/api/zutaten');  set({ ingredients: data }); },
-  fetchIdeas:       async () => { const data = await api.get('/api/ideen');    set({ ideas:       data }); },
-  fetchProjects:    async () => { const data = await api.get('/api/projekte'); set({ projects:    data }); },
+  fetchRecipes:     async () => { try { const d = await api.get('/api/rezepte');  set({ recipes:     Array.isArray(d) ? d : [] }); } catch { set({ recipes:     [] }); } },
+  fetchIngredients: async () => { try { const d = await api.get('/api/zutaten');  set({ ingredients: Array.isArray(d) ? d : [] }); } catch { set({ ingredients: [] }); } },
+  fetchIdeas:       async () => { try { const d = await api.get('/api/ideen');    set({ ideas:       Array.isArray(d) ? d : [] }); } catch { set({ ideas:       [] }); } },
+  fetchProjects:    async () => { try { const d = await api.get('/api/projekte'); set({ projects:    Array.isArray(d) ? d : [] }); } catch { set({ projects:    [] }); } },
 
   // ── Recipes ──────────────────────────────────────────────────────────────
   setSearchQuery:    q => set({ searchQuery: q }),

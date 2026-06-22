@@ -7,7 +7,7 @@ export async function GET() {
     .from('ideas')
     .select('*')
     .order('id', { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json([]);
   return NextResponse.json(data ?? []);
 }
 

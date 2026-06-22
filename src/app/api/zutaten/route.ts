@@ -7,7 +7,7 @@ export async function GET() {
     .from('ingredients')
     .select('*')
     .order('name');
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json([]);
   return NextResponse.json((data ?? []).map(toIngredient));
 }
 
