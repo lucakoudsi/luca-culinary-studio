@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { Search, ChevronRight, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { FEATURES } from '@/config/features';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -154,12 +155,19 @@ export default function DashboardPage() {
                 Ich habe 3 neue Inspirationen basierend auf<br />
                 der aktuellen Saison für dich vorbereitet.
               </p>
-              <button onClick={() => router.push('/ki-sous-chef')}
+              <button
+                onClick={() => FEATURES.AI_ENABLED && router.push('/ki-sous-chef')}
+                disabled={!FEATURES.AI_ENABLED}
+                title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
                 className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-                style={{ border: '1px solid rgba(201,168,76,0.4)', color: '#C9A84C', background: 'rgba(201,168,76,0.07)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,168,76,0.14)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,168,76,0.07)'; }}>
-                Mit mir sprechen <ArrowRight size={14} />
+                style={{
+                  border: '1px solid rgba(201,168,76,0.4)',
+                  color: '#C9A84C',
+                  background: 'rgba(201,168,76,0.07)',
+                  opacity: FEATURES.AI_ENABLED ? 1 : 0.5,
+                  cursor: FEATURES.AI_ENABLED ? 'pointer' : 'not-allowed',
+                }}>
+                {FEATURES.AI_ENABLED ? 'Mit mir sprechen' : 'Coming Soon'} <ArrowRight size={14} />
               </button>
             </div>
           </div>

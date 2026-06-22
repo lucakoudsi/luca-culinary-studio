@@ -7,6 +7,7 @@ import {
   FlaskConical, Sparkles, Save, Trash2, ChevronRight,
   CheckCircle, Loader2
 } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 
 const styleOptions = ['Modern', 'Fine Dining', 'Fusion', 'Klassisch', 'Vegetarisch', 'Avantgarde'];
 
@@ -200,11 +201,25 @@ export default function KreativlaborPage() {
                 className="w-full bg-background border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40" />
             </div>
 
-            <button onClick={handleGenerate} disabled={loading || !ingredients.trim()}
-              className="w-full py-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)', color: '#0A0A0A' }}>
-              {loading ? <><Loader2 size={17} className="animate-spin" /> Wird entwickelt…</> : <><Sparkles size={17} /> {projektContext ? 'Konzept aktualisieren' : 'Konzept generieren'}</>}
-            </button>
+            <div className="relative">
+              <button onClick={handleGenerate}
+                disabled={loading || !ingredients.trim() || !FEATURES.AI_ENABLED}
+                title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
+                className="w-full py-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(135deg, #9A7A30, #E2C06A)',
+                  color: '#0A0A0A',
+                  opacity: !FEATURES.AI_ENABLED || loading || !ingredients.trim() ? 0.5 : 1,
+                }}>
+                {loading ? <><Loader2 size={17} className="animate-spin" /> Wird entwickelt…</> : <><Sparkles size={17} /> {projektContext ? 'Konzept aktualisieren' : 'Konzept generieren'}</>}
+              </button>
+              {!FEATURES.AI_ENABLED && (
+                <span className="absolute -top-2 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.35)' }}>
+                  Coming Soon
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="bg-card border border-border rounded-xl p-5">

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { ChefHat, Send, Loader2, User } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 
 interface Message {
   id: number;
@@ -154,30 +155,41 @@ export default function KiSousChefPage() {
       {/* Quick prompts */}
       <div className="flex gap-2 flex-wrap mb-3 flex-shrink-0">
         {quickPrompts.map(q => (
-          <button key={q} onClick={() => send(q)}
-            className="text-[11px] px-3 py-1.5 rounded-full bg-card border border-border text-text-muted hover:border-gold/30 hover:text-text-secondary transition-all whitespace-nowrap">
+          <button key={q}
+            onClick={() => FEATURES.AI_ENABLED && send(q)}
+            disabled={!FEATURES.AI_ENABLED}
+            title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
+            className="text-[11px] px-3 py-1.5 rounded-full bg-card border border-border text-text-muted transition-all whitespace-nowrap"
+            style={FEATURES.AI_ENABLED ? {} : { opacity: 0.4, cursor: 'not-allowed' }}>
             {q}
           </button>
         ))}
       </div>
 
       {/* Input */}
-      <div className="flex gap-3 flex-shrink-0">
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
-          placeholder="Frage stellen oder Idee beschreiben…"
-          className="flex-1 bg-card border border-border-strong rounded-xl px-4 py-3 text-text-primary text-[13px] outline-none focus:border-gold/40 transition-colors" />
-        <button onClick={() => send(input)} disabled={loading || !input.trim()}
-          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)' }}>
-          {loading
-            ? <Loader2 size={18} className="animate-spin" color="#0A0A0A" />
-            : <Send size={18} color="#0A0A0A" />}
-        </button>
-      </div>
+      {!FEATURES.AI_ENABLED ? (
+        <div className="flex-shrink-0 rounded-xl px-4 py-3 text-center text-[13px]"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(168,152,128,0.6)' }}>
+          KI-Sous-Chef wird bald verfügbar — OpenAI API Key wird eingerichtet
+        </div>
+      ) : (
+        <div className="flex gap-3 flex-shrink-0">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
+            placeholder="Frage stellen oder Idee beschreiben…"
+            className="flex-1 bg-card border border-border-strong rounded-xl px-4 py-3 text-text-primary text-[13px] outline-none focus:border-gold/40 transition-colors" />
+          <button onClick={() => send(input)} disabled={loading || !input.trim()}
+            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
+            style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)' }}>
+            {loading
+              ? <Loader2 size={18} className="animate-spin" color="#0A0A0A" />
+              : <Send size={18} color="#0A0A0A" />}
+          </button>
+        </div>
+      )}
     </div>
     </div>
   );

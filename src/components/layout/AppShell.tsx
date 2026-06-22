@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import AiBanner from '@/components/AiBanner';
 import { Menu } from 'lucide-react';
 
 const AUTH_PATHS = ['/login', '/register'];
@@ -31,6 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <AiBanner />
     </div>
   );
 }
