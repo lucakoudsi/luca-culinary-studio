@@ -1,0 +1,61 @@
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/600.css';
+@import '@fontsource/playfair-display/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #0A0A0A;
+    --foreground: #F5F0E8;
+    --card: #1A1A1A;
+    --card-foreground: #F5F0E8;
+    --popover: #1A1A1A;
+    --popover-foreground: #F5F0E8;
+    --primary: #C9A84C;
+    --primary-foreground: #0A0A0A;
+    --secondary: #2A2A2A;
+    --secondary-foreground: #F5F0E8;
+    --muted: #1A1A1A;
+    --muted-foreground: #A89880;
+    --accent: #2A2A2A;
+    --accent-foreground: #F5F0E8;
+    --destructive: #E06B6B;
+    --border: #2A2A2A;
+    --input: #2A2A2A;
+    --ring: #C9A84C;
+    --radius: 0.625rem;
+    --font-playfair: 'Playfair Display';
+    --font-inter: 'Inter';
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-text-primary;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #3A3A3A; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+}

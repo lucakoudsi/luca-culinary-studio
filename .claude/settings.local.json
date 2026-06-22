@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/rezepte/1\" -TimeoutSec 10 -UseBasicParsing; Write-Output \"Status: $\\($r.StatusCode\\)\"; Write-Output \"Body: $\\($r.Content\\)\" } catch { $_.Exception.Message })",
+      "PowerShell(Start-Sleep -Seconds 4; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/seed\" -Method POST -TimeoutSec 20 -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { $_.Exception.Message })",
+      "PowerShell(Start-Sleep -Seconds 12; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 8 -UseBasicParsing; \"Server up: $\\($r.StatusCode\\)\" } catch { \"Not ready yet\" })",
+      "PowerShell(Start-Sleep -Seconds 10; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 10 -UseBasicParsing; \"Server up: $\\($r.StatusCode\\)\" } catch { \"Not ready: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Start-Sleep -Seconds 15; try { $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/seed\" -Method POST -TimeoutSec 15 -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\"; $r.Content } catch { \"Error: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 30 -UseBasicParsing; \"up: $\\($r.StatusCode\\)\" } catch { \"err: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(netstat *)",
+      "PowerShell(Start-Sleep -Seconds 300; Get-Content \"C:\\\\Users\\\\lucak\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucak-luca-culinary-studio\\\\16f8e30f-0e6b-438d-8b1a-79d8985d67e1\\\\tasks\\\\blhth2b4c.output\" | Select-Object -Last 10; curl.exe -s -m 30 \"http://localhost:3000/api/ping\" 2>&1)",
+      "PowerShell(Start-Sleep -Seconds 15; Get-Content \"C:\\\\Users\\\\lucak\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucak-luca-culinary-studio\\\\16f8e30f-0e6b-438d-8b1a-79d8985d67e1\\\\tasks\\\\bnbwvxclh.output\"; curl.exe -s -m 30 \"http://localhost:3000/api/ping\" 2>&1)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\src\\\\app\\\\globals.css\" | Measure-Object -Line\\).Lines)",
+      "PowerShell($pkg = Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\node_modules\\\\tailwindcss\\\\package.json\" | ConvertFrom-Json; Write-Output \"tailwindcss: $\\($pkg.version\\)\"; $shadcn = Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\node_modules\\\\shadcn\\\\package.json\" | ConvertFrom-Json; Write-Output \"shadcn: $\\($shadcn.version\\)\")",
+      "PowerShell(Start-Sleep -Seconds 20; Get-Content \"C:\\\\Users\\\\lucak\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucak-luca-culinary-studio\\\\16f8e30f-0e6b-438d-8b1a-79d8985d67e1\\\\tasks\\\\bvphoul6z.output\" | Select-Object -Last 5; curl.exe -s -m 30 \"http://localhost:3000/api/ping\" 2>&1)",
+      "PowerShell(curl.exe -s -m 30 -X POST \"http://localhost:3000/api/seed\" 2>&1)",
+      "PowerShell(curl.exe -s \"http://localhost:3000/api/rezepte\" 2>&1 | Select-Object -First 3; Write-Output \"---\"; curl.exe -s \"http://localhost:3000/api/zutaten\" 2>&1 | Select-Object -First 2; Write-Output \"---\"; curl.exe -s \"http://localhost:3000/api/projekte\" 2>&1 | Select-Object -First 2)",
+      "PowerShell(curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/rezepte\" 2>&1; Write-Output \" /rezepte\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/zutaten\" 2>&1; Write-Output \" /zutaten\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/projekte\" 2>&1; Write-Output \" /projekte\")",
+      "PowerShell(curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/\" 2>&1; Write-Output \" /\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/tellerdesigner\" 2>&1; Write-Output \" /tellerdesigner\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/wein-pairing\" 2>&1; Write-Output \" /wein-pairing\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/fermentation\" 2>&1; Write-Output \" /fermentation\"; curl.exe -s -m 15 -o NUL -w \"%{http_code}\" \"http://localhost:3000/ki-sous-chef\" 2>&1; Write-Output \" /ki-sous-chef\")",
+      "PowerShell(curl.exe -s -m 10 -o NUL -w \"%{http_code}\" \"http://localhost:3000/api/rezepte\"; Write-Output \"\"; Get-Content \"C:\\\\Users\\\\lucak\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-lucak-luca-culinary-studio\\\\16f8e30f-0e6b-438d-8b1a-79d8985d67e1\\\\tasks\\\\bvdooi2v8.output\" | Select-Object -Last 8)",
+      "PowerShell(curl.exe -s -X POST http://localhost:3000/api/seed)",
+      "PowerShell(Get-Process *)",
+      "PowerShell(winget install *)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; git --version)",
+      "PowerShell(git *)"
+    ]
+  }
+}
