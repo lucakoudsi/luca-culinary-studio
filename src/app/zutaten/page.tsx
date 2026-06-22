@@ -5,7 +5,7 @@ import type { Ingredient, IngredientCategory } from '@/types';
 import { Search, Leaf, X, Plus, Thermometer, MapPin, Tag } from 'lucide-react';
 
 const seasonOptions = ['Alle', 'Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'];
-const categoryOptions: string[] = ['Alle', 'Gemüse', 'Fleisch', 'Fisch & Meeresfrüchte', 'Pilze', 'Kräuter & Gewürze', 'Obst', 'Milchprodukte', 'Getreide & Hülsenfrüchte', 'Öle & Fette', 'Fermentiertes'];
+const categoryOptions: string[] = ['Alle', 'Gemüse', 'Obst', 'Fleisch', 'Fisch & Meeresfrüchte', 'Pilze', 'Kräuter & Gewürze', 'Nüsse & Samen', 'Milchprodukte & Käse', 'Getreide & Hülsenfrüchte', 'Öle & Fette', 'Fermentiertes'];
 
 const seasonColors: Record<string, string> = { Frühling: '#7CB87A', Sommer: '#E8A838', Herbst: '#C4743A', Winter: '#7BB8D4', Ganzjährig: '#A89880' };
 const flavorLabels = ['Säure', 'Süße', 'Bitter', 'Umami', 'Schärfe', 'Salzig'];
@@ -29,7 +29,8 @@ function IngredientCard({ ingredient, onClick }: { ingredient: Ingredient; onCli
   const catColor: Record<string, string> = {
     'Gemüse': '#7CB87A', 'Fleisch': '#E06B6B', 'Fisch & Meeresfrüchte': '#7BB8D4',
     'Pilze': '#C4743A', 'Kräuter & Gewürze': '#7CB87A', 'Obst': '#E8A838',
-    'Milchprodukte': '#A08060', 'Fermentiertes': '#6B3A4B', 'Getreide & Hülsenfrüchte': '#8B7355',
+    'Nüsse & Samen': '#C4743A', 'Milchprodukte & Käse': '#A08060',
+    'Fermentiertes': '#6B3A4B', 'Getreide & Hülsenfrüchte': '#8B7355',
     'Öle & Fette': '#9B6E1A',
   };
   const color = catColor[ingredient.category] || '#C9A84C';

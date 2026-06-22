@@ -64,7 +64,8 @@ export interface CreativeResult {
 // ─── Zutatenbibliothek ───────────────────────────────────────────────────────
 export type IngredientCategory =
   | 'Gemüse' | 'Fleisch' | 'Fisch & Meeresfrüchte' | 'Pilze' | 'Kräuter & Gewürze'
-  | 'Obst' | 'Milchprodukte' | 'Getreide & Hülsenfrüchte' | 'Öle & Fette' | 'Fermentiertes';
+  | 'Obst' | 'Nüsse & Samen' | 'Milchprodukte & Käse' | 'Getreide & Hülsenfrüchte'
+  | 'Öle & Fette' | 'Fermentiertes';
 
 export interface FlavorProfile {
   acidity: number;    // 0–5

@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-const supabase = createAdminClient();
+
+const CATEGORY_ALIASES: Record<string, string> = {
+  'Gewürze & Kräuter': 'Kräuter & Gewürze',
+  'Milchprodukte':     'Milchprodukte & Käse',
+};
 
 export async function GET() {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('zutaten')
     .select('*')
     .order('name');
+  console.log('[zutaten] count:', data?.length, 'error:', error?.message ?? null);
   if (error) return NextResponse.json([]);
   return NextResponse.json((data ?? []).map(toIngredient));
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = createAdminClient();
   const body = await req.json();
   const { data, error } = await supabase
     .from('zutaten')
@@ -34,17 +41,18 @@ export async function POST(req: NextRequest) {
 }
 
 function toIngredient(row: Record<string, unknown>) {
+  const kategorie = (row.kategorie as string) ?? '';
   return {
     id:          row.id,
     name:        row.name,
-    category:    row.kategorie   ?? '',
-    seasons:     (row.saison     as string[]) ?? [],
-    origin:      row.herkunft    ?? '',
+    category:    CATEGORY_ALIASES[kategorie] ?? kategorie,
+    seasons:     (row.saison      as string[]) ?? [],
+    origin:      row.herkunft     ?? '',
     aromas:      (row.aromaprofil as string[]) ?? [],
-    flavor:      row.geschmack   ?? {},
-    pairings:    (row.pairings   as string[]) ?? [],
+    flavor:      (row.geschmack   as Record<string, number>) ?? {},
+    pairings:    (row.pairings    as string[]) ?? [],
     description: row.beschreibung ?? '',
-    storageTemp: row.lagertemp   ?? '',
-    unit:        row.einheit     ?? 'Gramm',
+    storageTemp: row.lagertemp    ?? '',
+    unit:        row.einheit      ?? 'Gramm',
   };
 }
