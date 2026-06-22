@@ -4,7 +4,7 @@ const supabase = createAdminClient();
 
 export async function GET() {
   const { data, error } = await supabase
-    .from('ingredients')
+    .from('zutaten')
     .select('*')
     .order('name');
   if (error) return NextResponse.json([]);
@@ -14,18 +14,18 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { data, error } = await supabase
-    .from('ingredients')
+    .from('zutaten')
     .insert({
       name:         body.name,
-      category:     body.category ?? '',
-      seasons:      body.seasons  ?? [],
-      origin:       body.origin   ?? '',
-      aromas:       body.aromas   ?? [],
-      flavor:       body.flavor   ?? {},
+      kategorie:    body.category ?? '',
+      saison:       body.seasons  ?? [],
+      herkunft:     body.origin   ?? '',
+      aromaprofil:  body.aromas   ?? [],
+      geschmack:    body.flavor   ?? {},
       pairings:     body.pairings ?? [],
-      description:  body.description ?? '',
-      storage_temp: body.storageTemp ?? '',
-      unit:         body.unit ?? 'Gramm',
+      beschreibung: body.description ?? '',
+      lagertemp:    body.storageTemp ?? '',
+      einheit:      body.unit ?? 'Gramm',
     })
     .select()
     .single();
@@ -37,14 +37,14 @@ function toIngredient(row: Record<string, unknown>) {
   return {
     id:          row.id,
     name:        row.name,
-    category:    row.category   ?? '',
-    seasons:     (row.seasons   as string[]) ?? [],
-    origin:      row.origin     ?? '',
-    aromas:      (row.aromas    as string[]) ?? [],
-    flavor:      row.flavor     ?? {},
-    pairings:    (row.pairings  as string[]) ?? [],
-    description: row.description ?? '',
-    storageTemp: row.storage_temp ?? '',
-    unit:        row.unit ?? 'Gramm',
+    category:    row.kategorie   ?? '',
+    seasons:     (row.saison     as string[]) ?? [],
+    origin:      row.herkunft    ?? '',
+    aromas:      (row.aromaprofil as string[]) ?? [],
+    flavor:      row.geschmack   ?? {},
+    pairings:    (row.pairings   as string[]) ?? [],
+    description: row.beschreibung ?? '',
+    storageTemp: row.lagertemp   ?? '',
+    unit:        row.einheit     ?? 'Gramm',
   };
 }

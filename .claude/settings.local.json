@@ -34,7 +34,13 @@
       "PowerShell(git add *)",
       "PowerShell(git commit *)",
       "PowerShell(git push *)",
-      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; git status --short)"
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; git status --short)",
+      "PowerShell(cd C:\\\\Users\\\\lucak\\\\luca-culinary-studio; Start-Process powershell -ArgumentList \"-NoProfile -Command `\"cd 'C:\\\\Users\\\\lucak\\\\luca-culinary-studio'; npx next dev --turbo`\"\" -WindowStyle Normal)",
+      "PowerShell(Start-Sleep -Seconds 10; Invoke-WebRequest -Uri \"http://localhost:3000/api/seed-zutaten\" -Method POST -TimeoutSec 60 | Select-Object -ExpandProperty Content)",
+      "PowerShell(Start-Sleep -Seconds 8; Invoke-WebRequest -Uri \"http://localhost:3000/api/seed-zutaten\" -Method POST -UseBasicParsing -TimeoutSec 60 | Select-Object -ExpandProperty Content)",
+      "PowerShell(Start-Sleep -Seconds 5; Invoke-WebRequest -Uri \"http://localhost:3000/api/seed-zutaten\" -Method POST -UseBasicParsing -TimeoutSec 60 | Select-Object -ExpandProperty Content)",
+      "PowerShell(cd C:\\\\Users\\\\lucak\\\\luca-culinary-studio; $job = Start-Job -ScriptBlock { cd C:\\\\Users\\\\lucak\\\\luca-culinary-studio; & npx next dev --turbo 2>&1 }; Write-Output \"Job started: $\\($job.Id\\)\")",
+      "PowerShell(Receive-Job *)"
     ]
   }
 }
