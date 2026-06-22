@@ -54,7 +54,7 @@ function renderText(text: string) {
     if (numLine) {
       return (
         <p key={i} className="flex gap-2 mt-1.5 first:mt-0">
-          <span className="font-semibold flex-shrink-0" style={{ color: '#C9A84C' }}>{numLine[1]}.</span>
+          <span className="font-semibold flex-shrink-0" style={{ color: '#6B3A4B' }}>{numLine[1]}.</span>
           <span>{numLine[2]}</span>
         </p>
       );
@@ -94,16 +94,16 @@ export default function KiSousChefPage() {
   };
 
   return (
-    <div className="flex flex-col" style={{ background: '#0A0A0A', height: '100vh' }}>
+    <div className="flex flex-col" style={{ background: '#FAF8F5', height: '100vh' }}>
       <div className="px-8 pt-8 pb-6 flex-shrink-0"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
-          style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Kulinarische KI</div>
+          style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Kulinarische KI</div>
         <h1 className="font-heading font-bold leading-none"
-          style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>
+          style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
           KI-Sous-Chef
         </h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>
           Dein kulinarischer Assistent für Rezepte, Techniken und Inspiration
         </p>
       </div>
@@ -114,7 +114,7 @@ export default function KiSousChefPage() {
         {messages.map(msg => (
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5 ${
-              msg.role === 'assistant' ? 'bg-gold/10 border border-gold/30' : 'bg-white/5 border border-white/10'
+              msg.role === 'assistant' ? 'bg-gold/10 border border-gold/30' : 'bg-black/5 border border-black/10'
             }`}>
               {msg.role === 'assistant'
                 ? <ChefHat size={15} color="#C9A84C" strokeWidth={1.5} />
@@ -123,10 +123,10 @@ export default function KiSousChefPage() {
             <div className={`max-w-[78%] flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-xl px-4 py-3 text-[13px] ${
                 msg.role === 'user'
-                  ? 'rounded-tr-sm text-[#0A0A0A]'
+                  ? 'rounded-tr-sm text-white'
                   : 'bg-background border border-border text-text-secondary rounded-tl-sm'
               }`}
-                style={msg.role === 'user' ? { background: 'linear-gradient(135deg, #9A7A30, #C9A84C)' } : {}}>
+                style={msg.role === 'user' ? { background: 'linear-gradient(135deg, #562E3C, #6B3A4B)' } : {}}>
                 {renderText(msg.text)}
               </div>
               <span className="text-[10px] text-text-muted px-1">{msg.time}</span>
@@ -143,7 +143,7 @@ export default function KiSousChefPage() {
               <div className="flex gap-1.5 items-center">
                 {[0, 1, 2].map(i => (
                   <div key={i} className="w-1.5 h-1.5 rounded-full animate-bounce"
-                    style={{ background: '#C9A84C', opacity: 0.6, animationDelay: `${i * 150}ms` }} />
+                    style={{ background: '#6B3A4B', opacity: 0.6, animationDelay: `${i * 150}ms` }} />
                 ))}
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function KiSousChefPage() {
       {/* Input */}
       {!FEATURES.AI_ENABLED ? (
         <div className="flex-shrink-0 rounded-xl px-4 py-3 text-center text-[13px]"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(168,152,128,0.6)' }}>
+          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', color: '#B09880' }}>
           KI-Sous-Chef wird bald verfügbar — OpenAI API Key wird eingerichtet
         </div>
       ) : (
@@ -183,10 +183,10 @@ export default function KiSousChefPage() {
             className="flex-1 bg-card border border-border-strong rounded-xl px-4 py-3 text-text-primary text-[13px] outline-none focus:border-gold/40 transition-colors" />
           <button onClick={() => send(input)} disabled={loading || !input.trim()}
             className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)' }}>
+            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)' }}>
             {loading
-              ? <Loader2 size={18} className="animate-spin" color="#0A0A0A" />
-              : <Send size={18} color="#0A0A0A" />}
+              ? <Loader2 size={18} className="animate-spin" color="#FFFFFF" />
+              : <Send size={18} color="#FFFFFF" />}
           </button>
         </div>
       )}

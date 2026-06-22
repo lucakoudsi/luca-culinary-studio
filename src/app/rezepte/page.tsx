@@ -21,7 +21,7 @@ function StarRating({ value }: { value: number }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={11} fill={i <= value ? '#C9A84C' : 'none'} color={i <= value ? '#C9A84C' : '#3A3530'} />
+        <Star key={i} size={11} fill={i <= value ? '#6B3A4B' : 'none'} color={i <= value ? '#6B3A4B' : '#D4C9BC'} />
       ))}
     </div>
   );
@@ -129,7 +129,7 @@ function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: 
             ].map(item => (
               <div key={item.label} className="bg-card rounded-lg p-3 text-center border border-border">
                 <div className="text-[10px] text-text-muted mb-1 uppercase tracking-wider">{item.label}</div>
-                <div className="text-[14px] font-semibold" style={{ color: item.color || '#F5F0E8' }}>{item.value}</div>
+                <div className="text-[14px] font-semibold" style={{ color: item.color || '#2C2420' }}>{item.value}</div>
               </div>
             ))}
           </div>
@@ -180,7 +180,7 @@ function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: 
                 {(recipe.schritte ?? []).map((s, i) => (
                   <div key={i} className="flex gap-3">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold mt-0.5"
-                      style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+                      style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
                       {i + 1}
                     </div>
                     <p className="text-[14px] text-text-secondary leading-relaxed">{s}</p>
@@ -213,7 +213,7 @@ function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: 
               <div className="flex flex-wrap gap-2">
                 {recipe.tags.map(t => (
                   <span key={t} className="text-[12px] px-3 py-1 rounded-full"
-                    style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+                    style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
                     {t}
                   </span>
                 ))}
@@ -223,7 +223,7 @@ function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: 
 
           <div className="flex items-center gap-4 pt-5 border-t border-border">
             <div className="flex gap-1">
-              {[1,2,3,4,5].map(i => <Star key={i} size={14} fill={i <= recipe.rating ? '#C9A84C' : 'none'} color={i <= recipe.rating ? '#C9A84C' : '#3A3530'} />)}
+              {[1,2,3,4,5].map(i => <Star key={i} size={14} fill={i <= recipe.rating ? '#6B3A4B' : 'none'} color={i <= recipe.rating ? '#6B3A4B' : '#D4C9BC'} />)}
             </div>
             <span className="text-[12px] text-text-muted flex items-center gap-1 ml-1"><Eye size={12} />{recipe.views} Aufrufe</span>
             <div className="flex-1" />
@@ -250,23 +250,23 @@ export default function RezeptePage() {
   useEffect(() => { fetchRecipes(); }, []);
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
       {/* Header */}
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div>
           <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
-            style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Deine Küche</div>
+            style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Deine Küche</div>
           <h1 className="font-heading font-bold leading-none"
-            style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
             Rezeptarchiv
           </h1>
-          <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>{filtered.length} Rezepte</p>
+          <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{filtered.length} Rezepte</p>
         </div>
         <div className="mt-1">
           <button onClick={() => router.push('/rezepte/neu')}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #B8942A, #C9A84C)', color: '#0A0A0A' }}>
+            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
             <Plus size={15} /> Neues Rezept
           </button>
         </div>
@@ -286,9 +286,9 @@ export default function RezeptePage() {
             <button key={c} onClick={() => setFilterCategory(c)}
               className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all"
               style={{
-                background: filterCategory === c ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${filterCategory === c ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                color: filterCategory === c ? '#C9A84C' : '#A89880',
+                background: filterCategory === c ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
+                border: `1px solid ${filterCategory === c ? 'rgba(107,58,75,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                color: filterCategory === c ? '#6B3A4B' : '#8B7355',
               }}>
               {c}
             </button>
@@ -300,9 +300,9 @@ export default function RezeptePage() {
             <button key={s} onClick={() => setFilterStatus(s)}
               className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
               style={{
-                background: filterStatus === s ? 'rgba(201,168,76,0.12)' : 'transparent',
-                border: `1px solid ${filterStatus === s ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                color: filterStatus === s ? '#C9A84C' : '#5C5548',
+                background: filterStatus === s ? 'rgba(107,58,75,0.12)' : 'transparent',
+                border: `1px solid ${filterStatus === s ? 'rgba(107,58,75,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                color: filterStatus === s ? '#6B3A4B' : '#8B7355',
               }}>
               {s}
             </button>

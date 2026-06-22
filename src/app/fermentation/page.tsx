@@ -149,7 +149,7 @@ function ProjectCard({ project, onAddNote }: { project: FermentProject; onAddNot
 
         <button onClick={() => setOpen(!open)}
           className="flex items-center gap-1.5 text-[12px] font-medium transition-colors"
-          style={{ color: '#C9A84C' }}>
+          style={{ color: '#6B3A4B' }}>
           {project.notes.length} Notiz{project.notes.length !== 1 ? 'en' : ''}
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
@@ -177,7 +177,7 @@ function ProjectCard({ project, onAddNote }: { project: FermentProject; onAddNot
               className="flex-1 bg-background border border-border-strong rounded-lg px-3 py-2 text-text-primary text-[12px] outline-none focus:border-gold/40" />
             <button onClick={submit}
               className="px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all flex items-center"
-              style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+              style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
               <Plus size={14} />
             </button>
           </div>
@@ -202,11 +202,11 @@ export default function FermentationPage() {
   const done = projects.filter(p => p.status === 'Abgeschlossen' || p.status === 'Problem');
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Laufende Projekte</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Fermentation</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>{active.length} laufende Projekte · {done.length} abgeschlossen</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Laufende Projekte</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Fermentation</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{active.length} laufende Projekte · {done.length} abgeschlossen</p>
       </div>
       <div className="p-8 max-w-[1200px]">
 

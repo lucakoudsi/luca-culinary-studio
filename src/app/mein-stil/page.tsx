@@ -30,12 +30,12 @@ const influences = [
 ];
 
 const stats = [
-  { label: 'Rezepte gesamt', value: '6', color: '#C9A84C' },
+  { label: 'Rezepte gesamt', value: '6', color: '#6B3A4B' },
   { label: 'Lieblingskategorie', value: 'Hauptgang', color: '#7CB87A' },
   { label: 'Lieblingsaison', value: 'Frühling', color: '#7BB8D4' },
   { label: 'Ø Schwierigkeit', value: 'Mittel', color: '#E8A838' },
   { label: 'Fermentprojekte', value: '4', color: '#C4743A' },
-  { label: 'Ø Bewertung', value: '4.2 ★', color: '#C9A84C' },
+  { label: 'Ø Bewertung', value: '4.2 ★', color: '#6B3A4B' },
 ];
 
 function TagCloud() {
@@ -46,15 +46,15 @@ function TagCloud() {
       {tagCloud.map(tag => {
         const n = (tag.count - min) / (max - min);
         const size = 11 + n * 9;
-        const alpha = 0.5 + n * 0.5;
+        const alpha = 0.55 + n * 0.45;
         return (
           <span key={tag.name}
             className="px-3 py-1.5 rounded-full font-medium cursor-default select-none transition-transform hover:scale-105"
             style={{
               fontSize: `${size}px`,
-              background: `rgba(201,168,76,${0.06 + n * 0.14})`,
-              color: `rgba(201,168,76,${alpha})`,
-              border: `1px solid rgba(201,168,76,${0.12 + n * 0.28})`,
+              background: `rgba(107,58,75,${0.06 + n * 0.12})`,
+              color: `rgba(107,58,75,${alpha})`,
+              border: `1px solid rgba(107,58,75,${0.1 + n * 0.22})`,
             }}>
             {tag.name}
           </span>
@@ -66,26 +66,26 @@ function TagCloud() {
 
 export default function MeinStilPage() {
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Deine Signatur</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Mein Stil</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>Kulinarisches Profil & persönliche Handschrift</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Deine Signatur</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Mein Stil</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Kulinarisches Profil & persönliche Handschrift</p>
       </div>
       <div className="p-8 max-w-[1200px]">
 
       {/* Hero */}
       <div className="bg-card border border-border rounded-xl p-7 mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-[0.04] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, #C9A84C, transparent)', transform: 'translate(30%, -30%)' }} />
+          style={{ background: 'radial-gradient(circle, #6B3A4B, transparent)', transform: 'translate(30%, -30%)' }} />
         <div className="flex items-start gap-6 relative">
           <div className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05))', border: '1px solid rgba(201,168,76,0.3)' }}>
-            <User size={28} color="#C9A84C" strokeWidth={1.5} />
+            style={{ background: 'linear-gradient(135deg, rgba(107,58,75,0.15), rgba(107,58,75,0.04))', border: '1px solid rgba(107,58,75,0.25)' }}>
+            <User size={28} color="#6B3A4B" strokeWidth={1.5} />
           </div>
           <div>
             <h2 className="font-heading text-[22px] font-bold text-text-primary mb-0.5">Luca Koudsi</h2>
-            <div className="text-[13px] font-semibold mb-3" style={{ color: '#C9A84C' }}>Fine Dining · Fusion · Modern European</div>
+            <div className="text-[13px] font-semibold mb-3" style={{ color: '#6B3A4B' }}>Fine Dining · Fusion · Modern European</div>
             <p className="text-[13px] text-text-secondary leading-relaxed max-w-2xl">
               Meine Küche verbindet klassische europäische Techniken mit fernöstlichen Aromen und einem tiefen
               Verständnis für Fermentation. Ich arbeite produktzentriert – die beste Zutat braucht keine Ablenkung,
@@ -129,7 +129,7 @@ export default function MeinStilPage() {
                     <div className="text-[13px] font-semibold text-text-primary">{t.name}</div>
                     <div className="flex gap-0.5">
                       {[1, 2, 3, 4, 5].map(i => (
-                        <Star key={i} size={10} fill={i <= t.level ? '#C9A84C' : 'none'} color={i <= t.level ? '#C9A84C' : '#3D3830'} />
+                        <Star key={i} size={10} fill={i <= t.level ? '#6B3A4B' : 'none'} color={i <= t.level ? '#6B3A4B' : '#D4C9BC'} />
                       ))}
                     </div>
                   </div>
@@ -149,9 +149,9 @@ export default function MeinStilPage() {
           <div className="space-y-5">
             {influences.map((inf, i) => (
               <div key={i} className="border-l-2 pl-4 py-0.5"
-                style={{ borderColor: `rgba(201,168,76,${0.85 - i * 0.18})` }}>
+                style={{ borderColor: `rgba(107,58,75,${0.7 - i * 0.12})` }}>
                 <div className="text-[13px] font-semibold text-text-primary mb-0.5">{inf.name}</div>
-                <div className="text-[11px] mb-1.5" style={{ color: '#C9A84C' }}>{inf.region}</div>
+                <div className="text-[11px] mb-1.5" style={{ color: '#6B3A4B' }}>{inf.region}</div>
                 <p className="text-[12px] text-text-muted leading-relaxed">{inf.note}</p>
               </div>
             ))}

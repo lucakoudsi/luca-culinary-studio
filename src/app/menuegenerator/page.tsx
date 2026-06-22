@@ -13,7 +13,7 @@ const styleOptions = ['Fine Dining', 'Klassisch', 'Modern', 'Fusion', 'Avantgard
 const courseTypeColors: Record<string, string> = {
   'Amuse-Bouche': '#7BB8D4', 'Kalte Vorspeise': '#7CB87A', 'Warme Vorspeise': '#7CB87A',
   'Vorspeise': '#7CB87A', 'Zwischengang': '#E8A838', 'Sorbet': '#7BB8D4',
-  'Hauptgang': '#C9A84C', 'Käse': '#C4743A', 'Dessert': '#E8A838',
+  'Hauptgang': '#6B3A4B', 'Käse': '#C4743A', 'Dessert': '#E8A838',
 };
 
 function MenuCard({ menu, onSave, onDelete }: { menu: GeneratedMenu; onSave: () => void; onDelete: () => void }) {
@@ -25,7 +25,7 @@ function MenuCard({ menu, onSave, onDelete }: { menu: GeneratedMenu; onSave: () 
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
-              style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+              style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
               {menu.season}
             </span>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-card-hover text-text-secondary border border-border">{menu.style}</span>
@@ -108,11 +108,11 @@ export default function MenuegeneratorPage() {
   };
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Menüplanung</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Menügenerator</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>Erstelle vollständige Menüs mit Spannungsbogen und Weinbegleitung.</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Menüplanung</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Menügenerator</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Erstelle vollständige Menüs mit Spannungsbogen und Weinbegleitung.</p>
       </div>
       <div className="p-8 max-w-[1200px]">
 
@@ -129,9 +129,9 @@ export default function MenuegeneratorPage() {
                   <button key={r} onClick={() => setRegion(r)}
                     className="px-2.5 py-2 rounded-lg text-[12px] font-medium transition-all text-center"
                     style={{
-                      background: region === r ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${region === r ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: region === r ? '#C9A84C' : '#A89880',
+                      background: region === r ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
+                      border: `1px solid ${region === r ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
+                      color: region === r ? '#6B3A4B' : '#8B7355',
                     }}>
                     {r}
                   </button>
@@ -146,9 +146,9 @@ export default function MenuegeneratorPage() {
                   <button key={s} onClick={() => setSeason(s)}
                     className="px-2.5 py-2 rounded-lg text-[12px] font-medium transition-all text-center"
                     style={{
-                      background: season === s ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${season === s ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: season === s ? '#C9A84C' : '#A89880',
+                      background: season === s ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
+                      border: `1px solid ${season === s ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
+                      color: season === s ? '#6B3A4B' : '#8B7355',
                     }}>
                     {s}
                   </button>
@@ -163,9 +163,9 @@ export default function MenuegeneratorPage() {
                   <button key={s} onClick={() => setStyle(s)}
                     className="px-2.5 py-2 rounded-lg text-[12px] font-medium transition-all text-center"
                     style={{
-                      background: style === s ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${style === s ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: style === s ? '#C9A84C' : '#A89880',
+                      background: style === s ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
+                      border: `1px solid ${style === s ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
+                      color: style === s ? '#6B3A4B' : '#8B7355',
                     }}>
                     {s}
                   </button>
@@ -190,15 +190,15 @@ export default function MenuegeneratorPage() {
                 title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
                 className="w-full py-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
                 style={{
-                  background: 'linear-gradient(135deg, #9A7A30, #E2C06A)',
-                  color: '#0A0A0A',
+                  background: 'linear-gradient(135deg, #562E3C, #7D4558)',
+                  color: '#FFFFFF',
                   opacity: !FEATURES.AI_ENABLED || loading ? 0.5 : 1,
                 }}>
                 {loading ? <><Loader2 size={17} className="animate-spin" /> Menü wird komponiert…</> : <><Sparkles size={17} /> Menü generieren</>}
               </button>
               {!FEATURES.AI_ENABLED && (
                 <span className="absolute -top-2 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.35)' }}>
+                  style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
                   Coming Soon
                 </span>
               )}
@@ -230,8 +230,8 @@ export default function MenuegeneratorPage() {
           {generatedMenus.length === 0 ? (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center border border-dashed border-border rounded-xl p-12">
               <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
-                <UtensilsCrossed size={28} color="#C9A84C" strokeWidth={1.5} />
+                style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
+                <UtensilsCrossed size={28} color="#6B3A4B" strokeWidth={1.5} />
               </div>
               <h3 className="font-heading text-xl font-bold text-text-primary mb-2">Bereit für dein erstes Menü</h3>
               <p className="text-text-secondary text-[13px] max-w-xs leading-relaxed">

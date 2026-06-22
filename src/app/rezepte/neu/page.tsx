@@ -18,11 +18,11 @@ const STATUSES    = ['Entwurf', 'In Bearbeitung', 'Fertig'] as const;
 const diffColor:   Record<string, string> = { Leicht: '#7CB87A', Mittel: '#E8A838', Schwer: '#E06B6B' };
 const statusColor: Record<string, string> = { Fertig: '#7CB87A', 'In Bearbeitung': '#E8A838', Entwurf: '#7BB8D4' };
 
-const IC  = "w-full bg-[#111] border border-[#2A2A2A] rounded-lg px-3.5 py-2.5 text-[#F5F0E8] text-sm outline-none focus:border-[rgba(201,168,76,0.5)] transition-colors placeholder:text-[#5C5548]";
-const LC  = "block text-[10px] text-[#A89880] font-semibold mb-1.5 uppercase tracking-wider";
-const SEC = "bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl p-6";
-const STL = "font-heading text-[16px] font-bold text-[#F5F0E8] mb-5 flex items-center gap-2.5";
-const ABT = "flex items-center gap-1.5 text-[12px] text-[#C9A84C] hover:text-[#E2C06A] transition-colors mt-3";
+const IC  = "w-full bg-white border border-[#E8E0D8] rounded-lg px-3.5 py-2.5 text-[#2C2420] text-sm outline-none focus:border-[rgba(107,58,75,0.45)] transition-colors placeholder:text-[#C0B5A8]";
+const LC  = "block text-[10px] text-[#8B7355] font-semibold mb-1.5 uppercase tracking-wider";
+const SEC = "bg-white border border-[#E8E0D8] rounded-2xl p-6";
+const STL = "font-heading text-[16px] font-bold text-[#2C2420] mb-5 flex items-center gap-2.5";
+const ABT = "flex items-center gap-1.5 text-[12px] text-[#6B3A4B] hover:text-[#562E3C] transition-colors mt-3";
 
 // ─── StarRating ──────────────────────────────────────────────────────────────
 function StarRating({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
@@ -31,7 +31,7 @@ function StarRating({ value, onChange }: { value: number; onChange?: (v: number)
       {[1, 2, 3, 4, 5].map(i => (
         <button key={i} type="button" onClick={() => onChange?.(i)}
           className={onChange ? 'cursor-pointer' : 'cursor-default'}>
-          <Star size={onChange ? 22 : 14} fill={i <= value ? '#C9A84C' : 'none'} color={i <= value ? '#C9A84C' : '#3A3530'} />
+          <Star size={onChange ? 22 : 14} fill={i <= value ? '#6B3A4B' : 'none'} color={i <= value ? '#6B3A4B' : '#D4C9BC'} />
         </button>
       ))}
     </div>
@@ -59,11 +59,11 @@ function PhotoZone({ preview, onFile }: { preview: string | null; onFile: (f: Fi
       className="relative w-full h-[220px] rounded-2xl overflow-hidden cursor-pointer transition-all"
       style={{
         border: dragging
-          ? '2px dashed rgba(201,168,76,0.7)'
-          : preview ? 'none' : '2px dashed rgba(255,255,255,0.1)',
+          ? '2px dashed rgba(107,58,75,0.6)'
+          : preview ? 'none' : '2px dashed rgba(0,0,0,0.12)',
         background: preview
           ? undefined
-          : dragging ? 'rgba(201,168,76,0.06)' : '#0d0d0d',
+          : dragging ? 'rgba(107,58,75,0.04)' : '#F5F2EE',
       }}>
       {preview ? (
         <>
@@ -77,12 +77,12 @@ function PhotoZone({ preview, onFile }: { preview: string | null; onFile: (f: Fi
       ) : (
         <div className="flex flex-col items-center justify-center h-full gap-3 text-text-muted">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)' }}>
-            <ImagePlus size={24} color="#C9A84C" />
+            style={{ background: 'rgba(107,58,75,0.07)', border: '1px solid rgba(107,58,75,0.2)' }}>
+            <ImagePlus size={24} color="#6B3A4B" />
           </div>
           <div className="text-center">
-            <p className="text-[14px] text-[#F5F0E8] font-medium">Foto hochladen</p>
-            <p className="text-[12px] text-[#5C5548] mt-0.5">Hierher ziehen oder klicken · JPG, PNG, WebP</p>
+            <p className="text-[14px] text-[#2C2420] font-medium">Foto hochladen</p>
+            <p className="text-[12px] text-[#8B7355] mt-0.5">Hierher ziehen oder klicken · JPG, PNG, WebP</p>
           </div>
         </div>
       )}
@@ -106,32 +106,32 @@ function KomponenteCard({
   onZutat: (zi: number, fld: 'name' | 'menge', v: string) => void;
 }) {
   return (
-    <div className="border border-[#2A2A2A] rounded-xl overflow-hidden"
-      style={{ background: 'rgba(255,255,255,0.02)' }}>
+    <div className="border border-[#E8E0D8] rounded-xl overflow-hidden"
+      style={{ background: 'rgba(0,0,0,0.01)' }}>
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-white/[0.02] transition-colors"
+      <div className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-black/[0.02] transition-colors"
         onClick={onToggle}>
         <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
-          style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+          style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
           {ki + 1}
         </div>
-        <span className="flex-1 text-[14px] text-[#F5F0E8] font-medium truncate">
-          {k.name || <span className="text-[#5C5548] italic">Komponentenname…</span>}
+        <span className="flex-1 text-[14px] text-[#2C2420] font-medium truncate">
+          {k.name || <span className="text-[#B09880] italic">Komponentenname…</span>}
         </span>
         {k.zutaten.length > 0 && (
-          <span className="text-[11px] text-[#5C5548] mr-1">{k.zutaten.length} Zutaten</span>
+          <span className="text-[11px] text-[#8B7355] mr-1">{k.zutaten.length} Zutaten</span>
         )}
-        <ChevronRight size={15} className="text-[#5C5548] transition-transform flex-shrink-0"
+        <ChevronRight size={15} className="text-[#B09880] transition-transform flex-shrink-0"
           style={{ transform: collapsed ? 'rotate(0deg)' : 'rotate(90deg)' }} />
         <button onClick={e => { e.stopPropagation(); onRemove(); }}
-          className="text-[#5C5548] hover:text-red-400 transition-colors ml-1 flex-shrink-0">
+          className="text-[#B09880] hover:text-red-400 transition-colors ml-1 flex-shrink-0">
           <Trash2 size={14} />
         </button>
       </div>
 
       {/* Body */}
       {!collapsed && (
-        <div className="px-4 pb-4 pt-1 border-t border-[#2A2A2A] space-y-3">
+        <div className="px-4 pb-4 pt-1 border-t border-[#E8E0D8] space-y-3">
           <div>
             <label className={LC}>Name der Komponente</label>
             <input value={k.name} onChange={e => onName(e.target.value)}
@@ -149,7 +149,7 @@ function KomponenteCard({
                   <input value={z.menge} onChange={e => onZutat(zi, 'menge', e.target.value)}
                     placeholder="Menge" className={IC} style={{ width: 130 }} />
                   <button onClick={() => onRemoveZutat(zi)}
-                    className="text-[#5C5548] hover:text-red-400 transition-colors flex-shrink-0 self-center">
+                    className="text-[#B09880] hover:text-red-400 transition-colors flex-shrink-0 self-center">
                     <X size={14} />
                   </button>
                 </div>
@@ -182,25 +182,25 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
     <button onClick={() => setTab(t)}
       className="px-4 py-2 text-[13px] font-medium rounded-lg transition-all"
       style={{
-        background: tab === t ? 'rgba(201,168,76,0.15)' : 'transparent',
-        color: tab === t ? '#C9A84C' : '#A89880',
-        border: `1px solid ${tab === t ? 'rgba(201,168,76,0.3)' : 'transparent'}`,
+        background: tab === t ? 'rgba(107,58,75,0.1)' : 'transparent',
+        color: tab === t ? '#6B3A4B' : '#8B7355',
+        border: `1px solid ${tab === t ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
       }}>
       {label}
     </button>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#080808' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#FAF8F5' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-4 border-b border-[#1E1E1E]">
+      <div className="flex items-center justify-between px-8 py-4 border-b border-[#E8E0D8]">
         <div className="flex items-center gap-3">
           <button onClick={onClose}
-            className="flex items-center gap-1.5 text-[#A89880] hover:text-[#F5F0E8] transition-colors text-[13px]">
+            className="flex items-center gap-1.5 text-[#8B7355] hover:text-[#2C2420] transition-colors text-[13px]">
             <ArrowLeft size={15} /> Zurück zur Bearbeitung
           </button>
-          <div className="w-px h-4 bg-[#2A2A2A]" />
-          <span className="text-[13px] text-[#5C5548]">Vorschau</span>
+          <div className="w-px h-4 bg-[#E8E0D8]" />
+          <span className="text-[13px] text-[#B09880]">Vorschau</span>
         </div>
         <div className="flex gap-2">
           {tabBtn('card', 'Kartenansicht')}
@@ -213,13 +213,13 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
         {tab === 'card' ? (
           /* ── Card Preview ───────────────────────────── */
           <div className="w-[300px]">
-            <p className="text-[11px] text-[#5C5548] text-center mb-4 uppercase tracking-widest">So erscheint die Karte im Archiv</p>
-            <div className="bg-[#161616] border border-[#2A2A2A] rounded-xl overflow-hidden shadow-2xl">
+            <p className="text-[11px] text-[#B09880] text-center mb-4 uppercase tracking-widest">So erscheint die Karte im Archiv</p>
+            <div className="bg-white border border-[#E8E0D8] rounded-xl overflow-hidden shadow-lg">
               <div className="h-44 relative overflow-hidden"
                 style={recipe.image
                   ? { backgroundImage: `url(${recipe.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                   : { background: 'linear-gradient(135deg, #1a1500 0%, #0d0d0d 100%)' }}>
-                {!recipe.image && <BookOpen size={36} className="absolute inset-0 m-auto opacity-25" strokeWidth={1} color="#C9A84C" />}
+                {!recipe.image && <BookOpen size={36} className="absolute inset-0 m-auto opacity-25" strokeWidth={1} color="#6B3A4B" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute top-3 left-3">
                   <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
@@ -233,26 +233,26 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
               </div>
               <div className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-heading text-[15px] font-bold text-[#F5F0E8] leading-snug">
-                    {recipe.title || <span className="text-[#5C5548] italic">Kein Titel</span>}
+                  <h3 className="font-heading text-[15px] font-bold text-[#2C2420] leading-snug">
+                    {recipe.title || <span className="text-[#B09880] italic">Kein Titel</span>}
                   </h3>
-                  <span className="text-[11px] text-[#A89880] flex-shrink-0 flex items-center gap-1">
+                  <span className="text-[11px] text-[#8B7355] flex-shrink-0 flex items-center gap-1">
                     <Clock size={11} />{recipe.time ?? 0}m
                   </span>
                 </div>
-                <p className="text-[12px] text-[#A89880] leading-relaxed mb-3 line-clamp-2">
+                <p className="text-[12px] text-[#8B7355] leading-relaxed mb-3 line-clamp-2">
                   {recipe.description || 'Keine Beschreibung'}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {(recipe.tags ?? []).slice(0, 3).map((t, i) => (
-                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[#1E1E1E] text-[#A89880] border border-[#2A2A2A]">{t}</span>
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-[#F5F2EE] text-[#8B7355] border border-[#E8E0D8]">{t}</span>
                   ))}
                 </div>
-                <div className="flex items-center justify-between pt-2.5 border-t border-[#2A2A2A]">
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#E8E0D8]">
                   <span className="text-[11px] font-semibold" style={{ color: dc }}>{recipe.difficulty ?? 'Mittel'}</span>
-                  <span className="text-[11px] text-[#A89880]">{recipe.category ?? 'Hauptgang'}</span>
+                  <span className="text-[11px] text-[#8B7355]">{recipe.category ?? 'Hauptgang'}</span>
                   <div className="flex gap-0.5">
-                    {[1,2,3,4,5].map(i => <Star key={i} size={11} fill={i <= (recipe.rating ?? 3) ? '#C9A84C' : 'none'} color={i <= (recipe.rating ?? 3) ? '#C9A84C' : '#3A3530'} />)}
+                    {[1,2,3,4,5].map(i => <Star key={i} size={11} fill={i <= (recipe.rating ?? 3) ? '#6B3A4B' : 'none'} color={i <= (recipe.rating ?? 3) ? '#6B3A4B' : '#D4C9BC'} />)}
                   </div>
                 </div>
               </div>
@@ -261,13 +261,13 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
         ) : (
           /* ── Detail Preview ─────────────────────────── */
           <div className="w-full max-w-2xl">
-            <p className="text-[11px] text-[#5C5548] text-center mb-4 uppercase tracking-widest">Detailansicht</p>
-            <div className="bg-[#161616] border border-[#2A2A2A] rounded-2xl overflow-hidden shadow-2xl">
+            <p className="text-[11px] text-[#B09880] text-center mb-4 uppercase tracking-widest">Detailansicht</p>
+            <div className="bg-white border border-[#E8E0D8] rounded-2xl overflow-hidden shadow-lg">
               <div className="h-48 relative overflow-hidden"
                 style={recipe.image
                   ? { backgroundImage: `url(${recipe.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                   : { background: 'linear-gradient(135deg, #1a1500 0%, #0d0d0d 100%)' }}>
-                {!recipe.image && <BookOpen size={42} className="absolute inset-0 m-auto opacity-20" strokeWidth={1} color="#C9A84C" />}
+                {!recipe.image && <BookOpen size={42} className="absolute inset-0 m-auto opacity-20" strokeWidth={1} color="#6B3A4B" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-4 left-6">
                   <div className="flex gap-2 mb-2">
@@ -275,7 +275,7 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                       style={{ color: sc, background: `${sc}18`, border: `1px solid ${sc}40` }}>
                       {recipe.status ?? 'Entwurf'}
                     </span>
-                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-black/40 text-[#A89880]">
+                    <span className="text-[11px] px-2.5 py-1 rounded-full bg-black/40 text-white/70">
                       {recipe.category ?? 'Hauptgang'}
                     </span>
                   </div>
@@ -285,7 +285,7 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                 </div>
               </div>
               <div className="p-7">
-                <p className="text-[14px] text-[#A89880] leading-relaxed mb-5">
+                <p className="text-[14px] text-[#8B7355] leading-relaxed mb-5">
                   {recipe.description || 'Keine Beschreibung vorhanden.'}
                 </p>
                 <div className="grid grid-cols-3 gap-3 mb-6">
@@ -294,9 +294,9 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                     { label: 'Zeit', value: `${recipe.time ?? 0} Min` },
                     { label: 'Saison', value: recipe.season ?? 'Ganzjährig' },
                   ].map(item => (
-                    <div key={item.label} className="bg-[#111] rounded-lg p-3 text-center border border-[#2A2A2A]">
-                      <div className="text-[10px] text-[#5C5548] mb-1 uppercase tracking-wide">{item.label}</div>
-                      <div className="text-[13px] font-semibold" style={{ color: item.color || '#F5F0E8' }}>{item.value}</div>
+                    <div key={item.label} className="bg-[#FAF8F5] rounded-lg p-3 text-center border border-[#E8E0D8]">
+                      <div className="text-[10px] text-[#B09880] mb-1 uppercase tracking-wide">{item.label}</div>
+                      <div className="text-[13px] font-semibold" style={{ color: item.color || '#2C2420' }}>{item.value}</div>
                     </div>
                   ))}
                 </div>
@@ -304,12 +304,12 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                 {/* Zutaten */}
                 {(recipe.zutaten ?? []).length > 0 && (
                   <div className="mb-5">
-                    <div className="text-[10px] text-[#A89880] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><Tag size={10} /> Zutaten</div>
-                    <div className="bg-[#111] rounded-xl border border-[#2A2A2A] divide-y divide-[#2A2A2A]">
+                    <div className="text-[10px] text-[#8B7355] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><Tag size={10} /> Zutaten</div>
+                    <div className="bg-[#FAF8F5] rounded-xl border border-[#E8E0D8] divide-y divide-[#E8E0D8]">
                       {(recipe.zutaten ?? []).map((z, i) => (
                         <div key={i} className="flex justify-between px-4 py-2 text-[13px]">
-                          <span className="text-[#F5F0E8]">{z.name}</span>
-                          <span className="text-[#A89880]">{z.menge}</span>
+                          <span className="text-[#2C2420]">{z.name}</span>
+                          <span className="text-[#8B7355]">{z.menge}</span>
                         </div>
                       ))}
                     </div>
@@ -319,17 +319,17 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                 {/* Komponenten */}
                 {(recipe.komponenten ?? []).length > 0 && (
                   <div className="mb-5 space-y-3">
-                    <div className="text-[10px] text-[#A89880] font-semibold mb-2 uppercase tracking-wider">Komponenten</div>
+                    <div className="text-[10px] text-[#8B7355] font-semibold mb-2 uppercase tracking-wider">Komponenten</div>
                     {(recipe.komponenten ?? []).map((k, i) => (
-                      <div key={i} className="bg-[#111] border border-[#2A2A2A] rounded-xl p-4">
-                        <div className="font-semibold text-[#F5F0E8] mb-2">{k.name}</div>
+                      <div key={i} className="bg-[#FAF8F5] border border-[#E8E0D8] rounded-xl p-4">
+                        <div className="font-semibold text-[#2C2420] mb-2">{k.name}</div>
                         {k.zutaten.map((z, j) => (
                           <div key={j} className="flex justify-between text-[12px] mb-1">
-                            <span className="text-[#A89880]">{z.name}</span>
-                            <span className="text-[#5C5548]">{z.menge}</span>
+                            <span className="text-[#8B7355]">{z.name}</span>
+                            <span className="text-[#B09880]">{z.menge}</span>
                           </div>
                         ))}
-                        {k.zubereitung && <p className="text-[12px] text-[#A89880] mt-2 pt-2 border-t border-[#2A2A2A]">{k.zubereitung}</p>}
+                        {k.zubereitung && <p className="text-[12px] text-[#8B7355] mt-2 pt-2 border-t border-[#E8E0D8]">{k.zubereitung}</p>}
                       </div>
                     ))}
                   </div>
@@ -338,15 +338,15 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                 {/* Schritte */}
                 {(recipe.schritte ?? []).length > 0 && (
                   <div className="mb-5">
-                    <div className="text-[10px] text-[#A89880] font-semibold mb-3 uppercase tracking-wider">Zubereitung</div>
+                    <div className="text-[10px] text-[#8B7355] font-semibold mb-3 uppercase tracking-wider">Zubereitung</div>
                     <div className="space-y-3">
                       {(recipe.schritte ?? []).map((s, i) => (
                         <div key={i} className="flex gap-3">
                           <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold mt-0.5"
-                            style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.25)' }}>
+                            style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
                             {i + 1}
                           </div>
-                          <p className="text-[13px] text-[#A89880] leading-relaxed">{s}</p>
+                          <p className="text-[13px] text-[#8B7355] leading-relaxed">{s}</p>
                         </div>
                       ))}
                     </div>
@@ -355,14 +355,14 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
 
                 {recipe.getraenke && (
                   <div className="mb-5">
-                    <div className="text-[10px] text-[#A89880] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><Wine size={10} /> Getränkeempfehlung</div>
-                    <p className="text-[13px] text-[#A89880] bg-[#111] border border-[#2A2A2A] rounded-xl p-4">{recipe.getraenke}</p>
+                    <div className="text-[10px] text-[#8B7355] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><Wine size={10} /> Getränkeempfehlung</div>
+                    <p className="text-[13px] text-[#8B7355] bg-[#FAF8F5] border border-[#E8E0D8] rounded-xl p-4">{recipe.getraenke}</p>
                   </div>
                 )}
                 {recipe.chefTipps && (
                   <div>
-                    <div className="text-[10px] text-[#A89880] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><ChefHat size={10} /> Chef-Tipps</div>
-                    <p className="text-[13px] text-[#A89880] bg-[#111] border border-[#2A2A2A] rounded-xl p-4">{recipe.chefTipps}</p>
+                    <div className="text-[10px] text-[#8B7355] font-semibold mb-2 uppercase tracking-wider flex items-center gap-1.5"><ChefHat size={10} /> Chef-Tipps</div>
+                    <p className="text-[13px] text-[#8B7355] bg-[#FAF8F5] border border-[#E8E0D8] rounded-xl p-4">{recipe.chefTipps}</p>
                   </div>
                 )}
               </div>
@@ -522,31 +522,31 @@ export default function NewRezeptPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#080808' }}>
+    <div className="min-h-screen" style={{ background: '#FAF8F5' }}>
       {/* ── Sticky Header ─────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 border-b border-[#1E1E1E] px-8 py-4 flex items-center justify-between"
-        style={{ background: 'rgba(8,8,8,0.96)', backdropFilter: 'blur(12px)' }}>
+      <div className="sticky top-0 z-30 border-b border-[#E8E0D8] px-8 py-4 flex items-center justify-between"
+        style={{ background: 'rgba(250,248,245,0.96)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => router.push('/rezepte')}
-            className="flex items-center gap-1.5 text-[#A89880] hover:text-[#F5F0E8] transition-colors text-[13px]">
+            className="flex items-center gap-1.5 text-[#8B7355] hover:text-[#2C2420] transition-colors text-[13px]">
             <ArrowLeft size={15} /> Rezeptarchiv
           </button>
-          <div className="w-px h-4 bg-[#2A2A2A]" />
-          <h1 className="font-heading text-[18px] font-bold text-[#F5F0E8]">Neues Rezept</h1>
+          <div className="w-px h-4 bg-[#E8E0D8]" />
+          <h1 className="font-heading text-[18px] font-bold text-[#2C2420]">Neues Rezept</h1>
         </div>
 
         <div className="flex items-center gap-2">
           <button onClick={() => setShowPreview(true)}
-            className="flex items-center gap-1.5 border border-[#2A2A2A] rounded-lg px-4 py-2 text-[13px] text-[#A89880] hover:border-[rgba(201,168,76,0.3)] hover:text-[#C9A84C] transition-all">
+            className="flex items-center gap-1.5 border border-[#E8E0D8] rounded-lg px-4 py-2 text-[13px] text-[#8B7355] hover:border-[rgba(107,58,75,0.3)] hover:text-[#6B3A4B] transition-all">
             <Eye size={14} /> Vorschau
           </button>
           <button onClick={() => router.push('/rezepte')}
-            className="border border-[#2A2A2A] rounded-lg px-4 py-2 text-[13px] text-[#5C5548] hover:text-[#A89880] transition-colors">
+            className="border border-[#E8E0D8] rounded-lg px-4 py-2 text-[13px] text-[#B09880] hover:text-[#8B7355] transition-colors">
             Abbrechen
           </button>
           <button onClick={handleSave} disabled={saving || uploadingImg || !base.title.trim()}
-            className="flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold text-[#080808] disabled:opacity-50 transition-opacity"
-            style={{ background: '#C9A84C' }}>
+            className="flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50 transition-opacity"
+            style={{ background: '#6B3A4B' }}>
             {(saving || uploadingImg) && <Loader2 size={14} className="animate-spin" />}
             {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : 'Speichern'}
           </button>
@@ -558,11 +558,11 @@ export default function NewRezeptPage() {
 
         {/* ── Foto Upload ─────────────────────────────────────────────────── */}
         <div className={SEC}>
-          <h2 className={STL}><ImagePlus size={16} color="#C9A84C" /> Rezeptfoto</h2>
+          <h2 className={STL}><ImagePlus size={16} color="#6B3A4B" /> Rezeptfoto</h2>
           <PhotoZone preview={imagePreview} onFile={handlePhoto} />
           {imagePreview && (
             <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-              className="mt-2 text-[12px] text-[#5C5548] hover:text-red-400 transition-colors flex items-center gap-1">
+              className="mt-2 text-[12px] text-[#8B7355] hover:text-red-400 transition-colors flex items-center gap-1">
               <X size={12} /> Foto entfernen
             </button>
           )}
@@ -632,9 +632,9 @@ export default function NewRezeptPage() {
 
         {/* ── Zutaten ──────────────────────────────────────────────────────── */}
         <div className={SEC}>
-          <h2 className={STL}><Tag size={16} color="#C9A84C" /> Zutaten</h2>
+          <h2 className={STL}><Tag size={16} color="#6B3A4B" /> Zutaten</h2>
           {zutaten.length === 0 && (
-            <p className="text-[13px] text-[#5C5548] mb-3">Noch keine Zutaten hinzugefügt.</p>
+            <p className="text-[13px] text-[#8B7355] mb-3">Noch keine Zutaten hinzugefügt.</p>
           )}
           <div className="space-y-2">
             {zutaten.map((z, i) => (
@@ -644,7 +644,7 @@ export default function NewRezeptPage() {
                 <input value={z.menge} onChange={e => updZutat(i, 'menge', e.target.value)}
                   placeholder="200g / 3 EL / nach Bedarf" className={IC} style={{ width: 180 }} />
                 <button onClick={() => removeZutat(i)}
-                  className="text-[#5C5548] hover:text-red-400 transition-colors flex-shrink-0">
+                  className="text-[#B09880] hover:text-red-400 transition-colors flex-shrink-0">
                   <X size={15} />
                 </button>
               </div>
@@ -659,12 +659,12 @@ export default function NewRezeptPage() {
         <div className={SEC}>
           <h2 className={STL}>
             Komponenten
-            <span className="ml-auto text-[11px] text-[#5C5548] font-normal">
+            <span className="ml-auto text-[11px] text-[#8B7355] font-normal">
               z.B. Carbonara Ball · Tonnarelli · Pecorino-Espuma
             </span>
           </h2>
           {komponenten.length === 0 && (
-            <p className="text-[13px] text-[#5C5548] mb-3">
+            <p className="text-[13px] text-[#8B7355] mb-3">
               Noch keine Komponenten. Jede Komponente hat eigene Zutaten &amp; Zubereitung.
             </p>
           )}
@@ -691,13 +691,13 @@ export default function NewRezeptPage() {
         <div className={SEC}>
           <h2 className={STL}>Zubereitungsschritte</h2>
           {schritte.length === 0 && (
-            <p className="text-[13px] text-[#5C5548] mb-3">Noch keine Schritte.</p>
+            <p className="text-[13px] text-[#8B7355] mb-3">Noch keine Schritte.</p>
           )}
           <div className="space-y-2">
             {schritte.map((s, i) => (
               <div key={i} className="flex gap-2 items-start">
                 <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold mt-2.5"
-                  style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.25)' }}>
+                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
                   {i + 1}
                 </div>
                 <textarea value={s} onChange={e => updSchritt(i, e.target.value)}
@@ -705,16 +705,16 @@ export default function NewRezeptPage() {
                   className={IC + ' flex-1 resize-none leading-relaxed'} />
                 <div className="flex flex-col gap-0.5 pt-1.5 flex-shrink-0">
                   <button onClick={() => moveSchritt(i, -1)} disabled={i === 0}
-                    className="text-[#5C5548] hover:text-[#F5F0E8] disabled:opacity-20 transition-colors">
+                    className="text-[#B09880] hover:text-[#2C2420] disabled:opacity-20 transition-colors">
                     <ChevronUp size={15} />
                   </button>
                   <button onClick={() => moveSchritt(i, 1)} disabled={i === schritte.length - 1}
-                    className="text-[#5C5548] hover:text-[#F5F0E8] disabled:opacity-20 transition-colors">
+                    className="text-[#B09880] hover:text-[#2C2420] disabled:opacity-20 transition-colors">
                     <ChevronDown size={15} />
                   </button>
                 </div>
                 <button onClick={() => removeSchritt(i)}
-                  className="text-[#5C5548] hover:text-red-400 transition-colors pt-2.5 flex-shrink-0">
+                  className="text-[#8B7355] hover:text-red-400 transition-colors pt-2.5 flex-shrink-0">
                   <X size={15} />
                 </button>
               </div>
@@ -727,7 +727,7 @@ export default function NewRezeptPage() {
 
         {/* ── Getränkeempfehlung ────────────────────────────────────────────── */}
         <div className={SEC}>
-          <h2 className={STL}><Wine size={16} color="#C9A84C" /> Getränkeempfehlung</h2>
+          <h2 className={STL}><Wine size={16} color="#6B3A4B" /> Getränkeempfehlung</h2>
           <textarea value={getraenke} onChange={e => setGetraenke(e.target.value)}
             placeholder="Weinempfehlung, Cocktail oder alkoholfreie Alternative…" rows={3}
             className={IC + ' resize-none leading-relaxed'} />
@@ -735,7 +735,7 @@ export default function NewRezeptPage() {
 
         {/* ── Chef-Tipps ────────────────────────────────────────────────────── */}
         <div className={SEC}>
-          <h2 className={STL}><ChefHat size={16} color="#C9A84C" /> Notizen &amp; Chef-Tipps</h2>
+          <h2 className={STL}><ChefHat size={16} color="#6B3A4B" /> Notizen &amp; Chef-Tipps</h2>
           <textarea value={chefTipps} onChange={e => setChefTipps(e.target.value)}
             placeholder="Persönliche Notizen, Variationen, Tricks aus der Küche…" rows={4}
             className={IC + ' resize-none leading-relaxed'} />

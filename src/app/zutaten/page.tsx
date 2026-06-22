@@ -29,8 +29,8 @@ function IngredientCard({ ingredient, onClick }: { ingredient: Ingredient; onCli
   const catColor: Record<string, string> = {
     'Gemüse': '#7CB87A', 'Fleisch': '#E06B6B', 'Fisch & Meeresfrüchte': '#7BB8D4',
     'Pilze': '#C4743A', 'Kräuter & Gewürze': '#7CB87A', 'Obst': '#E8A838',
-    'Milchprodukte': '#F5F0E8', 'Fermentiertes': '#C9A84C', 'Getreide & Hülsenfrüchte': '#A89880',
-    'Öle & Fette': '#E2C06A',
+    'Milchprodukte': '#A08060', 'Fermentiertes': '#6B3A4B', 'Getreide & Hülsenfrüchte': '#8B7355',
+    'Öle & Fette': '#9B6E1A',
   };
   const color = catColor[ingredient.category] || '#C9A84C';
   const topFlavor = flavorKeys.reduce((a, b) => ingredient.flavor[a] >= ingredient.flavor[b] ? a : b);
@@ -138,7 +138,7 @@ function IngredientDetail({ ingredient, onClose }: { ingredient: Ingredient; onC
             <div className="flex flex-wrap gap-2">
               {ingredient.pairings.map(p => (
                 <span key={p} className="text-[12px] px-3 py-1 rounded-full font-medium"
-                  style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
                   {p}
                 </span>
               ))}
@@ -158,11 +158,11 @@ export default function ZutatenPage() {
   useEffect(() => { fetchIngredients(); }, []);
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Botanik & Aromen</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Zutatenbibliothek</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>{filtered.length} Zutaten · Klicke für Aromaprofil & Pairings</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Botanik & Aromen</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Zutatenbibliothek</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{filtered.length} Zutaten · Klicke für Aromaprofil & Pairings</p>
       </div>
       <div className="p-8 max-w-[1400px]">
 
@@ -179,8 +179,8 @@ export default function ZutatenPage() {
               <button key={s} onClick={() => setIngredientSeasonFilter(s)}
                 className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
                 style={{
-                  background: ingredientSeasonFilter === s ? `${seasonColors[s] || 'rgba(201,168,76'}18` : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${ingredientSeasonFilter === s ? (seasonColors[s] || '#C9A84C') + '40' : 'rgba(255,255,255,0.08)'}`,
+                  background: ingredientSeasonFilter === s ? `${seasonColors[s] || 'rgba(107,58,75'}18` : 'rgba(0,0,0,0.04)',
+                  border: `1px solid ${ingredientSeasonFilter === s ? (seasonColors[s] || '#6B3A4B') + '40' : 'rgba(0,0,0,0.08)'}`,
                   color: ingredientSeasonFilter === s ? (seasonColors[s] || '#C9A84C') : '#A89880',
                 }}>
                 {s}
@@ -193,9 +193,9 @@ export default function ZutatenPage() {
             <button key={c} onClick={() => setIngredientCategoryFilter(c)}
               className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
               style={{
-                background: ingredientCategoryFilter === c ? 'rgba(201,168,76,0.12)' : 'transparent',
-                border: `1px solid ${ingredientCategoryFilter === c ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.07)'}`,
-                color: ingredientCategoryFilter === c ? '#C9A84C' : '#5C5548',
+                background: ingredientCategoryFilter === c ? 'rgba(107,58,75,0.1)' : 'transparent',
+                border: `1px solid ${ingredientCategoryFilter === c ? 'rgba(107,58,75,0.3)' : 'rgba(0,0,0,0.07)'}`,
+                color: ingredientCategoryFilter === c ? '#6B3A4B' : '#8B7355',
               }}>
               {c}
             </button>

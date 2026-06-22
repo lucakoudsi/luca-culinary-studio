@@ -44,7 +44,7 @@ const wineDb: Record<string, WineRec[]> = {
 };
 
 const typeColors: Record<string, string> = {
-  Rot: '#E06B6B', Weiß: '#E2C06A', Rosé: '#E8A0B0', Schaumwein: '#7BB8D4',
+  Rot: '#C04040', Weiß: '#9B6E1A', Rosé: '#C06080', Schaumwein: '#3A80A8',
 };
 
 function WineCard({ wine }: { wine: WineRec }) {
@@ -111,11 +111,11 @@ export default function WeinPairingPage() {
   const filtered = results.filter(w => filter === 'Alle' || w.type === filter);
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Sommellerie</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Wein & Pairing</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>Gib ein Gericht oder eine Zutat ein für präzise Weinempfehlungen</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Sommellerie</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Wein & Pairing</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Gib ein Gericht oder eine Zutat ein für präzise Weinempfehlungen</p>
       </div>
       <div className="p-8 max-w-[1200px]">
 
@@ -132,7 +132,7 @@ export default function WeinPairingPage() {
           </div>
           <button onClick={() => handleSearch()} disabled={loading || !query.trim()}
             className="px-5 py-2.5 rounded-lg font-semibold text-[13px] flex items-center gap-2 transition-all disabled:opacity-50 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)', color: '#0A0A0A' }}>
+            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
             {loading ? <><Loader2 size={15} className="animate-spin" /> Suche…</> : <><Search size={15} /> Pairing finden</>}
           </button>
         </div>
@@ -154,9 +154,9 @@ export default function WeinPairingPage() {
             <button key={f} onClick={() => setFilter(f)}
               className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all"
               style={{
-                background: filter === f ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${filter === f ? 'rgba(201,168,76,0.35)' : 'rgba(255,255,255,0.08)'}`,
-                color: filter === f ? '#C9A84C' : '#A89880',
+                background: filter === f ? 'rgba(107,58,75,0.1)' : 'rgba(0,0,0,0.04)',
+                border: `1px solid ${filter === f ? 'rgba(107,58,75,0.3)' : 'rgba(0,0,0,0.08)'}`,
+                color: filter === f ? '#6B3A4B' : '#8B7355',
               }}>
               {f}
             </button>
@@ -172,8 +172,8 @@ export default function WeinPairingPage() {
       ) : (
         <div className="text-center py-20 border border-dashed border-border rounded-xl">
           <div className="w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <Wine size={28} color="#C9A84C" strokeWidth={1.5} />
+            style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
+            <Wine size={28} color="#6B3A4B" strokeWidth={1.5} />
           </div>
           <p className="font-heading text-xl text-text-primary mb-2">Bereit für das perfekte Pairing</p>
           <p className="text-text-secondary text-[13px]">Gib ein Gericht oder eine Zutat ein – oder nutze einen Vorschlag oben</p>

@@ -21,7 +21,7 @@ function ResultCard({ result, onSave, onDelete }: { result: CreativeResult; onSa
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
-                style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+                style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
                 {result.inputStyle}
               </span>
               {result.saved && (
@@ -55,7 +55,7 @@ function ResultCard({ result, onSave, onDelete }: { result: CreativeResult; onSa
             {result.ingredients.map((ing, i) => (
               <div key={i} className="flex items-center gap-3 bg-background rounded-md px-3 py-2">
                 <span className="text-[13px] font-medium text-text-primary flex-1">{ing.name}</span>
-                <span className="text-[12px] font-semibold" style={{ color: '#C9A84C' }}>{ing.amount}</span>
+                <span className="text-[12px] font-semibold" style={{ color: '#6B3A4B' }}>{ing.amount}</span>
                 <span className="text-[11px] text-text-muted hidden sm:block">{ing.note}</span>
               </div>
             ))}
@@ -70,7 +70,7 @@ function ResultCard({ result, onSave, onDelete }: { result: CreativeResult; onSa
 
         <button onClick={() => setOpen(!open)}
           className="text-[13px] flex items-center gap-1.5 transition-colors"
-          style={{ color: '#C9A84C' }}>
+          style={{ color: '#6B3A4B' }}>
           {open ? 'Weniger' : 'Zubereitung & Anrichten anzeigen'}
           <ChevronRight size={14} style={{ transform: open ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
         </button>
@@ -84,7 +84,7 @@ function ResultCard({ result, onSave, onDelete }: { result: CreativeResult; onSa
               {result.preparation.map((step, i) => (
                 <li key={i} className="flex gap-3">
                   <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold mt-0.5"
-                    style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
+                    style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B' }}>
                     {i + 1}
                   </span>
                   <span className="text-[13px] text-text-secondary leading-relaxed">{step}</span>
@@ -137,10 +137,10 @@ export default function KreativlaborPage() {
   };
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Experimentiere</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Experimentiere</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
           {projektContext ? 'Konzept bearbeiten' : 'Kreativlabor'}
         </h1>
         <p className="text-text-secondary text-sm mt-1.5">Gib Zutaten und Stil ein – der KI-Sous-Chef entwickelt ein vollständiges Konzept mit Zubereitung und Anrichten.</p>
@@ -148,16 +148,16 @@ export default function KreativlaborPage() {
 
       {projektContext && (
         <div className="px-8 py-3 flex items-center gap-3"
-          style={{ background: 'rgba(201,168,76,0.06)', borderBottom: '1px solid rgba(201,168,76,0.15)' }}>
-          <span style={{ color: '#C9A84C', fontSize: 12 }}>✦</span>
-          <span className="text-[12px]" style={{ color: 'rgba(201,168,76,0.8)' }}>
-            Kontext: <strong style={{ color: '#C9A84C' }}>{projektContext.title}</strong>
+          style={{ background: 'rgba(107,58,75,0.06)', borderBottom: '1px solid rgba(107,58,75,0.15)' }}>
+          <span style={{ color: '#6B3A4B', fontSize: 12 }}>✦</span>
+          <span className="text-[12px]" style={{ color: 'rgba(107,58,75,0.8)' }}>
+            Kontext: <strong style={{ color: '#6B3A4B' }}>{projektContext.title}</strong>
           </span>
           <button onClick={() => setProjektContext(null)}
             className="ml-auto text-[11px] transition-colors"
-            style={{ color: 'rgba(168,152,128,0.5)' }}
-            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = '#C9A84C'}
-            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(168,152,128,0.5)'}>
+            style={{ color: 'rgba(139,115,85,0.6)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = '#6B3A4B'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(139,115,85,0.6)'}>
             ✕ Kontext entfernen
           </button>
         </div>
@@ -184,9 +184,9 @@ export default function KreativlaborPage() {
                   <button key={s} onClick={() => setStyle(s)}
                     className="px-2 py-2 rounded-lg text-[12px] font-medium transition-all text-center"
                     style={{
-                      background: style === s ? 'rgba(201,168,76,0.15)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${style === s ? 'rgba(201,168,76,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                      color: style === s ? '#C9A84C' : '#A89880',
+                      background: style === s ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
+                      border: `1px solid ${style === s ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
+                      color: style === s ? '#6B3A4B' : '#8B7355',
                     }}>
                     {s}
                   </button>
@@ -207,15 +207,15 @@ export default function KreativlaborPage() {
                 title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
                 className="w-full py-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
                 style={{
-                  background: 'linear-gradient(135deg, #9A7A30, #E2C06A)',
-                  color: '#0A0A0A',
+                  background: 'linear-gradient(135deg, #562E3C, #7D4558)',
+                  color: '#FFFFFF',
                   opacity: !FEATURES.AI_ENABLED || loading || !ingredients.trim() ? 0.5 : 1,
                 }}>
                 {loading ? <><Loader2 size={17} className="animate-spin" /> Wird entwickelt…</> : <><Sparkles size={17} /> {projektContext ? 'Konzept aktualisieren' : 'Konzept generieren'}</>}
               </button>
               {!FEATURES.AI_ENABLED && (
                 <span className="absolute -top-2 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.35)' }}>
+                  style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
                   Coming Soon
                 </span>
               )}
@@ -239,8 +239,8 @@ export default function KreativlaborPage() {
           {creativeResults.length === 0 ? (
             <div className="h-full min-h-[440px] flex flex-col items-center justify-center text-center border border-dashed border-border rounded-xl p-12">
               <div className="w-16 h-16 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
-                <Sparkles size={28} color="#C9A84C" strokeWidth={1.5} />
+                style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
+                <Sparkles size={28} color="#6B3A4B" strokeWidth={1.5} />
               </div>
               <h3 className="font-heading text-xl font-bold text-text-primary mb-2">Bereit für dein erstes Konzept</h3>
               <p className="text-text-secondary text-[13px] max-w-xs leading-relaxed">

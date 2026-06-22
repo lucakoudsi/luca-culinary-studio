@@ -15,13 +15,13 @@ function getGreeting() {
 }
 
 function getWeatherInfo(code: number) {
-  if (code === 0)           return { icon: '☀️', color: '#F5C842' };
-  if (code <= 3)            return { icon: '⛅', color: '#A89880' };
-  if (code <= 48)           return { icon: '🌫️', color: '#A89880' };
-  if (code <= 67)           return { icon: '🌧️', color: '#7BB8D4' };
-  if (code <= 77)           return { icon: '❄️', color: '#C8E8FF' };
-  if (code <= 82)           return { icon: '🌦️', color: '#7BB8D4' };
-  return                           { icon: '⛈️', color: '#B07BD4' };
+  if (code === 0)  return { icon: '☀️', color: '#C8882A' };
+  if (code <= 3)   return { icon: '⛅', color: '#8B7355' };
+  if (code <= 48)  return { icon: '🌫️', color: '#8B7355' };
+  if (code <= 67)  return { icon: '🌧️', color: '#5A9AB4' };
+  if (code <= 77)  return { icon: '❄️', color: '#5A9AB4' };
+  if (code <= 82)  return { icon: '🌦️', color: '#5A9AB4' };
+  return                  { icon: '⛈️', color: '#8B7355' };
 }
 
 const PROJECTS = [
@@ -31,9 +31,9 @@ const PROJECTS = [
 ];
 
 const IDEAS = [
-  { emoji: '🍋', combo: 'Yuzu & Schwarzer Sesam',    type: 'Dessert Idee',    ingredients: 'Yuzu, Schwarzer Sesam' },
-  { emoji: '🌿', combo: 'Trüffel & Topinambur',      type: 'Vorspeise Idee',  ingredients: 'Trüffel, Topinambur' },
-  { emoji: '🫐', combo: 'Rote Bete & Meerrettich',   type: 'Hauptgang Idee',  ingredients: 'Rote Bete, Meerrettich' },
+  { emoji: '🍋', combo: 'Yuzu & Schwarzer Sesam',  type: 'Dessert Idee',   ingredients: 'Yuzu, Schwarzer Sesam' },
+  { emoji: '🌿', combo: 'Trüffel & Topinambur',    type: 'Vorspeise Idee', ingredients: 'Trüffel, Topinambur' },
+  { emoji: '🫐', combo: 'Rote Bete & Meerrettich', type: 'Hauptgang Idee', ingredients: 'Rote Bete, Meerrettich' },
 ];
 
 const SAISON = [
@@ -58,9 +58,9 @@ const MEIN_STIL = {
 export default function DashboardPage() {
   const router = useRouter();
   const { recipes } = useStore();
-  const [greeting, setGreeting]       = useState('GUTEN MORGEN');
-  const [search, setSearch]           = useState('');
-  const [weather, setWeather]         = useState<{ temp: number; code: number } | null>(null);
+  const [greeting, setGreeting] = useState('GUTEN MORGEN');
+  const [search, setSearch]     = useState('');
+  const [weather, setWeather]   = useState<{ temp: number; code: number } | null>(null);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
@@ -72,24 +72,23 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex" style={{ minHeight: '100vh', background: '#0A0A0A' }}>
+    <div className="flex" style={{ minHeight: '100vh', background: '#FAF8F5' }}>
 
-      {/* ── Main content ──────────────────────────────────────────────── */}
+      {/* ── Main content ────────────────────────────────────────────── */}
       <div className="flex-1 min-w-0 flex flex-col">
 
         {/* Topbar */}
-        <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 flex items-start justify-between gap-4 sm:gap-6"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 flex items-start justify-between gap-4 sm:gap-6 border-b border-border">
           <div className="min-w-0">
             <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
-              style={{ color: 'rgba(201,168,76,0.55)' }}>
+              style={{ color: 'rgba(107,58,75,0.6)' }}>
               ✦ &nbsp;Willkommen zurück
             </div>
             <h1 className="font-heading font-bold leading-none"
-              style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: '#F5F0E8', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
               {greeting}, LUCA.
             </h1>
-            <p className="mt-2" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>
+            <p className="mt-2" style={{ color: '#8B7355', fontSize: 13 }}>
               Bereit für neue kulinarische Meisterwerke?
             </p>
           </div>
@@ -97,14 +96,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 sm:gap-4 mt-1 flex-shrink-0">
             <div className="relative hidden sm:block">
               <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: 'rgba(168,152,128,0.4)' }} />
+                style={{ color: '#B09880' }} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Suchen…"
-                className="pl-9 pr-4 py-2.5 rounded-xl text-[13px] outline-none w-44 lg:w-48 transition-all"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#F5F0E8' }} />
+                className="pl-9 pr-4 py-2.5 rounded-xl text-[13px] outline-none w-44 lg:w-48 transition-all border border-border"
+                style={{ background: '#FFFFFF', color: '#2C2420' }} />
             </div>
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2.5">
-                <div className="text-[13px] font-semibold" style={{ color: '#F5F0E8' }}>
+                <div className="text-[13px] font-semibold" style={{ color: '#2C2420' }}>
                   {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
                 </div>
                 {weather && (() => {
@@ -117,7 +116,7 @@ export default function DashboardPage() {
                   );
                 })()}
               </div>
-              <div className="text-[11px]" style={{ color: 'rgba(168,152,128,0.45)' }}>
+              <div className="text-[11px]" style={{ color: '#B09880' }}>
                 {new Date().toLocaleDateString('de-DE', { weekday: 'long' })} · Mainz
               </div>
             </div>
@@ -128,30 +127,30 @@ export default function DashboardPage() {
         <div className="flex-1 px-4 sm:px-8 py-6 space-y-8">
 
           {/* Hero Card */}
-          <div className="relative rounded-2xl overflow-hidden"
-            style={{ background: '#141414', border: '1px solid rgba(201,168,76,0.15)', borderTop: '1px solid rgba(201,168,76,0.4)', minHeight: 200 }}>
+          <div className="relative rounded-2xl overflow-hidden shadow-sm"
+            style={{ background: '#FFFFFF', border: '1px solid #E8E0D8', borderTop: '2px solid #6B3A4B', minHeight: 200 }}>
             <div className="absolute inset-y-0 right-0 w-[44%]">
               <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800"
-                alt="" className="w-full h-full object-cover" style={{ opacity: 0.45 }} />
+                alt="" className="w-full h-full object-cover" style={{ opacity: 0.6 }} />
               <div className="absolute inset-0"
-                style={{ background: 'linear-gradient(90deg, #141414 0%, rgba(20,20,20,0.5) 55%, transparent 100%)' }} />
+                style={{ background: 'linear-gradient(90deg, #FFFFFF 0%, rgba(255,255,255,0.6) 55%, transparent 100%)' }} />
             </div>
             <div className="absolute inset-0 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse 60% 80% at 20% 50%, rgba(201,168,76,0.04) 0%, transparent 70%)' }} />
+              style={{ background: 'radial-gradient(ellipse 60% 80% at 20% 50%, rgba(107,58,75,0.03) 0%, transparent 70%)' }} />
 
             <div className="relative z-10 p-6 sm:p-8" style={{ maxWidth: '60%' }}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 sm:mb-5"
-                style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
-                <span style={{ color: '#C9A84C', fontSize: 10 }}>✦</span>
-                <span style={{ color: '#C9A84C', fontSize: 11, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
+                <span style={{ color: '#6B3A4B', fontSize: 10 }}>✦</span>
+                <span style={{ color: '#6B3A4B', fontSize: 11, letterSpacing: '3px', textTransform: 'uppercase' }}>
                   Dein KI-Sous-Chef
                 </span>
               </div>
               <h2 className="font-heading font-bold leading-tight mb-3"
-                style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#C9A84C', letterSpacing: '1px' }}>
+                style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#2C2420', letterSpacing: '1px' }}>
                 Guten Morgen, Luca.
               </h2>
-              <p style={{ color: 'rgba(245,240,232,0.55)', fontSize: 14, lineHeight: 1.75 }}>
+              <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
                 Ich habe 3 neue Inspirationen basierend auf<br />
                 der aktuellen Saison für dich vorbereitet.
               </p>
@@ -161,9 +160,9 @@ export default function DashboardPage() {
                 title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
                 className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                 style={{
-                  border: '1px solid rgba(201,168,76,0.4)',
-                  color: '#C9A84C',
-                  background: 'rgba(201,168,76,0.07)',
+                  border: '1px solid rgba(107,58,75,0.35)',
+                  color: '#6B3A4B',
+                  background: 'rgba(107,58,75,0.06)',
                   opacity: FEATURES.AI_ENABLED ? 1 : 0.5,
                   cursor: FEATURES.AI_ENABLED ? 'pointer' : 'not-allowed',
                 }}>
@@ -175,11 +174,11 @@ export default function DashboardPage() {
           {/* Meine Projekte */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-bold" style={{ fontSize: 16, color: '#F5F0E8', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              <h2 className="font-heading font-bold" style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Meine Projekte
               </h2>
               <Link href="/projekte" className="text-[12px] flex items-center gap-1 transition-colors"
-                style={{ color: '#C9A84C' }}>
+                style={{ color: '#6B3A4B' }}>
                 Alle <ChevronRight size={13} />
               </Link>
             </div>
@@ -187,27 +186,27 @@ export default function DashboardPage() {
               {PROJECTS.map(p => (
                 <Link key={p.id} href={`/projekte/${p.id}`} className="block">
                   <div className="relative rounded-xl overflow-hidden cursor-pointer group"
-                    style={{ border: '1px solid rgba(255,255,255,0.06)', height: 190 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.25)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)'}>
+                    style={{ border: '1px solid #E8E0D8', height: 190 }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.4)'}
+                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'}>
                     <img src={p.img} alt=""
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     <div className="absolute inset-0"
-                      style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.96) 0%, rgba(10,10,10,0.5) 55%, rgba(10,10,10,0.1) 100%)' }} />
+                      style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.35) 55%, rgba(10,10,10,0.05) 100%)' }} />
                     <div className="absolute inset-x-0 bottom-0 p-4">
                       <div className="text-[10px] tracking-[2px] uppercase mb-1"
-                        style={{ color: 'rgba(201,168,76,0.65)' }}>{p.category}</div>
+                        style={{ color: 'rgba(201,168,76,0.85)' }}>{p.category}</div>
                       <div className="font-heading font-bold mb-2.5"
                         style={{ fontSize: 14, color: '#F5F0E8' }}>{p.title}</div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-[2px] rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                          <div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: 'linear-gradient(90deg, #9A7A30, #C9A84C)' }} />
+                        <div className="flex-1 h-[2px] rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                          <div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: 'linear-gradient(90deg, #562E3C, #6B3A4B)' }} />
                         </div>
-                        <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: '#C9A84C' }}>{p.progress}%</span>
+                        <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: '#E2C06A' }}>{p.progress}%</span>
                       </div>
                     </div>
                     <div className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(245,240,232,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      style={{ background: 'rgba(0,0,0,0.5)', color: 'rgba(245,240,232,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}>
                       {p.komponenten} Komp.
                     </div>
                   </div>
@@ -219,26 +218,27 @@ export default function DashboardPage() {
           {/* Ideen für dich */}
           <section>
             <h2 className="font-heading font-bold mb-4"
-              style={{ fontSize: 16, color: '#F5F0E8', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
               Ideen für dich
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {IDEAS.map(idea => (
                 <div key={idea.combo}
-                  className="rounded-xl p-4 cursor-pointer transition-all"
-                  style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}
+                  className="rounded-xl p-4 cursor-pointer transition-all bg-white border border-border"
                   onClick={() => router.push(`/kreativlabor?ingredients=${encodeURIComponent(idea.ingredients)}`)}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.25)';
+                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)';
                     (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)';
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)';
+                    (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8';
                     (e.currentTarget as HTMLDivElement).style.transform = 'none';
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
                   }}>
                   <div className="text-2xl mb-3">{idea.emoji}</div>
-                  <div className="font-heading font-bold mb-1" style={{ fontSize: 14, color: '#F5F0E8' }}>{idea.combo}</div>
-                  <div className="flex items-center gap-1 mt-2 text-[12px] font-medium" style={{ color: '#C9A84C' }}>
+                  <div className="font-heading font-bold mb-1" style={{ fontSize: 14, color: '#2C2420' }}>{idea.combo}</div>
+                  <div className="flex items-center gap-1 mt-2 text-[12px] font-medium" style={{ color: '#6B3A4B' }}>
                     {idea.type} <ArrowRight size={12} />
                   </div>
                 </div>
@@ -247,9 +247,9 @@ export default function DashboardPage() {
           </section>
 
           {/* Mein Stil */}
-          <section style={{ borderTop: '1px solid rgba(201,168,76,0.12)', paddingTop: 28 }}>
+          <section style={{ borderTop: '1px solid #E8E0D8', paddingTop: 28 }}>
             <h2 className="font-heading font-bold mb-4"
-              style={{ fontSize: 16, color: '#F5F0E8', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
               Mein Stil
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -258,14 +258,13 @@ export default function DashboardPage() {
                 { label: 'Lieblings-Texturen', items: MEIN_STIL.texturen },
                 { label: 'Küchenrichtung',     items: MEIN_STIL.richtung },
               ].map(col => (
-                <div key={col.label} className="rounded-xl p-4"
-                  style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div key={col.label} className="rounded-xl p-4 bg-white border border-border">
                   <div className="text-[10px] tracking-[3px] uppercase mb-3"
-                    style={{ color: 'rgba(168,152,128,0.55)' }}>{col.label}</div>
+                    style={{ color: '#B09880' }}>{col.label}</div>
                   {col.items.map(item => (
                     <div key={item} className="flex items-center gap-2 py-1.5 text-[13px]"
-                      style={{ color: 'rgba(245,240,232,0.65)' }}>
-                      <span style={{ color: '#C9A84C', fontSize: 7 }}>◆</span> {item}
+                      style={{ color: '#8B7355' }}>
+                      <span style={{ color: '#6B3A4B', fontSize: 7 }}>◆</span> {item}
                     </div>
                   ))}
                 </div>
@@ -276,76 +275,73 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Right Panel (hidden below xl) ─────────────────────────────── */}
-      <div className="hidden xl:flex flex-col w-[272px] flex-shrink-0 overflow-y-auto"
-        style={{ borderLeft: '1px solid rgba(255,255,255,0.05)', background: '#0D0D0D', minHeight: '100vh' }}>
+      {/* ── Right Panel ─────────────────────────────────────────────── */}
+      <div className="hidden xl:flex flex-col w-[272px] flex-shrink-0 overflow-y-auto border-l border-border"
+        style={{ background: '#F0EBE3', minHeight: '100vh' }}>
         <div className="p-5 space-y-6">
 
           {/* Inspiration */}
           <div>
             <div className="text-[10px] tracking-[3px] uppercase mb-4"
-              style={{ color: 'rgba(201,168,76,0.55)', paddingTop: 24 }}>
+              style={{ color: 'rgba(107,58,75,0.65)', paddingTop: 24 }}>
               ✦ &nbsp;Inspiration für dich
             </div>
             <div className="space-y-2">
               {INSPIRATION.map(item => (
-                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                  style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(201,168,76,0.2)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.05)'}>
+                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all bg-white border border-border"
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'}>
                   <img src={item.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold leading-tight" style={{ color: '#F5F0E8' }}>{item.title}</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: 'rgba(168,152,128,0.55)' }}>{item.sub}</div>
+                    <div className="text-[12px] font-semibold leading-tight" style={{ color: '#2C2420' }}>{item.title}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: '#B09880' }}>{item.sub}</div>
                   </div>
-                  <ChevronRight size={12} style={{ color: 'rgba(201,168,76,0.4)', flexShrink: 0 }} />
+                  <ChevronRight size={12} style={{ color: 'rgba(107,58,75,0.5)', flexShrink: 0 }} />
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+          <div className="border-t border-border" />
 
-          {/* Saison im Juni */}
+          {/* Saison */}
           <div>
             <div className="text-[10px] tracking-[3px] uppercase mb-4"
-              style={{ color: 'rgba(201,168,76,0.55)' }}>
+              style={{ color: 'rgba(107,58,75,0.65)' }}>
               ✦ &nbsp;Saison im Juni
             </div>
             <div className="space-y-2">
               {SAISON.map(s => (
-                <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border">
                   <span className="text-lg flex-shrink-0">{s.emoji}</span>
                   <div>
-                    <div className="text-[13px] font-semibold" style={{ color: '#F5F0E8' }}>{s.name}</div>
-                    <div className="text-[10px]" style={{ color: 'rgba(201,168,76,0.55)' }}>{s.label}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: '#2C2420' }}>{s.name}</div>
+                    <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>{s.label}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }} />
+          <div className="border-t border-border" />
 
           {/* Übersicht */}
           <div>
             <div className="text-[10px] tracking-[3px] uppercase mb-4"
-              style={{ color: 'rgba(201,168,76,0.55)' }}>
+              style={{ color: 'rgba(107,58,75,0.65)' }}>
               ✦ &nbsp;Übersicht
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: 'Rezepte',       value: recipes.length || 24, icon: '📋' },
-                { label: 'Projekte',      value: 3,                    icon: '🎯' },
-                { label: 'Ideen',         value: 12,                   icon: '💡' },
-                { label: 'Diese Woche',   value: 5,                    icon: '📅' },
+                { label: 'Rezepte',     value: recipes.length || 24, icon: '📋' },
+                { label: 'Projekte',    value: 3,                    icon: '🎯' },
+                { label: 'Ideen',       value: 12,                   icon: '💡' },
+                { label: 'Diese Woche', value: 5,                    icon: '📅' },
               ].map(s => (
-                <div key={s.label} className="p-3 rounded-xl text-center"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div key={s.label} className="p-3 rounded-xl text-center bg-white border border-border">
                   <div className="text-[15px] mb-1">{s.icon}</div>
-                  <div className="font-heading font-bold" style={{ fontSize: 20, color: '#C9A84C' }}>{s.value}</div>
-                  <div className="text-[10px]" style={{ color: 'rgba(168,152,128,0.45)' }}>{s.label}</div>
+                  <div className="font-heading font-bold" style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
+                  <div className="text-[10px]" style={{ color: '#B09880' }}>{s.label}</div>
                 </div>
               ))}
             </div>

@@ -95,7 +95,7 @@ function PlatingVariant({ index, style, generated, onSave, saved }: {
             <p className="text-[12px] text-text-secondary leading-relaxed mb-4 flex-1">{desc}</p>
             <button onClick={onSave} disabled={saved}
               className="w-full py-2 rounded-lg text-[12px] font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+              style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
               <Download size={13} /> {saved ? 'Gespeichert' : 'Bild speichern'}
             </button>
           </>
@@ -140,34 +140,34 @@ export default function TellerdesignerPage() {
 
   if (loadingRecipes) {
     return (
-      <div style={{ background: '#0A0A0A', minHeight: '100vh' }} className="flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin" style={{ color: '#C9A84C' }} />
+      <div style={{ background: '#FAF8F5', minHeight: '100vh' }} className="flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Tellergestaltung</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
-        <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>Wähle Rezept und Stil – erhalte 3 Anrichte-Varianten</p>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Tellergestaltung</div>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
+        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Wähle Rezept und Stil – erhalte 3 Anrichte-Varianten</p>
       </div>
       <div className="p-8 max-w-[1400px]">
 
       {recipes.length === 0 ? (
         <div className="text-center py-24 border border-dashed border-border rounded-xl">
           <div className="w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center"
-            style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
-            <BookOpen size={28} color="#C9A84C" strokeWidth={1.5} />
+            style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
+            <BookOpen size={28} color="#6B3A4B" strokeWidth={1.5} />
           </div>
-          <p className="font-heading text-xl mb-2" style={{ color: '#F5F0E8' }}>Noch keine Rezepte vorhanden</p>
-          <p className="text-[13px]" style={{ color: 'rgba(168,152,128,0.65)' }}>
+          <p className="font-heading text-xl mb-2" style={{ color: '#2C2420' }}>Noch keine Rezepte vorhanden</p>
+          <p className="text-[13px]" style={{ color: '#8B7355' }}>
             Erstelle zuerst ein Rezept im Rezeptarchiv.
           </p>
           <a href="/rezepte/neu"
             className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 rounded-xl text-[13px] font-semibold"
-            style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
             → Rezept erstellen
           </a>
         </div>
@@ -192,8 +192,8 @@ export default function TellerdesignerPage() {
                 <button key={s} onClick={() => { setStyle(s); setGenerated(false); }}
                   className="px-4 py-2 rounded-lg text-[12px] font-medium transition-all"
                   style={{
-                    background: style === s ? `${styleColors[s]}18` : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${style === s ? styleColors[s] + '45' : 'rgba(255,255,255,0.08)'}`,
+                    background: style === s ? `${styleColors[s]}18` : 'rgba(0,0,0,0.04)',
+                    border: `1px solid ${style === s ? styleColors[s] + '45' : 'rgba(0,0,0,0.08)'}`,
                     color: style === s ? styleColors[s] : '#A89880',
                   }}>
                   {s}
@@ -204,7 +204,7 @@ export default function TellerdesignerPage() {
 
           <button onClick={handleGenerate} disabled={loading || !selectedId}
             className="px-6 py-2.5 rounded-lg font-semibold text-[14px] flex items-center gap-2 transition-all disabled:opacity-50 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #9A7A30, #E2C06A)', color: '#0A0A0A' }}>
+            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
             {loading
               ? <><Loader2 size={16} className="animate-spin" /> Generiere…</>
               : <><RefreshCw size={16} /> Generieren</>}

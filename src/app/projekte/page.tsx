@@ -7,7 +7,7 @@ import {
   StickyNote, ChevronRight, Calendar
 } from 'lucide-react';
 
-const projectColors = ['#C9A84C', '#7CB87A', '#7BB8D4', '#C4743A', '#E06B6B', '#A89880', '#9B7DE8'];
+const projectColors = ['#6B3A4B', '#7CB87A', '#7BB8D4', '#C4743A', '#E06B6B', '#8B7355', '#9B7DE8'];
 const statusLabels: Record<string, { color: string; bg: string }> = {
   Aktiv: { color: '#7CB87A', bg: 'rgba(124,184,122,0.15)' },
   Abgeschlossen: { color: '#7BB8D4', bg: 'rgba(123,184,212,0.15)' },
@@ -43,8 +43,8 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
                 <button key={s} onClick={() => setForm(p => ({ ...p, status: s }))}
                   className="flex-1 py-2 rounded-lg text-[12px] font-semibold transition-all"
                   style={{
-                    background: form.status === s ? statusLabels[s].bg : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${form.status === s ? statusLabels[s].color + '40' : 'rgba(255,255,255,0.08)'}`,
+                    background: form.status === s ? statusLabels[s].bg : 'rgba(0,0,0,0.04)',
+                    border: `1px solid ${form.status === s ? statusLabels[s].color + '40' : 'rgba(0,0,0,0.08)'}`,
                     color: form.status === s ? statusLabels[s].color : '#A89880',
                   }}>
                   {s}
@@ -73,7 +73,7 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
           <button
             onClick={() => { if (form.name.trim()) { onSave(form); onClose(); } }}
             className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold"
-            style={{ background: '#C9A84C' }}>
+            style={{ background: '#6B3A4B' }}>
             Erstellen
           </button>
         </div>
@@ -177,7 +177,7 @@ function ProjectDetail({ project, onClose }: { project: Project; onClose: () => 
                 className="flex-1 bg-card border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40" />
               <button onClick={handleAddNote}
                 className="px-4 rounded-lg text-background text-[13px] font-semibold transition-opacity hover:opacity-80"
-                style={{ background: '#C9A84C' }}>
+                style={{ background: '#6B3A4B' }}>
                 Hinzufügen
               </button>
             </div>
@@ -275,17 +275,17 @@ export default function ProjektePage() {
   };
 
   return (
-    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div>
-          <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(201,168,76,0.55)' }}>✦ &nbsp;Meine Arbeit</div>
-          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#F5F0E8', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
-          <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
+          <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Meine Arbeit</div>
+          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
+          <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
         </div>
         <div className="mt-1">
           <button onClick={() => setShowNew(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #B8942A, #C9A84C)', color: '#0A0A0A' }}>
+            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
             <Plus size={15} /> Neues Projekt
           </button>
         </div>
