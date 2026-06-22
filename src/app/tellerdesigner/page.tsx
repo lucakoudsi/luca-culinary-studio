@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import { Palette, Download, RefreshCw, Loader2, CheckCircle } from 'lucide-react';
+import { Palette, Download, RefreshCw, Loader2, CheckCircle, BookOpen } from 'lucide-react';
 
 const styles = ['Klassisch', 'Modern', 'Avantgarde'] as const;
 type Style = typeof styles[number];
@@ -108,12 +108,25 @@ function PlatingVariant({ index, style, generated, onSave, saved }: {
 }
 
 export default function TellerdesignerPage() {
-  const { recipes } = useStore();
-  const [selectedId, setSelectedId] = useState<number>(recipes[0]?.id ?? 0);
+  const { recipes, fetchRecipes } = useStore();
+  const [selectedId, setSelectedId] = useState<number>(0);
   const [style, setStyle] = useState<Style>('Modern');
   const [generated, setGenerated] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [saved, setSaved] = useState<number[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try { await fetchRecipes(); } catch {}
+      setLoadingRecipes(false);
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (recipes.length > 0 && !selectedId) setSelectedId(recipes[0].id);
+  }, [recipes]);
 
   const handleGenerate = async () => {
     if (!selectedId) return;
@@ -125,6 +138,14 @@ export default function TellerdesignerPage() {
     setLoading(false);
   };
 
+  if (loadingRecipes) {
+    return (
+      <div style={{ background: '#0A0A0A', minHeight: '100vh' }} className="flex items-center justify-center">
+        <Loader2 size={24} className="animate-spin" style={{ color: '#C9A84C' }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
@@ -133,6 +154,24 @@ export default function TellerdesignerPage() {
         <p className="mt-1.5" style={{ color: 'rgba(168,152,128,0.65)', fontSize: 13 }}>Wähle Rezept und Stil – erhalte 3 Anrichte-Varianten</p>
       </div>
       <div className="p-8 max-w-[1400px]">
+
+      {recipes.length === 0 ? (
+        <div className="text-center py-24 border border-dashed border-border rounded-xl">
+          <div className="w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}>
+            <BookOpen size={28} color="#C9A84C" strokeWidth={1.5} />
+          </div>
+          <p className="font-heading text-xl mb-2" style={{ color: '#F5F0E8' }}>Noch keine Rezepte vorhanden</p>
+          <p className="text-[13px]" style={{ color: 'rgba(168,152,128,0.65)' }}>
+            Erstelle zuerst ein Rezept im Rezeptarchiv.
+          </p>
+          <a href="/rezepte/neu"
+            className="inline-flex items-center gap-2 mt-6 px-6 py-2.5 rounded-xl text-[13px] font-semibold"
+            style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.3)' }}>
+            → Rezept erstellen
+          </a>
+        </div>
+      ) : (<>
 
       <div className="bg-card border border-border rounded-xl p-5 mb-7">
         <div className="flex flex-wrap gap-6 items-end">
@@ -190,6 +229,7 @@ export default function TellerdesignerPage() {
           />
         ))}
       </div>
+      </>)}
     </div>
     </div>
   );
