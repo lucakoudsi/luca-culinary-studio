@@ -1,12 +1,8 @@
-import { getDatabaseManager } from '@/lib/infra/db';
-import IdeenEndpoint from '@/lib/endpoints/ideen';
-
-async function ep() {
-  const db = getDatabaseManager();
-  await db.ready;
-  return new IdeenEndpoint({ databaseManager: db });
-}
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function DELETE(_r: Request, { params }: { params: { id: string } }) {
-  return (await ep()).deleteIdee(params.id);
+  const { error } = await supabase.from('ideas').delete().eq('id', params.id);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
 }

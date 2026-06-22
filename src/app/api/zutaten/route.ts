@@ -1,17 +1,49 @@
-import { NextRequest } from 'next/server';
-import { getDatabaseManager } from '@/lib/infra/db';
-import ZutatenEndpoint from '@/lib/endpoints/zutaten';
-
-async function ep() {
-  const db = getDatabaseManager();
-  await db.ready;
-  return new ZutatenEndpoint({ databaseManager: db });
-}
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
-  return (await ep()).listZutaten();
+  const { data, error } = await supabase
+    .from('ingredients')
+    .select('*')
+    .order('name');
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json((data ?? []).map(toIngredient));
 }
 
 export async function POST(req: NextRequest) {
-  return (await ep()).createZutat(req);
+  const body = await req.json();
+  const { data, error } = await supabase
+    .from('ingredients')
+    .insert({
+      name:         body.name,
+      category:     body.category ?? '',
+      seasons:      body.seasons  ?? [],
+      origin:       body.origin   ?? '',
+      aromas:       body.aromas   ?? [],
+      flavor:       body.flavor   ?? {},
+      pairings:     body.pairings ?? [],
+      description:  body.description ?? '',
+      storage_temp: body.storageTemp ?? '',
+      unit:         body.unit ?? 'Gramm',
+    })
+    .select()
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(toIngredient(data), { status: 201 });
+}
+
+function toIngredient(row: Record<string, unknown>) {
+  return {
+    id:          row.id,
+    name:        row.name,
+    category:    row.category   ?? '',
+    seasons:     (row.seasons   as string[]) ?? [],
+    origin:      row.origin     ?? '',
+    aromas:      (row.aromas    as string[]) ?? [],
+    flavor:      row.flavor     ?? {},
+    pairings:    (row.pairings  as string[]) ?? [],
+    description: row.description ?? '',
+    storageTemp: row.storage_temp ?? '',
+    unit:        row.unit ?? 'Gramm',
+  };
 }

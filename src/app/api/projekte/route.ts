@@ -1,17 +1,45 @@
-import { NextRequest } from 'next/server';
-import { getDatabaseManager } from '@/lib/infra/db';
-import ProjekteEndpoint from '@/lib/endpoints/projekte';
-
-async function ep() {
-  const db = getDatabaseManager();
-  await db.ready;
-  return new ProjekteEndpoint({ databaseManager: db });
-}
+import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function GET() {
-  return (await ep()).listProjekte();
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('id');
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data ?? []);
 }
 
 export async function POST(req: NextRequest) {
-  return (await ep()).createProjekt(req);
+  const body = await req.json();
+  const { data, error } = await supabase
+    .from('projects')
+    .insert({
+      name:        body.name,
+      description: body.description ?? null,
+      color:       body.color ?? '#C9A84C',
+      status:      body.status ?? 'Aktiv',
+      recipe_ids:  body.recipeIds ?? [],
+      menu_ids:    body.menuIds   ?? [],
+      notes:       body.notes     ?? [],
+      created_at:  new Date().toISOString().slice(0, 10),
+    })
+    .select()
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(toProject(data), { status: 201 });
+}
+
+function toProject(row: Record<string, unknown>) {
+  return {
+    id:          row.id,
+    name:        row.name,
+    description: row.description ?? '',
+    color:       row.color ?? '#C9A84C',
+    status:      row.status ?? 'Aktiv',
+    recipeIds:   (row.recipe_ids as number[]) ?? [],
+    menuIds:     (row.menu_ids  as number[]) ?? [],
+    notes:       (row.notes     as object[]) ?? [],
+    createdAt:   row.created_at ?? row.createdAt ?? '',
+  };
 }
