@@ -29,7 +29,8 @@
       "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; npx next build 2>&1 | Select-Object -Last 15)",
       "PowerShell(npm uninstall *)",
       "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; npx next build 2>&1 | Select-Object -Last 12)",
-      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; npx next build 2>&1 | Select-Object -Last 8)"
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; npx next build 2>&1 | Select-Object -Last 8)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; npx next build 2>&1 | Select-Object -Last 10)"
     ]
   }
 }

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-const supabase = createAdminClient();
+import { getRequestUser } from '@/lib/get-request-user';
 import type { Recipe } from '@/types';
+
+const db = createAdminClient();
 
 function toRecipe(row: Record<string, unknown>): Recipe {
   return {
@@ -26,10 +28,14 @@ function toRecipe(row: Record<string, unknown>): Recipe {
   };
 }
 
-export async function GET() {
-  const { data, error } = await supabase
+export async function GET(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
+  const { data, error } = await db
     .from('recipes')
     .select('*')
+    .eq('user_id', user.id)
     .order('id');
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -37,12 +43,16 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
   const body = await req.json();
   const now = new Date().toISOString().slice(0, 10);
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('recipes')
     .insert({
+      user_id:            user.id,
       name:               body.title,
       kategorie:          body.category,
       beschreibung:       body.description ?? null,

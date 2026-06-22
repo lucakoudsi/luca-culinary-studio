@@ -1,35 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-const supabase = createAdminClient();
+import { getRequestUser } from '@/lib/get-request-user';
 
-export async function GET() {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .order('id');
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { data, error } = await supabase
-    .from('projects')
-    .insert({
-      name:        body.name,
-      description: body.description ?? null,
-      color:       body.color ?? '#C9A84C',
-      status:      body.status ?? 'Aktiv',
-      recipe_ids:  body.recipeIds ?? [],
-      menu_ids:    body.menuIds   ?? [],
-      notes:       body.notes     ?? [],
-      created_at:  new Date().toISOString().slice(0, 10),
-    })
-    .select()
-    .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(toProject(data), { status: 201 });
-}
+const db = createAdminClient();
 
 function toProject(row: Record<string, unknown>) {
   return {
@@ -43,4 +16,41 @@ function toProject(row: Record<string, unknown>) {
     notes:       (row.notes     as object[]) ?? [],
     createdAt:   row.created_at ?? row.createdAt ?? '',
   };
+}
+
+export async function GET(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
+  const { data, error } = await db
+    .from('projects')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('id');
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json((data ?? []).map(toProject));
+}
+
+export async function POST(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
+  const body = await req.json();
+  const { data, error } = await db
+    .from('projects')
+    .insert({
+      user_id:     user.id,
+      name:        body.name,
+      description: body.description ?? null,
+      color:       body.color ?? '#C9A84C',
+      status:      body.status ?? 'Aktiv',
+      recipe_ids:  body.recipeIds ?? [],
+      menu_ids:    body.menuIds   ?? [],
+      notes:       body.notes     ?? [],
+      created_at:  new Date().toISOString().slice(0, 10),
+    })
+    .select()
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(toProject(data), { status: 201 });
 }

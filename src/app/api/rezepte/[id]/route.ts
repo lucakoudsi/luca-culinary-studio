@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-const supabase = createAdminClient();
+import { getRequestUser } from '@/lib/get-request-user';
 import type { Recipe } from '@/types';
+
+const db = createAdminClient();
 
 function toRecipe(row: Record<string, unknown>): Recipe {
   return {
@@ -26,11 +28,15 @@ function toRecipe(row: Record<string, unknown>): Recipe {
   };
 }
 
-export async function GET(_r: NextRequest, { params }: { params: { id: string } }) {
-  const { data, error } = await supabase
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
+  const { data, error } = await db
     .from('recipes')
     .select('*')
     .eq('id', params.id)
+    .eq('user_id', user.id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -38,6 +44,9 @@ export async function GET(_r: NextRequest, { params }: { params: { id: string } 
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
   const body = await req.json();
   const update: Record<string, unknown> = {
     zuletzt_bearbeitet: new Date().toISOString().slice(0, 10),
@@ -60,10 +69,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (body.getraenke   !== undefined) update.getraenke        = body.getraenke;
   if (body.chefTipps   !== undefined) update.chef_tipps       = body.chefTipps;
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('recipes')
     .update(update)
     .eq('id', params.id)
+    .eq('user_id', user.id)
     .select()
     .single();
 
@@ -71,11 +81,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json(toRecipe(data));
 }
 
-export async function DELETE(_r: NextRequest, { params }: { params: { id: string } }) {
-  const { error } = await supabase
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
+  const { error } = await db
     .from('recipes')
     .delete()
-    .eq('id', params.id);
+    .eq('id', params.id)
+    .eq('user_id', user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
