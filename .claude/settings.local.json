@@ -40,7 +40,8 @@
       "PowerShell(Start-Sleep -Seconds 8; Invoke-WebRequest -Uri \"http://localhost:3000/api/seed-zutaten\" -Method POST -UseBasicParsing -TimeoutSec 60 | Select-Object -ExpandProperty Content)",
       "PowerShell(Start-Sleep -Seconds 5; Invoke-WebRequest -Uri \"http://localhost:3000/api/seed-zutaten\" -Method POST -UseBasicParsing -TimeoutSec 60 | Select-Object -ExpandProperty Content)",
       "PowerShell(cd C:\\\\Users\\\\lucak\\\\luca-culinary-studio; $job = Start-Job -ScriptBlock { cd C:\\\\Users\\\\lucak\\\\luca-culinary-studio; & npx next dev --turbo 2>&1 }; Write-Output \"Job started: $\\($job.Id\\)\")",
-      "PowerShell(Receive-Job *)"
+      "PowerShell(Receive-Job *)",
+      "PowerShell(cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; powershell -File seed-batch1.ps1)"
     ]
   }
 }
