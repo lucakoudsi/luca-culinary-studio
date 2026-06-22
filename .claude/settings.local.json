@@ -23,7 +23,8 @@
       "PowerShell(Get-Process *)",
       "PowerShell(winget install *)",
       "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\); cd \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\"; git --version)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(gh repo *)"
     ]
   }
 }

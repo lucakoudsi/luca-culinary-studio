@@ -9,9 +9,7 @@ const nextConfig = {
     }
     return config;
   },
-  experimental: {
-    serverComponentsExternalPackages: ['sequelize', 'sqlite3', 'openai', '@opentelemetry/api', '@supabase/supabase-js'],
-  },
+  serverExternalPackages: ['@supabase/supabase-js', 'sequelize', 'sqlite3', 'openai', '@opentelemetry/api'],
 };
 
 export default nextConfig;
