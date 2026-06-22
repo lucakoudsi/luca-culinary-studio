@@ -95,11 +95,11 @@ export default function LoginPage() {
           src={FOOD_IMG}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: 'brightness(0.6) saturate(0.8)' }}
+          style={{ filter: 'brightness(0.85) saturate(0.9)' }}
         />
         {/* Dark overlay gradient */}
         <div className="absolute inset-0" style={{
-          background: 'linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.8) 100%)',
+          background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.2) 100%)',
         }} />
         {/* Right edge fade into form */}
         <div className="absolute inset-y-0 right-0 w-32" style={{
