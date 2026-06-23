@@ -48,6 +48,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // KI-Seiten: gesperrt solange NEXT_PUBLIC_AI_ENABLED !== 'true'
+  const AI_LOCKED_ROUTES = ['/kreativlabor', '/menuegenerator', '/tellerdesigner'];
+  const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
+  if (!aiEnabled && AI_LOCKED_ROUTES.some(r => pathname.startsWith(r))) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
+
   return supabaseResponse;
 }
 

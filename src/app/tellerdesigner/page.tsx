@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { Palette, Download, RefreshCw, Loader2, CheckCircle, BookOpen } from 'lucide-react';
-import { FEATURES } from '@/config/features';
-import ComingSoonOverlay from '@/components/ui/ComingSoonOverlay';
 
 const styles = ['Klassisch', 'Modern', 'Avantgarde'] as const;
 type Style = typeof styles[number];
@@ -149,9 +147,7 @@ export default function TellerdesignerPage() {
   }
 
   return (
-    <>
-    {!FEATURES.AI_ENABLED && <ComingSoonOverlay />}
-    <div style={{ background: '#FAF8F5', minHeight: '100vh', opacity: FEATURES.AI_ENABLED ? 1 : 0.4 }}>
+    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Tellergestaltung</div>
         <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
@@ -236,6 +232,5 @@ export default function TellerdesignerPage() {
       </>)}
     </div>
     </div>
-    </>
   );
 }

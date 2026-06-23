@@ -94,6 +94,19 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           {navItems.map(({ href, label, icon: Icon, locked }) => {
             const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
             const isLocked = locked && !FEATURES.AI_ENABLED;
+
+            if (isLocked) {
+              return (
+                <div key={href}
+                  className="flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg select-none"
+                  style={{ color: '#B0A090', opacity: 0.5, cursor: 'not-allowed' }}>
+                  <Icon size={14} strokeWidth={1.6} />
+                  <span>{label}</span>
+                  <Lock size={11} className="ml-auto flex-shrink-0" style={{ color: '#B0A090' }} />
+                </div>
+              );
+            }
+
             return (
               <Link key={href} href={href} onClick={onClose}
                 className={cn(
@@ -104,18 +117,14 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   background: '#6B3A4B',
                   color: '#FFFFFF',
                 } : {
-                  color: isLocked ? '#B0A090' : '#8B7355',
-                  opacity: isLocked ? 0.7 : 1,
+                  color: '#8B7355',
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
                 <Icon size={14} strokeWidth={isActive ? 2 : 1.6} />
                 <span className={isActive ? 'font-semibold' : ''}>{label}</span>
-                {isActive && !isLocked && (
+                {isActive && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white/60" />
-                )}
-                {isLocked && (
-                  <Lock size={11} className="ml-auto flex-shrink-0" style={{ color: isActive ? 'rgba(255,255,255,0.6)' : '#B0A090' }} />
                 )}
               </Link>
             );
