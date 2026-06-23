@@ -83,6 +83,7 @@ export interface Ingredient {
   beschreibung: string;
   lagertemp: string;
   einheit: string;
+  image_url?: string | null;
 }
 
 // ─── Menügenerator ───────────────────────────────────────────────────────────

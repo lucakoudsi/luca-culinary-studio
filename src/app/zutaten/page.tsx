@@ -21,11 +21,6 @@ const catColor: Record<string, string> = {
   'Fermentiertes': '#6B3A4B', 'Getreide & Hülsenfrüchte': '#8B7355', 'Öle & Fette': '#9B6E1A',
 };
 
-const getUnsplashUrl = (name: string) => {
-  const query = encodeURIComponent(name + ',food,ingredient');
-  return `https://source.unsplash.com/400x300/?${query}`;
-};
-
 const flavorLabels = ['Säure', 'Süße', 'Bitter', 'Umami', 'Schärfe', 'Salzig'];
 const flavorKeys = ['acidity', 'sweetness', 'bitterness', 'umami', 'spiciness', 'saltiness'] as const;
 const flavorColors = ['#7BB8D4', '#E8A838', '#7CB87A', '#C9A84C', '#E06B6B', '#A89880'];
@@ -60,13 +55,15 @@ function IngredientCard({ ingredient, onClick }: { ingredient: Ingredient; onCli
         width: '100%', height: '160px', overflow: 'hidden',
         background: 'linear-gradient(135deg, #6B3A4B 0%, #2C2420 100%)',
       }}>
-        <img
-          src={getUnsplashUrl(ingredient.name)}
-          alt={ingredient.name}
-          loading="lazy"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        />
+        {ingredient.image_url && (
+          <img
+            src={ingredient.image_url}
+            alt={ingredient.name}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        )}
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
