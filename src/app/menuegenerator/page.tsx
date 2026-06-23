@@ -5,6 +5,7 @@ import { generateMenu } from '@/lib/mockAI';
 import type { GeneratedMenu } from '@/types';
 import { UtensilsCrossed, Sparkles, Save, Trash2, Wine, CheckCircle, Loader2, ChevronRight } from 'lucide-react';
 import { FEATURES } from '@/config/features';
+import ComingSoonOverlay from '@/components/ui/ComingSoonOverlay';
 
 const regionOptions = ['Deutschland', 'Frankreich', 'Italien', 'Spanien', 'Japan', 'Skandinavien', 'Österreich'];
 const seasonOptions = ['Frühling', 'Sommer', 'Herbst', 'Winter'];
@@ -108,7 +109,9 @@ export default function MenuegeneratorPage() {
   };
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+    <>
+    {!FEATURES.AI_ENABLED && <ComingSoonOverlay />}
+    <div style={{ background: '#FAF8F5', minHeight: '100vh', opacity: FEATURES.AI_ENABLED ? 1 : 0.4 }}>
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Menüplanung</div>
         <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Menügenerator</h1>
@@ -253,5 +256,6 @@ export default function MenuegeneratorPage() {
       </div>
     </div>
     </div>
+    </>
   );
 }

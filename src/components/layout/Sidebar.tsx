@@ -4,24 +4,25 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, FlaskConical, Utensils,
-  Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut,
+  Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock,
 } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 const navItems = [
-  { href: '/',                label: 'Dashboard',        icon: LayoutDashboard },
-  { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen },
-  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical },
-  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed },
-  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils },
-  { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf },
-  { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine },
-  { href: '/fermentation',    label: 'Fermentation',     icon: Beaker },
-  { href: '/mein-stil',       label: 'Mein Stil',        icon: Star },
-  { href: '/projekte',        label: 'Projekte',         icon: FolderOpen },
-  { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot },
+  { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, locked: false },
+  { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        locked: false },
+  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    locked: true  },
+  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, locked: true  },
+  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        locked: true  },
+  { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            locked: false },
+  { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            locked: false },
+  { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          locked: false },
+  { href: '/mein-stil',       label: 'Mein Stil',        icon: Star,            locked: false },
+  { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      locked: false },
+  { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             locked: false },
 ];
 
 interface SidebarProps {
@@ -90,8 +91,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 py-3 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, label, icon: Icon, locked }) => {
             const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+            const isLocked = locked && !FEATURES.AI_ENABLED;
             return (
               <Link key={href} href={href} onClick={onClose}
                 className={cn(
@@ -102,14 +104,18 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   background: '#6B3A4B',
                   color: '#FFFFFF',
                 } : {
-                  color: '#8B7355',
+                  color: isLocked ? '#B0A090' : '#8B7355',
+                  opacity: isLocked ? 0.7 : 1,
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
                 <Icon size={14} strokeWidth={isActive ? 2 : 1.6} />
                 <span className={isActive ? 'font-semibold' : ''}>{label}</span>
-                {isActive && (
+                {isActive && !isLocked && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white/60" />
+                )}
+                {isLocked && (
+                  <Lock size={11} className="ml-auto flex-shrink-0" style={{ color: isActive ? 'rgba(255,255,255,0.6)' : '#B0A090' }} />
                 )}
               </Link>
             );
