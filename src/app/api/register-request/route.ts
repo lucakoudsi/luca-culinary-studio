@@ -9,10 +9,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Alle Felder sind erforderlich.' }, { status: 400 });
   }
 
-  // Env-Check für Debugging
-  const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const hasResendKey  = !!process.env.RESEND_API_KEY;
-  console.log('[register-request] env check:', { hasServiceKey, hasResendKey });
+  // Env-Check für Debugging — sichtbar in Vercel → Deployment → Logs
+  console.log('[register] ANON len:',    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length ?? 'MISSING');
+  console.log('[register] SERVICE len:', process.env.SUPABASE_SERVICE_ROLE_KEY?.length    ?? 'MISSING');
+  console.log('[register] URL:',         process.env.NEXT_PUBLIC_SUPABASE_URL             ?? 'MISSING');
+  console.log('[register] RESEND set:',  !!process.env.RESEND_API_KEY);
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[register] SUPABASE_SERVICE_ROLE_KEY is not set — check Vercel env vars');
+    return NextResponse.json({ error: 'Server-Konfigurationsfehler: Service-Key fehlt.' }, { status: 500 });
+  }
 
   let supabase;
   try {
