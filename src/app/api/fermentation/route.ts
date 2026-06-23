@@ -10,10 +10,12 @@ function toProject(row: Record<string, unknown>) {
     name:        (row.name as string) ?? '',
     typ:         (row.typ as string) ?? '',
     startdatum:  (row.startdatum as string) ?? '',
+    dauer_tage:  (row.dauer_tage as number) ?? 0,
     status:      (row.status as string) ?? 'Aktiv',
     fortschritt: (row.fortschritt as number) ?? 0,
     temperatur:  (row.temperatur as string) ?? '',
     gefaess:     (row.gefaess as string) ?? '',
+    beschreibung:(row.beschreibung as string) ?? '',
     notizen:     (row.notizen as unknown[]) ?? [],
   };
 }
@@ -45,15 +47,17 @@ export async function POST(req: NextRequest) {
     const { data, error } = await db
       .from('fermentation')
       .insert({
-        user_id:    user.id,
-        name:       body.name ?? '',
-        typ:        body.typ ?? '',
-        startdatum: body.startdatum ?? new Date().toISOString().slice(0, 10),
-        status:     body.status ?? 'Aktiv',
+        user_id:     user.id,
+        name:        body.name ?? '',
+        typ:         body.typ ?? '',
+        startdatum:  body.startdatum ?? new Date().toISOString().slice(0, 10),
+        dauer_tage:  body.dauer_tage ?? 0,
+        status:      body.status ?? 'Aktiv',
         fortschritt: body.fortschritt ?? 0,
-        temperatur: body.temperatur ?? '',
-        gefaess:    body.gefaess ?? '',
-        notizen:    body.notizen ?? [],
+        temperatur:  body.temperatur ?? '',
+        gefaess:     body.gefaess ?? '',
+        beschreibung:body.beschreibung ?? '',
+        notizen:     body.notizen ?? [],
       })
       .select()
       .single();

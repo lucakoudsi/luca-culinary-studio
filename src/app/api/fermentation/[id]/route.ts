@@ -10,10 +10,12 @@ function toProject(row: Record<string, unknown>) {
     name:        (row.name as string) ?? '',
     typ:         (row.typ as string) ?? '',
     startdatum:  (row.startdatum as string) ?? '',
+    dauer_tage:  (row.dauer_tage as number) ?? 0,
     status:      (row.status as string) ?? 'Aktiv',
     fortschritt: (row.fortschritt as number) ?? 0,
     temperatur:  (row.temperatur as string) ?? '',
     gefaess:     (row.gefaess as string) ?? '',
+    beschreibung:(row.beschreibung as string) ?? '',
     notizen:     (row.notizen as unknown[]) ?? [],
   };
 }
@@ -29,14 +31,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { data, error } = await db
       .from('fermentation')
       .update({
-        name:        body.name,
-        typ:         body.typ,
-        startdatum:  body.startdatum,
-        status:      body.status,
-        fortschritt: body.fortschritt,
-        temperatur:  body.temperatur,
-        gefaess:     body.gefaess,
-        notizen:     body.notizen,
+        name:         body.name,
+        typ:          body.typ,
+        startdatum:   body.startdatum,
+        dauer_tage:   body.dauer_tage,
+        status:       body.status,
+        fortschritt:  body.fortschritt,
+        temperatur:   body.temperatur,
+        gefaess:      body.gefaess,
+        beschreibung: body.beschreibung,
+        notizen:      body.notizen,
       })
       .eq('id', id)
       .eq('user_id', user.id)
