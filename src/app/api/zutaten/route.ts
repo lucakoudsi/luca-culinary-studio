@@ -1,47 +1,41 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Force dynamic so Next.js never caches this route between users
+export const dynamic = 'force-dynamic';
+
+const db = createAdminClient();
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams } = new URL(request.url);
 
-  // Debug mode: return 3 raw rows to verify DB connection
   if (searchParams.get('debug') === 'true') {
-    const { data, error } = await supabaseAdmin
-      .from('zutaten')
-      .select('*')
-      .limit(3)
-    return NextResponse.json({ raw: data, error, count: data?.length })
+    const { data, error } = await db.from('zutaten').select('*').limit(3);
+    return NextResponse.json({ raw: data, error, count: data?.length });
   }
 
   try {
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await db
       .from('zutaten')
-      .select('*')
-      .order('name')
-
-    console.log('[zutaten API] count:', data?.length, 'error:', error)
+      .select('id,name,kategorie,saison,herkunft,aromaprofil,geschmack,pairings,beschreibung,lagertemp,einheit,image_url')
+      .order('name');
 
     if (error) {
-      console.error('[zutaten API] error:', error)
-      return NextResponse.json([], { status: 200 })
+      console.error('[zutaten API] error:', error);
+      return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(Array.isArray(data) ? data : [])
+    return NextResponse.json(Array.isArray(data) ? data : []);
   } catch (e) {
-    console.error('[zutaten API] catch:', e)
-    return NextResponse.json([])
+    console.error('[zutaten API] catch:', e);
+    return NextResponse.json([]);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { data, error } = await supabaseAdmin
+    const body = await req.json();
+    const { data, error } = await db
       .from('zutaten')
       .insert({
         name:         body.name,
@@ -56,11 +50,12 @@ export async function POST(req: NextRequest) {
         einheit:      body.einheit   ?? body.unit ?? 'Gramm',
       })
       .select()
-      .single()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    return NextResponse.json(data, { status: 201 })
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data, { status: 201 });
   } catch (e) {
-    console.error('[zutaten API] POST catch:', e)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    console.error('[zutaten API] POST catch:', e);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
