@@ -127,13 +127,15 @@ export default function ProfilPage() {
   const [socialError, setSocialError]   = useState('');
 
   // Tab 4 – Sicherheit
-  const [currentPw, setCurrentPw]   = useState('');
-  const [newPw, setNewPw]           = useState('');
-  const [confirmPw, setConfirmPw]   = useState('');
-  const [showPw, setShowPw]         = useState(false);
-  const [pwSaving, setPwSaving]     = useState(false);
-  const [pwSuccess, setPwSuccess]   = useState(false);
-  const [pwError, setPwError]       = useState('');
+  const [currentPw, setCurrentPw]     = useState('');
+  const [newPw, setNewPw]             = useState('');
+  const [confirmPw, setConfirmPw]     = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew]         = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pwSaving, setPwSaving]       = useState(false);
+  const [pwSuccess, setPwSuccess]     = useState(false);
+  const [pwError, setPwError]         = useState('');
 
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarError, setAvatarError]     = useState('');
@@ -243,6 +245,7 @@ export default function ProfilPage() {
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPw });
     if (signInErr) { setPwError('Aktuelles Passwort ist falsch.'); setPwSaving(false); return; }
     const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
+    console.log('[passwort] change result:', updateErr ? updateErr.message : 'success');
     setPwSaving(false);
     if (updateErr) { setPwError(updateErr.message); return; }
     setPwSuccess(true); setCurrentPw(''); setNewPw(''); setConfirmPw('');
@@ -612,47 +615,72 @@ export default function ProfilPage() {
                 Passwort ändern
               </h3>
               <div className="space-y-5" style={{ maxWidth: 420 }}>
+
+                {/* Aktuelles Passwort */}
                 <div>
                   <label style={labelStyle}>Aktuelles Passwort</label>
                   <div className="relative">
                     <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input type={showPw ? 'text' : 'password'} value={currentPw} onChange={e => setCurrentPw(e.target.value)}
+                    <input type={showCurrent ? 'text' : 'password'} value={currentPw}
+                      onChange={e => setCurrentPw(e.target.value)}
                       placeholder="••••••••" className={fieldCls + ' pr-11'} style={fieldStyle}
                       onFocus={onFocus} onBlur={onBlur} />
-                    <button type="button" onClick={() => setShowPw(p => !p)}
+                    <button type="button" onClick={() => setShowCurrent(p => !p)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
                       style={{ color: '#B09880' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
                       onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
-                      {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                   </div>
                 </div>
+
+                {/* Neues Passwort */}
                 <div>
                   <label style={labelStyle}>Neues Passwort</label>
                   <div className="relative">
                     <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input type={showPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
+                    <input type={showNew ? 'text' : 'password'} value={newPw}
+                      onChange={e => setNewPw(e.target.value)}
                       placeholder="Min. 6 Zeichen" className={fieldCls + ' pr-11'} style={fieldStyle}
                       onFocus={onFocus} onBlur={onBlur} />
+                    <button type="button" onClick={() => setShowNew(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: '#B09880' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
+                      {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
                   </div>
                 </div>
+
+                {/* Neues Passwort bestätigen */}
                 <div>
                   <label style={labelStyle}>Neues Passwort bestätigen</label>
                   <div className="relative">
                     <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-                      placeholder="Passwort wiederholen" className={fieldCls + ' pr-11'} style={fieldStyle}
+                    <input type={showConfirm ? 'text' : 'password'} value={confirmPw}
+                      onChange={e => setConfirmPw(e.target.value)}
+                      placeholder="Passwort wiederholen" className={fieldCls + ' pr-20'} style={fieldStyle}
                       onFocus={onFocus} onBlur={onBlur} />
+                    {/* Match indicator to the left of the eye button */}
                     {confirmPw.length > 0 && (
-                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <div className="absolute right-10 top-1/2 -translate-y-1/2">
                         {confirmPw === newPw
                           ? <CheckCircle size={14} color="#7CB87A" />
                           : <span style={{ color: '#E06B6B', fontSize: 14, fontWeight: 700 }}>✗</span>}
                       </div>
                     )}
+                    <button type="button" onClick={() => setShowConfirm(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: '#B09880' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
+                      {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
                   </div>
                 </div>
+
                 {pwError && <ErrorBanner message={pwError} />}
                 {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
                 <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
