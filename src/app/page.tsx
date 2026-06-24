@@ -8,10 +8,10 @@ import { FEATURES } from '@/config/features';
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 12) return 'GUTEN MORGEN';
-  if (h < 17) return 'GUTEN MITTAG';
-  if (h < 22) return 'GUTEN ABEND';
-  return 'GUTE NACHT';
+  if (h < 12) return 'Guten Morgen';
+  if (h < 17) return 'Guten Mittag';
+  if (h < 22) return 'Guten Abend';
+  return 'Gute Nacht';
 }
 
 function getWeatherInfo(code: number) {
@@ -148,7 +148,7 @@ export default function DashboardPage() {
               </div>
               <h2 className="font-heading font-bold leading-tight mb-3"
                 style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#2C2420', letterSpacing: '1px' }}>
-                {greeting.charAt(0) + greeting.slice(1).toLowerCase()}, Luca.
+                {greeting}, Luca.
               </h2>
               <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
                 Ich habe 3 neue Inspirationen basierend auf<br />
