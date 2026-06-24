@@ -148,7 +148,7 @@ export default function DashboardPage() {
               </div>
               <h2 className="font-heading font-bold leading-tight mb-3"
                 style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#2C2420', letterSpacing: '1px' }}>
-                Guten Morgen, Luca.
+                {greeting.charAt(0) + greeting.slice(1).toLowerCase()}, Luca.
               </h2>
               <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
                 Ich habe 3 neue Inspirationen basierend auf<br />
