@@ -57,7 +57,10 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const db = createAdminClient();
 
-    const allowed = ['full_name', 'kuechenstil', 'spezialitaeten', 'bio', 'lieblingszutaten', 'inspirationen'];
+    const allowed = [
+      'full_name', 'kuechenstil', 'spezialitaeten', 'bio', 'lieblingszutaten', 'inspirationen',
+      'instagram', 'tiktok', 'youtube', 'website', 'linkedin',
+    ];
     const update: Record<string, unknown> = { id: user.id, updated_at: new Date().toISOString() };
     for (const key of allowed) {
       if (key in body) update[key] = body[key];

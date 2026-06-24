@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js';
 import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
+  Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
 } from 'lucide-react';
 
 const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
@@ -21,11 +22,16 @@ type Profile = {
   bio: string | null;
   lieblingszutaten: string | null;
   inspirationen: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  youtube: string | null;
+  website: string | null;
+  linkedin: string | null;
   created_at: string | null;
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'kuechenstil' | 'sicherheit';
+type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit';
 
 // ─── Shared form styles ───────────────────────────────────────────────────────
 
@@ -110,7 +116,17 @@ export default function ProfilPage() {
   const [stilSuccess, setStilSuccess]       = useState(false);
   const [stilError, setStilError]           = useState('');
 
-  // Tab 3
+  // Tab 3 – Social Media
+  const [instagram, setInstagram]   = useState('');
+  const [tiktok, setTiktok]         = useState('');
+  const [youtube, setYoutube]       = useState('');
+  const [website, setWebsite]       = useState('');
+  const [linkedin, setLinkedin]     = useState('');
+  const [socialSaving, setSocialSaving] = useState(false);
+  const [socialSuccess, setSocialSuccess] = useState(false);
+  const [socialError, setSocialError]   = useState('');
+
+  // Tab 4 – Sicherheit
   const [currentPw, setCurrentPw]   = useState('');
   const [newPw, setNewPw]           = useState('');
   const [confirmPw, setConfirmPw]   = useState('');
@@ -139,6 +155,11 @@ export default function ProfilPage() {
             ? d.profile.lieblingszutaten.split(',').map((s: string) => s.trim()).filter(Boolean)
             : []);
           setInspirationen(d.profile.inspirationen ?? '');
+          setInstagram(d.profile.instagram ?? '');
+          setTiktok(d.profile.tiktok ?? '');
+          setYoutube(d.profile.youtube ?? '');
+          setWebsite(d.profile.website ?? '');
+          setLinkedin(d.profile.linkedin ?? '');
         }
         if (d.stats) setStats(d.stats);
         if (d.userCreatedAt) setUserCreatedAt(d.userCreatedAt);
@@ -190,6 +211,25 @@ export default function ProfilPage() {
       setStilError('Netzwerkfehler. Bitte versuche es erneut.');
     } finally {
       setStilSaving(false);
+    }
+  };
+
+  const saveSocial = async () => {
+    setSocialSaving(true);
+    setSocialError('');
+    try {
+      const res = await fetch('/api/profil', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instagram, tiktok, youtube, website, linkedin }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setSocialError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setSocialSuccess(true);
+      setTimeout(() => setSocialSuccess(false), 3000);
+    } catch {
+      setSocialError('Netzwerkfehler. Bitte versuche es erneut.');
+    } finally {
+      setSocialSaving(false);
     }
   };
 
@@ -257,9 +297,10 @@ export default function ProfilPage() {
 
   // ── Nav items ──────────────────────────────────────────────────────────────
   const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType }[] = [
-    { id: 'profil',      label: 'Profil',     sublabel: 'Name & Foto',  Icon: UserIcon },
-    { id: 'kuechenstil', label: 'Küchenstil', sublabel: 'Dein Profil',  Icon: ChefHat  },
-    { id: 'sicherheit',  label: 'Sicherheit', sublabel: 'Passwort',     Icon: Shield   },
+    { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',  Icon: UserIcon },
+    { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',  Icon: ChefHat  },
+    { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',  Icon: Share2   },
+    { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',     Icon: Shield   },
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -487,7 +528,77 @@ export default function ProfilPage() {
             </div>
           )}
 
-          {/* ── Tab 3: Sicherheit ──────────────────────────────────────── */}
+          {/* ── Tab 3: Social Media ────────────────────────────────────── */}
+          {activeTab === 'social' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+                Social Media & Links
+              </h3>
+              <div className="space-y-5" style={{ maxWidth: 460 }}>
+
+                {/* Instagram */}
+                <div>
+                  <label style={labelStyle}>Instagram</label>
+                  <div className="relative">
+                    <Camera size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)}
+                      placeholder="@deinname oder Link" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {/* TikTok */}
+                <div>
+                  <label style={labelStyle}>TikTok</label>
+                  <div className="relative">
+                    <Music2 size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={tiktok} onChange={e => setTiktok(e.target.value)}
+                      placeholder="@deinname" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {/* YouTube */}
+                <div>
+                  <label style={labelStyle}>YouTube</label>
+                  <div className="relative">
+                    <PlayCircle size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={youtube} onChange={e => setYoutube(e.target.value)}
+                      placeholder="Kanal-Link" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {/* Website */}
+                <div>
+                  <label style={labelStyle}>Website</label>
+                  <div className="relative">
+                    <Globe size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={website} onChange={e => setWebsite(e.target.value)}
+                      placeholder="https://…" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {/* LinkedIn */}
+                <div>
+                  <label style={labelStyle}>LinkedIn</label>
+                  <div className="relative">
+                    <Briefcase size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={linkedin} onChange={e => setLinkedin(e.target.value)}
+                      placeholder="Profil-Link" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {socialError && <ErrorBanner message={socialError} />}
+                {socialSuccess && <SuccessBanner />}
+                <SaveButton onClick={saveSocial} loading={socialSaving} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Tab 4: Sicherheit ──────────────────────────────────────── */}
           {activeTab === 'sicherheit' && (
             <div>
               <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
