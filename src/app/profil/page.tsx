@@ -1,12 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import {
-  User as UserIcon, Mail, Lock, Camera, LogOut, Loader2,
-  Eye, EyeOff, CheckCircle, ChefHat, Sparkles, Shield,
+  User as UserIcon, Mail, Lock, LogOut, Loader2,
+  Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
 } from 'lucide-react';
+
+const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,10 +27,10 @@ type Profile = {
 type Stats = { rezepte: number; projekte: number; fermente: number };
 type Tab = 'profil' | 'kuechenstil' | 'sicherheit';
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
+// ─── Shared form styles ───────────────────────────────────────────────────────
 
 const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]';
-const fieldStyle = { background: '#FFFFFF', border: '1px solid #E8E0D8' };
+const fieldStyle = { background: '#F9F7F4', border: '1px solid #E8E0D8' };
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 10, color: '#8B7355',
   marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase',
@@ -46,7 +49,7 @@ function SuccessBanner({ message = 'Gespeichert!' }: { message?: string }) {
   return (
     <div className="flex items-center gap-2 rounded-xl px-4 py-3 text-[12px]"
       style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#5A9A58' }}>
-      <CheckCircle size={14} />
+      <CheckCircle size={13} />
       {message}
     </div>
   );
@@ -55,46 +58,47 @@ function SuccessBanner({ message = 'Gespeichert!' }: { message?: string }) {
 function ErrorBanner({ message }: { message: string }) {
   return (
     <div className="rounded-xl px-4 py-3 text-[12px]"
-      style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)', color: '#FCA5A5' }}>
+      style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#E06B6B' }}>
       {message}
     </div>
   );
 }
 
-function SaveButton({ onClick, loading, label = 'Speichern' }: { onClick: () => void; loading: boolean; label?: string }) {
+function SaveButton({ onClick, loading, label = 'Speichern' }: {
+  onClick: () => void; loading: boolean; label?: string;
+}) {
   return (
     <button onClick={onClick} disabled={loading}
       className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
       style={{
         background: 'linear-gradient(135deg, #562E3C 0%, #6B3A4B 60%, #7D4558 100%)',
-        color: '#FFFFFF',
-        boxShadow: '0 4px 16px rgba(107,58,75,0.2)',
+        color: '#FFFFFF', boxShadow: '0 4px 16px rgba(107,58,75,0.2)',
       }}>
-      {loading ? <Loader2 size={14} className="animate-spin" /> : null}
+      {loading && <Loader2 size={13} className="animate-spin" />}
       {label}
     </button>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilPage() {
-  const router = useRouter();
+  const router      = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [user, setUser]             = useState<User | null>(null);
-  const [profile, setProfile]       = useState<Profile | null>(null);
-  const [stats, setStats]           = useState<Stats>({ rezepte: 0, projekte: 0, fermente: 0 });
+  const [user, setUser]               = useState<User | null>(null);
+  const [profile, setProfile]         = useState<Profile | null>(null);
+  const [stats, setStats]             = useState<Stats>({ rezepte: 0, projekte: 0, fermente: 0 });
   const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [activeTab, setActiveTab]   = useState<Tab>('profil');
+  const [loading, setLoading]         = useState(true);
+  const [activeTab, setActiveTab]     = useState<Tab>('profil');
 
-  // Tab 1 – Profil
-  const [name, setName]                 = useState('');
+  // Tab 1
+  const [name, setName]               = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
 
-  // Tab 2 – Küchenstil
+  // Tab 2
   const [kuechenstil, setKuechenstil]       = useState('');
   const [spezialitaeten, setSpezialitaeten] = useState('');
   const [bio, setBio]                       = useState('');
@@ -104,7 +108,7 @@ export default function ProfilPage() {
   const [stilSaving, setStilSaving]         = useState(false);
   const [stilSuccess, setStilSuccess]       = useState(false);
 
-  // Tab 3 – Sicherheit
+  // Tab 3
   const [currentPw, setCurrentPw]   = useState('');
   const [newPw, setNewPw]           = useState('');
   const [confirmPw, setConfirmPw]   = useState('');
@@ -113,10 +117,9 @@ export default function ProfilPage() {
   const [pwSuccess, setPwSuccess]   = useState(false);
   const [pwError, setPwError]       = useState('');
 
-  // Avatar
   const [avatarLoading, setAvatarLoading] = useState(false);
 
-  // ── Load data ──────────────────────────────────────────────────────────────
+  // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
@@ -141,44 +144,38 @@ export default function ProfilPage() {
     });
   }, []);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  // ── Derived ────────────────────────────────────────────────────────────────
   const displayName = name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) || '?';
   const memberSince = (userCreatedAt ?? profile?.created_at)
-    ? new Date(userCreatedAt ?? profile!.created_at!).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+    ? new Date((userCreatedAt ?? profile!.created_at)!).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
     : '—';
 
-  // ── Save Profil ────────────────────────────────────────────────────────────
+  // ── Actions ────────────────────────────────────────────────────────────────
   const saveProfile = async () => {
     setProfileSaving(true);
     await fetch('/api/profil', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ full_name: name }),
     });
-    setProfileSaving(false);
-    setProfileSuccess(true);
+    setProfileSaving(false); setProfileSuccess(true);
     setTimeout(() => setProfileSuccess(false), 3000);
   };
 
-  // ── Save Küchenstil ────────────────────────────────────────────────────────
   const saveKuechenstil = async () => {
     setStilSaving(true);
     await fetch('/api/profil', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kuechenstil, spezialitaeten, bio, lieblingszutaten: tags.join(', '), inspirationen }),
     });
-    setStilSaving(false);
-    setStilSuccess(true);
+    setStilSaving(false); setStilSuccess(true);
     setTimeout(() => setStilSuccess(false), 3000);
   };
 
-  // ── Change Password ────────────────────────────────────────────────────────
   const changePassword = async () => {
     setPwError('');
     if (newPw !== confirmPw) { setPwError('Passwörter stimmen nicht überein.'); return; }
-    if (newPw.length < 6) { setPwError('Passwort muss mindestens 6 Zeichen lang sein.'); return; }
+    if (newPw.length < 6)    { setPwError('Mindestens 6 Zeichen erforderlich.'); return; }
     if (!user?.email) return;
     setPwSaving(true);
     const supabase = createClient();
@@ -187,34 +184,28 @@ export default function ProfilPage() {
     const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
     setPwSaving(false);
     if (updateErr) { setPwError(updateErr.message); return; }
-    setPwSuccess(true);
-    setCurrentPw(''); setNewPw(''); setConfirmPw('');
+    setPwSuccess(true); setCurrentPw(''); setNewPw(''); setConfirmPw('');
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
-  // ── Avatar Upload ──────────────────────────────────────────────────────────
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setAvatarLoading(true);
-    const formData = new FormData();
-    formData.append('avatar', file);
+    const form = new FormData(); form.append('avatar', file);
     try {
-      const res = await fetch('/api/profil/avatar', { method: 'POST', body: formData });
+      const res = await fetch('/api/profil/avatar', { method: 'POST', body: form });
       const d = await res.json();
       if (d.avatar_url) setProfile(prev => prev ? { ...prev, avatar_url: d.avatar_url } : null);
     } catch {}
     setAvatarLoading(false);
   };
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     router.push('/login');
   };
 
-  // ── Tags ───────────────────────────────────────────────────────────────────
   const addTag = () => {
     const t = tagInput.trim();
     if (t && !tags.includes(t)) setTags(prev => [...prev, t]);
@@ -230,164 +221,149 @@ export default function ProfilPage() {
     );
   }
 
-  const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: 'profil',      label: 'Profil',      icon: UserIcon  },
-    { id: 'kuechenstil', label: 'Küchenstil',  icon: ChefHat   },
-    { id: 'sicherheit',  label: 'Sicherheit',  icon: Shield    },
+  // ── Nav items ──────────────────────────────────────────────────────────────
+  const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType }[] = [
+    { id: 'profil',      label: 'Profil',     sublabel: 'Name & Foto',  Icon: UserIcon },
+    { id: 'kuechenstil', label: 'Küchenstil', sublabel: 'Dein Profil',  Icon: ChefHat  },
+    { id: 'sicherheit',  label: 'Sicherheit', sublabel: 'Passwort',     Icon: Shield   },
   ];
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
 
-      {/* Header */}
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
-          style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Einstellungen</div>
-        <h1 className="font-heading font-bold leading-none"
-          style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
+      {/* Breadcrumb + Header area */}
+      <div style={{ padding: '2rem 2rem 0' }}>
+        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(107,58,75,0.55)', marginBottom: 6 }}>
+          ✦ &nbsp;Einstellungen
+        </div>
+        <h1 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 28, fontWeight: 700, color: '#2C2420', letterSpacing: 2, textTransform: 'uppercase', margin: '0 0 1.25rem' }}>
           Mein Profil
         </h1>
+
+        {/* 3D Header */}
+        {avatarLoading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
+            <Loader2 size={20} className="animate-spin" style={{ color: '#C9A84C' }} />
+          </div>
+        )}
+        <DepthHeader
+          initial={initials[0] ?? '?'}
+          name={displayName || '—'}
+          role="Chef & Creator"
+          stats={stats}
+          avatarUrl={profile?.avatar_url}
+          onAvatarClick={() => fileInputRef.current?.click()}
+        />
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
       </div>
 
-      {/* Content */}
-      <div className="p-6 lg:p-8">
-        <div className="flex flex-col lg:flex-row gap-6 max-w-5xl" style={{ alignItems: 'flex-start' }}>
+      {/* Two-column grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1.25rem', padding: '0 2rem 2rem' }}>
 
-          {/* ── Left Card ─────────────────────────────────────────────────── */}
-          <div className="w-full lg:w-[280px] flex-shrink-0 space-y-4">
-            <div className="rounded-2xl p-6 text-center"
-              style={{ background: '#FFFFFF', border: '1px solid #E8E0D8', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
+        {/* ── Left nav column ─────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-              {/* Avatar */}
-              <div className="relative inline-block mb-4">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-24 h-24 rounded-full object-cover"
-                    style={{ border: '3px solid #E8E0D8' }} />
-                ) : (
-                  <div className="w-24 h-24 rounded-full flex items-center justify-center text-white text-2xl font-bold"
-                    style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)', border: '3px solid #E8E0D8' }}>
-                    {initials}
-                  </div>
-                )}
-                <button onClick={() => fileInputRef.current?.click()} disabled={avatarLoading}
-                  className="absolute bottom-0.5 right-0.5 w-8 h-8 rounded-full flex items-center justify-center transition-all"
-                  style={{ background: '#6B3A4B', border: '2px solid white', boxShadow: '0 2px 8px rgba(107,58,75,0.3)' }}>
-                  {avatarLoading
-                    ? <Loader2 size={13} className="animate-spin text-white" />
-                    : <Camera size={13} className="text-white" />}
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-              </div>
-
-              {/* Name & email */}
-              <h2 className="font-heading text-[18px] font-bold mb-1" style={{ color: '#2C2420' }}>
-                {displayName || '—'}
-              </h2>
-              <p style={{ fontSize: 12, color: '#B09880' }}>{user?.email}</p>
-
-              {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mt-3"
-                style={{ background: 'rgba(107,58,75,0.07)', border: '1px solid rgba(107,58,75,0.18)' }}>
-                <Sparkles size={10} style={{ color: '#6B3A4B' }} />
-                <span style={{ fontSize: 10, color: '#6B3A4B', letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: 600 }}>
-                  Chef & Creator
-                </span>
-              </div>
-
-              {/* Stats */}
-              <div className="flex mt-5 pt-5" style={{ borderTop: '1px solid #E8E0D8' }}>
-                {[
-                  { label: 'Rezepte',  value: stats.rezepte },
-                  { label: 'Projekte', value: stats.projekte },
-                  { label: 'Fermente', value: stats.fermente },
-                ].map((s, i, arr) => (
-                  <div key={s.label} className="flex-1 text-center" style={{
-                    borderRight: i < arr.length - 1 ? '1px solid #E8E0D8' : 'none',
-                  }}>
-                    <div className="text-[20px] font-bold font-heading" style={{ color: '#2C2420' }}>{s.value}</div>
-                    <div style={{ fontSize: 9, color: '#B09880', letterSpacing: '1px', textTransform: 'uppercase', marginTop: 2 }}>
-                      {s.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Member since */}
-              <p className="mt-4" style={{ fontSize: 11, color: '#C0B5A8' }}>
-                Mitglied seit {memberSince}
-              </p>
-            </div>
-
-            {/* Logout */}
-            <button onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold transition-all"
-              style={{ background: 'rgba(192,80,80,0.07)', border: '1px solid rgba(192,80,80,0.2)', color: '#C05050' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.13)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.07)')}>
-              <LogOut size={14} />
-              Abmelden
-            </button>
+          {/* Nav card */}
+          <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', padding: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+            {NAV.map(({ id, label, sublabel, Icon }) => (
+              <button key={id} onClick={() => setActiveTab(id)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 10px 10px 12px', borderRadius: 10, cursor: 'pointer',
+                  borderLeft: activeTab === id ? '3px solid #6B3A4B' : '3px solid transparent',
+                  background: activeTab === id ? 'rgba(107,58,75,0.06)' : 'transparent',
+                  border: 'none', textAlign: 'left', transition: 'all 0.15s',
+                  marginBottom: 2,
+                }}
+                onMouseEnter={e => { if (activeTab !== id) e.currentTarget.style.background = 'rgba(107,58,75,0.03)'; }}
+                onMouseLeave={e => { if (activeTab !== id) e.currentTarget.style.background = 'transparent'; }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', flexShrink: 0,
+                  background: activeTab === id ? '#6B3A4B' : 'rgba(107,58,75,0.08)',
+                  transition: 'all 0.15s',
+                }}>
+                  <Icon size={14} style={{ color: activeTab === id ? '#FFFFFF' : '#8B7355' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3 }}>{label}</div>
+                  <div style={{ fontSize: 11, color: '#B09880', marginTop: 1 }}>{sublabel}</div>
+                </div>
+              </button>
+            ))}
           </div>
 
-          {/* ── Right Card ────────────────────────────────────────────────── */}
-          <div className="flex-1 rounded-2xl overflow-hidden"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E0D8', boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
-
-            {/* Tabs */}
-            <div className="flex" style={{ borderBottom: '1px solid #E8E0D8' }}>
-              {TABS.map(({ id, label, icon: Icon }) => (
-                <button key={id} onClick={() => setActiveTab(id)}
-                  className="flex items-center gap-2 px-5 py-4 text-[11px] font-semibold tracking-[2px] uppercase transition-all relative"
-                  style={{
-                    color: activeTab === id ? '#6B3A4B' : '#B09880',
-                    borderBottom: activeTab === id ? '2px solid #6B3A4B' : '2px solid transparent',
-                    marginBottom: -1,
-                    background: 'none',
-                  }}>
-                  <Icon size={13} />
-                  {label}
-                </button>
-              ))}
+          {/* Member since */}
+          <div style={{ background: '#FFFFFF', borderRadius: 14, border: '1px solid #E8E0D8', padding: '12px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+            <div style={{ fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#C0B5A8', marginBottom: 4 }}>
+              Mitglied seit
             </div>
+            <div style={{ fontSize: 13, color: '#8B7355', fontWeight: 500 }}>{memberSince}</div>
+          </div>
 
-            {/* Tab Content */}
-            <div className="p-6">
+          {/* Logout */}
+          <button onClick={handleLogout}
+            className="flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold transition-all"
+            style={{ background: 'rgba(192,80,80,0.07)', border: '1px solid rgba(192,80,80,0.2)', color: '#C05050', width: '100%' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.13)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.07)')}>
+            <LogOut size={14} />
+            Abmelden
+          </button>
+        </div>
 
-              {/* ── Tab 1: Profil ─────────────────────────────────────────── */}
-              {activeTab === 'profil' && (
-                <div className="space-y-5 max-w-md">
-                  <div>
-                    <label style={labelStyle}>Name</label>
-                    <div className="relative">
-                      <UserIcon size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="text" value={name} onChange={e => setName(e.target.value)}
-                        placeholder="Dein Name" className={fieldCls} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                    </div>
+        {/* ── Right content card ───────────────────────────────────────────── */}
+        <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', padding: '1.75rem', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+
+          {/* ── Tab 1: Profil ───────────────────────────────────────────── */}
+          {activeTab === 'profil' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+                Profil bearbeiten
+              </h3>
+              <div className="space-y-5" style={{ maxWidth: 420 }}>
+                <div>
+                  <label style={labelStyle}>Name</label>
+                  <div className="relative">
+                    <UserIcon size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={name} onChange={e => setName(e.target.value)}
+                      placeholder="Dein Name" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
                   </div>
-                  <div>
-                    <label style={labelStyle}>E-Mail</label>
-                    <div className="relative">
-                      <Mail size={14} color="#C0B5A8" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="email" value={user?.email ?? ''} disabled
-                        className={fieldCls} style={{ ...fieldStyle, opacity: 0.55, cursor: 'not-allowed' }} />
-                    </div>
-                    <p style={{ fontSize: 10, color: '#C0B5A8', marginTop: 4 }}>E-Mail kann nicht geändert werden.</p>
-                  </div>
-                  {profileSuccess && <SuccessBanner />}
-                  <SaveButton onClick={saveProfile} loading={profileSaving} />
                 </div>
-              )}
+                <div>
+                  <label style={labelStyle}>E-Mail</label>
+                  <div className="relative">
+                    <Mail size={14} color="#C0B5A8" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="email" value={user?.email ?? ''} disabled
+                      className={fieldCls}
+                      style={{ ...fieldStyle, opacity: 0.5, cursor: 'not-allowed' }} />
+                  </div>
+                  <p style={{ fontSize: 10, color: '#C0B5A8', marginTop: 4 }}>E-Mail kann nicht geändert werden.</p>
+                </div>
+                {profileSuccess && <SuccessBanner />}
+                <SaveButton onClick={saveProfile} loading={profileSaving} />
+              </div>
+            </div>
+          )}
 
-              {/* ── Tab 2: Küchenstil ─────────────────────────────────────── */}
-              {activeTab === 'kuechenstil' && (
-                <div className="space-y-5 max-w-md">
+          {/* ── Tab 2: Küchenstil ──────────────────────────────────────── */}
+          {activeTab === 'kuechenstil' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+                Kulinarisches Profil
+              </h3>
+              <div className="space-y-5" style={{ maxWidth: 520 }}>
+
+                {/* Two-column: Küchenstil + Spezialitäten */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <label style={labelStyle}>Küchenstil</label>
                     <div className="relative">
                       <ChefHat size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input type="text" value={kuechenstil} onChange={e => setKuechenstil(e.target.value)}
-                        placeholder="Fine Dining, Modern European…" className={fieldCls} style={fieldStyle}
+                        placeholder="Fine Dining…" className={fieldCls} style={fieldStyle}
                         onFocus={onFocus} onBlur={onBlur} />
                     </div>
                   </div>
@@ -396,116 +372,129 @@ export default function ProfilPage() {
                     <div className="relative">
                       <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input type="text" value={spezialitaeten} onChange={e => setSpezialitaeten(e.target.value)}
-                        placeholder="Fermentation, Sous-vide…" className={fieldCls} style={fieldStyle}
+                        placeholder="Fermentation…" className={fieldCls} style={fieldStyle}
                         onFocus={onFocus} onBlur={onBlur} />
                     </div>
                   </div>
-                  <div>
-                    <label style={labelStyle}>
-                      Bio / Über mich
-                      <span style={{ marginLeft: 8, fontWeight: 400, letterSpacing: 0, textTransform: 'none', fontSize: 10, color: '#C0B5A8' }}>
-                        {bio.length}/300
-                      </span>
-                    </label>
-                    <textarea value={bio} onChange={e => { if (e.target.value.length <= 300) setBio(e.target.value); }}
-                      placeholder="Erzähl etwas über dich und deine Küche…"
-                      rows={4} className="w-full px-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
+                </div>
+
+                <div>
+                  <label style={labelStyle}>
+                    Bio / Über mich
+                    <span style={{ marginLeft: 8, fontWeight: 400, letterSpacing: 0, textTransform: 'none', color: bio.length > 270 ? '#C9A84C' : '#C0B5A8' }}>
+                      {bio.length}/300
+                    </span>
+                  </label>
+                  <textarea value={bio}
+                    onChange={e => { if (e.target.value.length <= 300) setBio(e.target.value); }}
+                    placeholder="Erzähl etwas über dich und deine Küche…"
+                    rows={4}
+                    className="w-full px-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
+                    style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Lieblings-Zutaten</label>
+                  {tags.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {tags.map(tag => (
+                        <span key={tag} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '4px 10px', borderRadius: 999, fontSize: 12,
+                          background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.18)', color: '#6B3A4B',
+                        }}>
+                          {tag}
+                          <button onClick={() => setTags(p => p.filter(t => t !== tag))}
+                            style={{ color: '#6B3A4B', opacity: 0.5, fontSize: 15, lineHeight: 1, marginLeft: 2 }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                      placeholder="Zutat + Enter"
+                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
                       style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                    <button onClick={addTag}
+                      style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
+                        background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)', cursor: 'pointer' }}>
+                      +
+                    </button>
                   </div>
-                  <div>
-                    <label style={labelStyle}>Lieblings-Zutaten</label>
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {tags.map(tag => (
-                          <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px]"
-                            style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.18)', color: '#6B3A4B' }}>
-                            {tag}
-                            <button onClick={() => setTags(prev => prev.filter(t => t !== tag))}
-                              style={{ color: '#6B3A4B', opacity: 0.5, lineHeight: 1, fontSize: 14, marginLeft: 2 }}>×</button>
-                          </span>
-                        ))}
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Inspirationen</label>
+                  <div className="relative">
+                    <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type="text" value={inspirationen} onChange={e => setInspirationen(e.target.value)}
+                      placeholder="René Redzepi, Ferran Adrià…" className={fieldCls} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+
+                {stilSuccess && <SuccessBanner />}
+                <SaveButton onClick={saveKuechenstil} loading={stilSaving} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Tab 3: Sicherheit ──────────────────────────────────────── */}
+          {activeTab === 'sicherheit' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+                Passwort ändern
+              </h3>
+              <div className="space-y-5" style={{ maxWidth: 420 }}>
+                <div>
+                  <label style={labelStyle}>Aktuelles Passwort</label>
+                  <div className="relative">
+                    <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type={showPw ? 'text' : 'password'} value={currentPw} onChange={e => setCurrentPw(e.target.value)}
+                      placeholder="••••••••" className={fieldCls + ' pr-11'} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                    <button type="button" onClick={() => setShowPw(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: '#B09880' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
+                      {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Neues Passwort</label>
+                  <div className="relative">
+                    <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type={showPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
+                      placeholder="Min. 6 Zeichen" className={fieldCls + ' pr-11'} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Neues Passwort bestätigen</label>
+                  <div className="relative">
+                    <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
+                      placeholder="Passwort wiederholen" className={fieldCls + ' pr-11'} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                    {confirmPw.length > 0 && (
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        {confirmPw === newPw
+                          ? <CheckCircle size={14} color="#7CB87A" />
+                          : <span style={{ color: '#E06B6B', fontSize: 14, fontWeight: 700 }}>✗</span>}
                       </div>
                     )}
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                          placeholder="Zutat hinzufügen + Enter"
-                          className="w-full px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
-                          style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
-                      </div>
-                      <button onClick={addTag}
-                        className="px-4 py-3 rounded-xl text-[18px] font-bold transition-all"
-                        style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)' }}>
-                        +
-                      </button>
-                    </div>
                   </div>
-                  <div>
-                    <label style={labelStyle}>Inspirationen</label>
-                    <div className="relative">
-                      <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="text" value={inspirationen} onChange={e => setInspirationen(e.target.value)}
-                        placeholder="René Redzepi, Ferran Adrià…" className={fieldCls} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                    </div>
-                  </div>
-                  {stilSuccess && <SuccessBanner />}
-                  <SaveButton onClick={saveKuechenstil} loading={stilSaving} />
                 </div>
-              )}
-
-              {/* ── Tab 3: Sicherheit ─────────────────────────────────────── */}
-              {activeTab === 'sicherheit' && (
-                <div className="space-y-5 max-w-md">
-                  <div>
-                    <label style={labelStyle}>Aktuelles Passwort</label>
-                    <div className="relative">
-                      <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type={showPw ? 'text' : 'password'} value={currentPw} onChange={e => setCurrentPw(e.target.value)}
-                        placeholder="••••••••" className={fieldCls + ' pr-11'} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                      <button type="button" onClick={() => setShowPw(p => !p)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2" style={{ color: '#B09880' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
-                        {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Neues Passwort</label>
-                    <div className="relative">
-                      <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type={showPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
-                        placeholder="Min. 6 Zeichen" className={fieldCls + ' pr-11'} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Neues Passwort bestätigen</label>
-                    <div className="relative">
-                      <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-                        placeholder="Passwort wiederholen" className={fieldCls + ' pr-11'} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                      {confirmPw.length > 0 && (
-                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                          {confirmPw === newPw
-                            ? <CheckCircle size={14} color="#7CB87A" />
-                            : <span style={{ color: '#E06B6B', fontSize: 14, fontWeight: 700 }}>✗</span>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {pwError && <ErrorBanner message={pwError} />}
-                  {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
-                  <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
-                </div>
-              )}
-
+                {pwError && <ErrorBanner message={pwError} />}
+                {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
+                <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
+              </div>
             </div>
-          </div>
+          )}
+
         </div>
       </div>
     </div>
