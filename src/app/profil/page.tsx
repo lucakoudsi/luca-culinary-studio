@@ -8,7 +8,9 @@ import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
+  Users, Search,
 } from 'lucide-react';
+import { ADMIN_EMAIL, TITLE_TO_TIER, getUserTier } from '@/config/roles';
 
 const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
 
@@ -31,7 +33,46 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit';
+type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit' | 'verwaltung';
+
+type AdminUser = {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url: string | null;
+  titel: string | null;
+};
+
+const ALL_TITLES = Object.keys(TITLE_TO_TIER);
+
+const TIER_LABEL: Record<number, string> = { 1: 'Gast', 2: 'Einsteiger', 3: 'Profi', 4: 'Leitung' };
+const TIER_COLOR: Record<number, { bg: string; text: string }> = {
+  1:  { bg: 'rgba(154,128,112,0.12)', text: '#9A8070' },
+  2:  { bg: 'rgba(90,138,154,0.12)',  text: '#5A8B9A' },
+  3:  { bg: 'rgba(201,168,76,0.12)',  text: '#C9A84C' },
+  4:  { bg: 'rgba(107,58,75,0.12)',   text: '#6B3A4B' },
+  99: { bg: 'rgba(86,46,60,0.18)',    text: '#562E3C' },
+};
+
+const PERM_ROWS: { label: string; minTier: number }[] = [
+  { label: 'Dashboard',         minTier: 1  },
+  { label: 'Rezepte ansehen',   minTier: 1  },
+  { label: 'Zutatenbibliothek', minTier: 2  },
+  { label: 'Fermentation',      minTier: 2  },
+  { label: 'Projekte',          minTier: 3  },
+  { label: 'Mein Stil',         minTier: 3  },
+  { label: 'Wein & Pairing',    minTier: 4  },
+  { label: 'KI-Funktionen',     minTier: 4  },
+  { label: 'Titel vergeben',    minTier: 99 },
+  { label: 'Nutzer verwalten',  minTier: 99 },
+];
+const PERM_TIERS = [
+  { tier: 1, label: 'Gast' },
+  { tier: 2, label: 'Einsteiger' },
+  { tier: 3, label: 'Profi' },
+  { tier: 4, label: 'Leitung' },
+  { tier: 99, label: 'Admin' },
+];
 
 // ─── Shared form styles ───────────────────────────────────────────────────────
 
@@ -125,6 +166,13 @@ export default function ProfilPage() {
   const [socialSaving, setSocialSaving] = useState(false);
   const [socialSuccess, setSocialSuccess] = useState(false);
   const [socialError, setSocialError]   = useState('');
+
+  // Tab 5 – Verwaltung (Admin only)
+  const [adminUsers, setAdminUsers]         = useState<AdminUser[]>([]);
+  const [adminSearch, setAdminSearch]       = useState('');
+  const [adminLoading, setAdminLoading]     = useState(false);
+  const [adminActing, setAdminActing]       = useState<string | null>(null);
+  const [adminSuccess, setAdminSuccess]     = useState<string | null>(null);
 
   // Tab 4 – Sicherheit
   const [currentPw, setCurrentPw]     = useState('');
@@ -252,6 +300,33 @@ export default function ProfilPage() {
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
+  const loadAdminUsers = async () => {
+    setAdminLoading(true);
+    try {
+      const res = await fetch('/api/admin/users');
+      const d = await res.json();
+      if (res.ok) setAdminUsers(d.users ?? []);
+    } catch {}
+    setAdminLoading(false);
+  };
+
+  const saveAdminTitle = async (userId: string, titel: string | null) => {
+    setAdminActing(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titel }),
+      });
+      if (res.ok) {
+        setAdminUsers(prev => prev.map(u => u.id === userId ? { ...u, titel } : u));
+        setAdminSuccess(userId);
+        setTimeout(() => setAdminSuccess(null), 2000);
+      }
+    } catch {}
+    setAdminActing(null);
+  };
+
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -299,11 +374,14 @@ export default function ProfilPage() {
   }
 
   // ── Nav items ──────────────────────────────────────────────────────────────
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
   const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType }[] = [
     { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',  Icon: UserIcon },
     { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',  Icon: ChefHat  },
     { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',  Icon: Share2   },
     { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',     Icon: Shield   },
+    ...(isAdmin ? [{ id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users }] : []),
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -684,6 +762,151 @@ export default function ProfilPage() {
                 {pwError && <ErrorBanner message={pwError} />}
                 {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
                 <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
+              </div>
+            </div>
+          )}
+
+          {/* ── Tab 5: Verwaltung (Admin only) ─────────────────────────── */}
+          {activeTab === 'verwaltung' && isAdmin && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.75rem' }}>
+                Nutzerverwaltung
+              </h3>
+
+              {/* Search + Load */}
+              <div style={{ display: 'flex', gap: 10, marginBottom: '1.25rem', alignItems: 'center' }}>
+                <div className="relative flex-1" style={{ maxWidth: 340 }}>
+                  <Search size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input type="text" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
+                    placeholder="Nach Name oder E-Mail suchen…"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-[13px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                    style={{ background: '#F9F7F4', border: '1px solid #E8E0D8' }}
+                    onFocus={onFocus} onBlur={onBlur} />
+                </div>
+                <button onClick={loadAdminUsers} disabled={adminLoading}
+                  className="flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
+                  style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)', color: '#6B3A4B' }}>
+                  {adminLoading ? <Loader2 size={13} className="animate-spin" /> : <Users size={13} />}
+                  Laden
+                </button>
+              </div>
+
+              {/* User list */}
+              {adminUsers.length === 0 && !adminLoading && (
+                <p style={{ fontSize: 13, color: '#C0B5A8', marginBottom: '2rem' }}>
+                  Klicke „Laden" um alle Nutzer anzuzeigen.
+                </p>
+              )}
+
+              {adminUsers.filter(u =>
+                !adminSearch ||
+                u.email.toLowerCase().includes(adminSearch.toLowerCase()) ||
+                u.full_name.toLowerCase().includes(adminSearch.toLowerCase())
+              ).map(u => {
+                const tier = getUserTier(u.email, u.titel);
+                const tc = TIER_COLOR[tier] ?? TIER_COLOR[1];
+                const tl = u.email === ADMIN_EMAIL ? 'Admin' : (TIER_LABEL[tier] ?? `Stufe ${tier}`);
+                const initials = (u.full_name || u.email)
+                  .split(/[\s@]/).map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+                return (
+                  <div key={u.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 14px', borderRadius: 12, marginBottom: 6,
+                    background: u.email === ADMIN_EMAIL ? 'rgba(86,46,60,0.04)' : '#FAFAF9',
+                    border: '1px solid #EEE8E2',
+                  }}>
+                    {/* Avatar */}
+                    {u.avatar_url ? (
+                      <img src={u.avatar_url} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                    ) : (
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 600, flexShrink: 0 }}>
+                        {initials}
+                      </div>
+                    )}
+
+                    {/* Name + email */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {u.full_name || '—'}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#9A8070', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {u.email}
+                      </div>
+                    </div>
+
+                    {/* Tier badge */}
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: '3px 8px', borderRadius: 999, background: tc.bg, color: tc.text, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {tl}
+                    </div>
+
+                    {/* Dropdown — disabled for admin */}
+                    {u.email === ADMIN_EMAIL ? (
+                      <div style={{ width: 160, fontSize: 11, color: '#C0B5A8', textAlign: 'center', flexShrink: 0 }}>Administrator</div>
+                    ) : (
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <select
+                          value={u.titel ?? ''}
+                          disabled={adminActing === u.id}
+                          onChange={e => saveAdminTitle(u.id, e.target.value || null)}
+                          style={{
+                            width: 180, padding: '6px 10px', borderRadius: 8, fontSize: 12,
+                            background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
+                            cursor: 'pointer', outline: 'none',
+                          }}>
+                          <option value="">— kein Titel —</option>
+                          {ALL_TITLES.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                        {adminActing === u.id && (
+                          <Loader2 size={12} className="animate-spin absolute right-8 top-1/2 -translate-y-1/2" style={{ color: '#6B3A4B' }} />
+                        )}
+                        {adminSuccess === u.id && (
+                          <CheckCircle size={13} color="#5A9A58" className="absolute right-8 top-1/2 -translate-y-1/2" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Permissions overview */}
+              <div style={{ marginTop: '2.5rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.25rem' }}>
+                  Rechte-Übersicht
+                </h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #E8E0D8' }}>
+                        <th style={{ textAlign: 'left', padding: '8px 12px', color: '#8B7355', fontWeight: 600, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+                          Bereich
+                        </th>
+                        {PERM_TIERS.map(({ tier, label }) => (
+                          <th key={tier} style={{ textAlign: 'center', padding: '8px 10px', fontWeight: 700, fontSize: 10, letterSpacing: 1, color: TIER_COLOR[tier].text }}>
+                            {label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {PERM_ROWS.map(({ label, minTier }, i) => (
+                        <tr key={label} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', borderBottom: '1px solid #F0EAE4' }}>
+                          <td style={{ padding: '9px 12px', color: '#2C2420', fontWeight: 500 }}>{label}</td>
+                          {PERM_TIERS.map(({ tier }) => (
+                            <td key={tier} style={{ textAlign: 'center', padding: '9px 10px' }}>
+                              {tier >= minTier ? (
+                                <span style={{ color: '#5A9A58', fontWeight: 700, fontSize: 14 }}>✓</span>
+                              ) : (
+                                <span style={{ color: '#D0C8C0', fontSize: 13 }}>✕</span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
