@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, FlaskConical, Utensils,
-  Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock,
+  Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { cn } from '@/lib/utils';
@@ -33,12 +33,20 @@ interface SidebarProps {
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
-  const [user, setUser]           = useState<User | null>(null);
+  const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ?? null);
+      if (data.user) {
+        fetch('/api/profil').then(r => r.json()).then(d => {
+          setAvatarUrl(d.profile?.avatar_url ?? null);
+        }).catch(() => {});
+      }
+    });
   }, []);
 
   const handleLogout = async () => {
@@ -134,16 +142,25 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         {/* Footer */}
         <div className="p-4 border-t border-border space-y-2">
           {user && (
-            <div className="flex items-center gap-2.5 px-2 py-1.5">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
-                style={{ background: '#6B3A4B' }}>
-                {initials}
-              </div>
+            <Link href="/profil"
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all group"
+              style={{ color: 'inherit' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,58,75,0.07)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
+                  {initials}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="text-[12px] font-semibold truncate" style={{ color: '#2C2420' }}>{displayName}</div>
                 <div className="text-[10px] truncate" style={{ color: '#B09880' }}>{user.email}</div>
               </div>
-            </div>
+              <Settings size={13} style={{ color: '#B09880', flexShrink: 0 }} className="group-hover:text-[#6B3A4B] transition-colors" />
+            </Link>
           )}
           <button
             onClick={handleLogout}

@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle, MessageSquare } from 'lucide-react';
 
-const FOOD_IMG = 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200';
+const BlobBackground = dynamic(() => import('@/components/ui/BlobBackground'), { ssr: false });
 
 function OrnamentLine({ flip }: { flip?: boolean }) {
   return (
@@ -90,37 +91,29 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex" style={{ background: '#FAF8F5' }}>
 
-      {/* ── Left: Food Image ───────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col">
-        <img
-          src={FOOD_IMG}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: 'brightness(0.85) saturate(0.9)' }}
-        />
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.2) 100%)',
-        }} />
-        <div className="absolute inset-y-0 right-0 w-32" style={{
+      {/* ── Left: Blob Background ─────────────────────────────────────────── */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: '#FAF8F5' }}>
+        <BlobBackground />
+        <div className="absolute inset-y-0 right-0 w-32 z-10" style={{
           background: 'linear-gradient(90deg, transparent, #FAF8F5)',
         }} />
 
         <div className="relative z-10 p-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-            style={{ background: 'rgba(107,58,75,0.15)', border: '1px solid rgba(107,58,75,0.3)' }}>
-            <span style={{ color: '#FFFFFF', fontSize: 10 }}>✦</span>
-            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, letterSpacing: '3px', textTransform: 'uppercase' }}>
+            style={{ background: 'rgba(107,58,75,0.12)', border: '1px solid rgba(107,58,75,0.3)' }}>
+            <span style={{ color: '#6B3A4B', fontSize: 10 }}>✦</span>
+            <span style={{ color: '#6B3A4B', fontSize: 10, letterSpacing: '3px', textTransform: 'uppercase', fontWeight: 600 }}>
               Fine Dining Studio
             </span>
           </div>
         </div>
 
         <div className="relative z-10 mt-auto p-10 pb-12">
-          <div className="w-10 h-px mb-4" style={{ background: 'rgba(255,255,255,0.6)' }} />
-          <h2 className="font-heading text-[28px] font-bold text-white leading-tight mb-2">
+          <div className="w-10 h-px mb-4" style={{ background: 'rgba(107,58,75,0.4)' }} />
+          <h2 className="font-heading text-[28px] font-bold leading-tight mb-2" style={{ color: '#2C2420' }}>
             Dein digitaler<br />Michelin-Sous-Chef
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, letterSpacing: '2px' }}>
+          <p style={{ color: '#8B7355', fontSize: 13, letterSpacing: '2px' }}>
             Rezepte · Menüs · Kreationen
           </p>
         </div>

@@ -9,7 +9,9 @@ const nextConfig = {
     }
     return config;
   },
-  serverExternalPackages: ['@supabase/supabase-js', '@opentelemetry/api'],
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js', '@opentelemetry/api'],
+  },
 };
 
 export default nextConfig;
