@@ -26,7 +26,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
 
     const N    = 180
     const pts: Particle[] = []
-    const cols = ['#6B3A4B', '#9A5468', '#C9A84C', '#7D4558']
+    const cols = ['#6B3A4B', '#9A5468', '#C9A84C', '#B07D8C']
     for (let i = 0; i < N; i++) {
       pts.push({
         x: (Math.random() - 0.5) * cv.width * 1.5,
@@ -48,7 +48,11 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
 
     let animId: number
     function draw() {
-      ctx.fillStyle = '#15100F'
+      const g = ctx.createLinearGradient(0, 0, cv.width, cv.height)
+      g.addColorStop(0, '#F4EFE9')
+      g.addColorStop(0.5, '#F0E8E0')
+      g.addColorStop(1, '#EDE4DC')
+      ctx.fillStyle = g
       ctx.fillRect(0, 0, cv.width, cv.height)
       const cx = cv.width / 2
       const cy = cv.height / 2
@@ -63,7 +67,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
         const sx = cx + (p.x + mx * (1 - p.z / 1000) * 8) * k
         const sy = cy + (p.y + my * (1 - p.z / 1000) * 8) * k
         const r  = Math.max(0.3, (1 - p.z / 1000) * 3)
-        const op = (1 - p.z / 1000) * 0.8
+        const op = (1 - p.z / 1000) * 0.55
         ctx.beginPath()
         ctx.arc(sx, sy, r, 0, Math.PI * 2)
         ctx.fillStyle = p.c
@@ -86,7 +90,8 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
   return (
     <div ref={containerRef} style={{
       position: 'relative', height: '200px', borderRadius: '18px',
-      overflow: 'hidden', background: '#15100F', marginBottom: '1.25rem',
+      overflow: 'hidden', background: '#F4EFE9', marginBottom: '1.25rem',
+      border: '0.5px solid #E8E0D8',
     }}>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
 
@@ -99,7 +104,8 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
           {avatarUrl ? (
             <img src={avatarUrl} alt="" style={{
               width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover',
-              border: '3px solid rgba(255,255,255,0.2)',
+              border: '3px solid white',
+              boxShadow: '0 4px 20px rgba(107,58,75,0.25)',
             }} />
           ) : (
             <div style={{
@@ -107,14 +113,15 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
               background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '28px', color: 'white', fontWeight: 500,
-              border: '3px solid rgba(255,255,255,0.2)',
+              border: '3px solid white',
+              boxShadow: '0 4px 20px rgba(107,58,75,0.25)',
             }}>{initial}</div>
           )}
           <div onClick={onAvatarClick} style={{
             position: 'absolute', bottom: '2px', right: '2px',
             width: '26px', height: '26px', borderRadius: '50%',
             background: '#6B3A4B', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', border: '2px solid #15100F',
+            justifyContent: 'center', border: '2px solid white',
             pointerEvents: 'all', cursor: 'pointer',
           }}>
             <span style={{ fontSize: '13px' }}>📷</span>
@@ -124,11 +131,11 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
         <div>
           <h2 style={{
             fontFamily: 'var(--font-playfair, serif)', fontSize: '22px',
-            color: '#FAF8F5', fontWeight: 500, margin: 0,
+            color: '#2C2420', fontWeight: 500, margin: 0,
           }}>{name}</h2>
           <div style={{
             fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase',
-            color: '#C9A84C', marginTop: '3px',
+            color: '#6B3A4B', marginTop: '3px',
           }}>{role}</div>
         </div>
       </div>
@@ -141,12 +148,12 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
         {([['Rezepte', stats.rezepte], ['Projekte', stats.projekte], ['Fermente', stats.fermente]] as [string, number][]).map(([l, n]) => (
           <div key={l} style={{ textAlign: 'center' }}>
             <div style={{
-              fontSize: '20px', fontWeight: 500, color: '#C9A84C',
+              fontSize: '20px', fontWeight: 500, color: '#6B3A4B',
               fontFamily: 'var(--font-playfair, serif)',
             }}>{n}</div>
             <div style={{
               fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase',
-              color: 'rgba(250,248,245,0.5)',
+              color: '#9A8070',
             }}>{l}</div>
           </div>
         ))}
