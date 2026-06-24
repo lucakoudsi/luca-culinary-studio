@@ -8,7 +8,7 @@ import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
-  Users, Search,
+  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon,
 } from 'lucide-react';
 import { ADMIN_EMAIL, TITLE_TO_TIER, getUserTier } from '@/config/roles';
 
@@ -33,7 +33,16 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit' | 'verwaltung';
+type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
+
+type AccessRequest = {
+  id: string;
+  name: string;
+  email: string;
+  grund: string;
+  status: string;
+  created_at: string;
+};
 
 type AdminUser = {
   id: string;
@@ -174,6 +183,17 @@ export default function ProfilPage() {
   const [adminActing, setAdminActing]       = useState<string | null>(null);
   const [adminSuccess, setAdminSuccess]     = useState<string | null>(null);
 
+  // Tab 6 – Anfragen (Admin only)
+  const [anfragen, setAnfragen]             = useState<AccessRequest[]>([]);
+  const [anfragenLoaded, setAnfragenLoaded] = useState(false);
+  const [anfragenLoading, setAnfragenLoading] = useState(false);
+  const [anfragenTitels, setAnfragenTitels] = useState<Record<string, string>>({});
+  const [anfragenActing, setAnfragenActing] = useState<string | null>(null);
+  const [anfragenSuccess, setAnfragenSuccess] = useState<string | null>(null);
+  const [anfragenError, setAnfragenError]   = useState('');
+  const [showProcessed, setShowProcessed]   = useState(false);
+  const [pendingCount, setPendingCount]     = useState(0);
+
   // Tab 4 – Sicherheit
   const [currentPw, setCurrentPw]     = useState('');
   const [newPw, setNewPw]             = useState('');
@@ -213,6 +233,15 @@ export default function ProfilPage() {
         }
         if (d.stats) setStats(d.stats);
         if (d.userCreatedAt) setUserCreatedAt(d.userCreatedAt);
+
+        // Pending-Count-Badge für Admin vorab laden
+        if (data.user.email === ADMIN_EMAIL) {
+          fetch('/api/admin/requests').then(r => r.json()).then(rd => {
+            const count = (rd.requests ?? []).filter((r: AccessRequest) => r.status === 'pending').length;
+            setPendingCount(count);
+          }).catch(() => {});
+        }
+
         setLoading(false);
       }).catch(() => setLoading(false));
     });
@@ -300,6 +329,74 @@ export default function ProfilPage() {
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
+  // Anfragen-Tab: Daten laden wenn Tab erstmals aktiv wird
+  useEffect(() => {
+    if (activeTab === 'anfragen' && isAdmin && !anfragenLoaded) {
+      loadAnfragen();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const loadAnfragen = async () => {
+    setAnfragenLoading(true);
+    setAnfragenError('');
+    try {
+      const res = await fetch('/api/admin/requests');
+      const d = await res.json();
+      if (!res.ok) { setAnfragenError(d.error || 'Laden fehlgeschlagen.'); return; }
+      const reqs: AccessRequest[] = d.requests ?? [];
+      setAnfragen(reqs);
+      setAnfragenLoaded(true);
+      setPendingCount(reqs.filter(r => r.status === 'pending').length);
+      // Jeden pending Request mit Standard-Titel vorbelegen
+      const initTitels: Record<string, string> = {};
+      reqs.forEach(r => { if (r.status === 'pending') initTitels[r.id] = 'Hobbykoch'; });
+      setAnfragenTitels(initTitels);
+    } catch {
+      setAnfragenError('Netzwerkfehler.');
+    } finally {
+      setAnfragenLoading(false);
+    }
+  };
+
+  const approveAnfrage = async (id: string) => {
+    setAnfragenActing(id);
+    setAnfragenError('');
+    try {
+      const res = await fetch(`/api/admin/requests/${id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titel: anfragenTitels[id] || null }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setAnfragenError(d.error || 'Annehmen fehlgeschlagen.'); return; }
+      setAnfragen(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+      setPendingCount(prev => Math.max(0, prev - 1));
+      setAnfragenSuccess(id);
+      setTimeout(() => setAnfragenSuccess(null), 3000);
+    } catch {
+      setAnfragenError('Netzwerkfehler.');
+    } finally {
+      setAnfragenActing(null);
+    }
+  };
+
+  const rejectAnfrage = async (id: string) => {
+    setAnfragenActing(id);
+    setAnfragenError('');
+    try {
+      const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST' });
+      const d = await res.json();
+      if (!res.ok) { setAnfragenError(d.error || 'Ablehnen fehlgeschlagen.'); return; }
+      setAnfragen(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
+      setPendingCount(prev => Math.max(0, prev - 1));
+    } catch {
+      setAnfragenError('Netzwerkfehler.');
+    } finally {
+      setAnfragenActing(null);
+    }
+  };
+
   const loadAdminUsers = async () => {
     setAdminLoading(true);
     try {
@@ -376,12 +473,15 @@ export default function ProfilPage() {
   // ── Nav items ──────────────────────────────────────────────────────────────
   const isAdmin = user?.email === ADMIN_EMAIL;
 
-  const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType }[] = [
-    { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',  Icon: UserIcon },
-    { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',  Icon: ChefHat  },
-    { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',  Icon: Share2   },
-    { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',     Icon: Shield   },
-    ...(isAdmin ? [{ id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users }] : []),
+  const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType; badge?: number }[] = [
+    { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',     Icon: UserIcon  },
+    { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',     Icon: ChefHat   },
+    { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',     Icon: Share2    },
+    { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',        Icon: Shield    },
+    ...(isAdmin ? [
+      { id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users    },
+      { id: 'anfragen'   as Tab, label: 'Anfragen',   sublabel: 'Registrierungen', Icon: UserPlus, badge: pendingCount || undefined },
+    ] : []),
   ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -440,7 +540,7 @@ export default function ProfilPage() {
 
           {/* Nav card */}
           <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', padding: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
-            {NAV.map(({ id, label, sublabel, Icon }) => (
+            {NAV.map(({ id, label, sublabel, Icon, badge }) => (
               <button key={id} onClick={() => setActiveTab(id)}
                 style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12,
@@ -460,8 +560,15 @@ export default function ProfilPage() {
                 }}>
                   <Icon size={14} style={{ color: activeTab === id ? '#FFFFFF' : '#8B7355' }} />
                 </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3 }}>{label}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {label}
+                    {badge && badge > 0 ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, background: '#6B3A4B', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>
+                        {badge}
+                      </span>
+                    ) : null}
+                  </div>
                   <div style={{ fontSize: 11, color: '#B09880', marginTop: 1 }}>{sublabel}</div>
                 </div>
               </button>
@@ -908,6 +1015,173 @@ export default function ProfilPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ── Tab 6: Anfragen (Admin only) ───────────────────────────── */}
+          {activeTab === 'anfragen' && isAdmin && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: 0 }}>
+                  Registrierungsanfragen
+                </h3>
+                <button onClick={loadAnfragen} disabled={anfragenLoading}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all disabled:opacity-40"
+                  style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)', color: '#6B3A4B' }}>
+                  {anfragenLoading ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
+                  Aktualisieren
+                </button>
+              </div>
+
+              {anfragenError && (
+                <div className="flex items-center gap-2 rounded-xl px-4 py-3 text-[12px] mb-4"
+                  style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#E06B6B' }}>
+                  {anfragenError}
+                  <button onClick={() => setAnfragenError('')} style={{ marginLeft: 'auto' }}><XIcon size={13} /></button>
+                </div>
+              )}
+
+              {anfragenLoading && anfragen.length === 0 && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
+                </div>
+              )}
+
+              {/* Pending */}
+              {(() => {
+                const pending = anfragen.filter(r => r.status === 'pending');
+                if (!anfragenLoading && anfragenLoaded && pending.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-12 text-center" style={{ color: '#C0B5A8' }}>
+                      <CheckCircle size={32} style={{ marginBottom: 10, opacity: 0.4 }} />
+                      <p style={{ fontSize: 14, fontWeight: 500, margin: 0 }}>Keine offenen Anfragen</p>
+                      <p style={{ fontSize: 12, marginTop: 4 }}>Alle erledigt!</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '1.5rem' }}>
+                    {pending.map(req => (
+                      <div key={req.id} style={{
+                        background: '#FFFFFF', borderRadius: 14, border: '1px solid #E8E0D8',
+                        padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                      }}>
+                        {/* Success overlay */}
+                        {anfragenSuccess === req.id && (
+                          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] mb-3"
+                            style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#5A9A58' }}>
+                            <CheckCircle size={13} />
+                            {req.name} wurde angenommen und die Willkommens-Email wurde versendet.
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          {/* Initials */}
+                          <div style={{
+                            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+                            background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, color: 'white', fontWeight: 700,
+                          }}>
+                            {req.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: '#2C2420' }}>{req.name}</div>
+                            <div style={{ fontSize: 12, color: '#9A8070', marginTop: 1 }}>{req.email}</div>
+                            <div style={{ fontSize: 11, color: '#B09880', marginTop: 2 }}>
+                              {new Date(req.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Grund */}
+                        <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: '#F9F7F4', border: '1px solid #EEE8E2' }}>
+                          <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 4 }}>Warum möchtest du Zugang?</div>
+                          <p style={{ fontSize: 13, color: '#2C2420', margin: 0, lineHeight: 1.55 }}>{req.grund}</p>
+                        </div>
+
+                        {/* Titel + Buttons */}
+                        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div>
+                            <label style={{ ...labelStyle, marginBottom: 4 }}>Titel vergeben</label>
+                            <select
+                              value={anfragenTitels[req.id] ?? 'Hobbykoch'}
+                              onChange={e => setAnfragenTitels(prev => ({ ...prev, [req.id]: e.target.value }))}
+                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420', outline: 'none' }}>
+                              {ALL_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: 6, marginTop: 18 }}>
+                            <button
+                              onClick={() => approveAnfrage(req.id)}
+                              disabled={anfragenActing === req.id}
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
+                              style={{ background: 'linear-gradient(135deg,#3A7A38,#4A9A47)', color: '#fff', border: 'none' }}>
+                              {anfragenActing === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                              Annehmen
+                            </button>
+                            <button
+                              onClick={() => rejectAnfrage(req.id)}
+                              disabled={anfragenActing === req.id}
+                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
+                              style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+                              {anfragenActing === req.id ? <Loader2 size={12} className="animate-spin" /> : <XIcon size={12} />}
+                              Ablehnen
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* Bearbeitet toggle */}
+              {anfragenLoaded && anfragen.some(r => r.status !== 'pending') && (
+                <div>
+                  <button
+                    onClick={() => setShowProcessed(p => !p)}
+                    className="flex items-center gap-2 text-[12px] font-medium mb-3 transition-colors"
+                    style={{ color: '#9A8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    {showProcessed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    Bearbeitet ({anfragen.filter(r => r.status !== 'pending').length})
+                  </button>
+
+                  {showProcessed && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {anfragen.filter(r => r.status !== 'pending').map(req => (
+                        <div key={req.id} style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '10px 14px', borderRadius: 10,
+                          background: '#FAFAF9', border: '1px solid #EEE8E2', opacity: 0.8,
+                        }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                            background: req.status === 'approved' ? 'rgba(90,154,88,0.15)' : 'rgba(192,80,80,0.12)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, color: req.status === 'approved' ? '#5A9A58' : '#C05050', fontWeight: 700,
+                          }}>
+                            {req.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: '#2C2420' }}>{req.name}</div>
+                            <div style={{ fontSize: 11, color: '#B09880' }}>{req.email}</div>
+                          </div>
+                          <span style={{
+                            fontSize: 10, fontWeight: 700, letterSpacing: 0.5, padding: '3px 8px', borderRadius: 999,
+                            background: req.status === 'approved' ? 'rgba(90,154,88,0.1)' : 'rgba(192,80,80,0.08)',
+                            color: req.status === 'approved' ? '#5A9A58' : '#C05050',
+                          }}>
+                            {req.status === 'approved' ? 'Angenommen' : 'Abgelehnt'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
