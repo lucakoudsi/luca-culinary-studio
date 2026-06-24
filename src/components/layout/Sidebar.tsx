@@ -7,22 +7,23 @@ import {
   Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
+import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 const navItems = [
-  { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, locked: false },
-  { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        locked: false },
-  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    locked: true  },
-  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, locked: true  },
-  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        locked: true  },
-  { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            locked: false },
-  { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            locked: false },
-  { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          locked: false },
-  { href: '/mein-stil',       label: 'Mein Stil',        icon: Star,            locked: false },
-  { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      locked: false },
-  { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             locked: false },
+  { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
+  { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        aiLocked: false },
+  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    aiLocked: true  },
+  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: true  },
+  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: true  },
+  { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            aiLocked: false },
+  { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            aiLocked: false },
+  { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          aiLocked: false },
+  { href: '/mein-stil',       label: 'Mein Stil',        icon: Star,            aiLocked: false },
+  { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      aiLocked: false },
+  { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             aiLocked: false },
 ];
 
 interface SidebarProps {
@@ -36,15 +37,18 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
+  const [userTier, setUserTier]     = useState<number>(99); // optimistic: show all until loaded
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ?? null);
-      if (data.user) {
+      const u = data.user ?? null;
+      setUser(u);
+      if (u) {
         fetch('/api/profil').then(r => r.json()).then(d => {
           setAvatarUrl(d.profile?.avatar_url ?? null);
-        }).catch(() => {});
+          setUserTier(getUserTier(u.email, d.profile?.titel));
+        }).catch(() => setUserTier(1));
       }
     });
   }, []);
@@ -99,13 +103,19 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 py-3 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon, locked }) => {
-            const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
-            const isLocked = locked && !FEATURES.AI_ENABLED;
+          {navItems.map(({ href, label, icon: Icon, aiLocked }) => {
+            const isActive    = href === '/' ? pathname === '/' : pathname.startsWith(href);
+            const aiBlocked   = aiLocked && !FEATURES.AI_ENABLED;
+            const minTier     = PAGE_MIN_TIER[href] ?? 1;
+            const tierBlocked = userTier < minTier;
+            const isLocked    = aiBlocked || tierBlocked;
 
             if (isLocked) {
+              const reason = aiBlocked
+                ? 'KI-Feature nicht aktiviert'
+                : `Rang ${minTier} erforderlich`;
               return (
-                <div key={href}
+                <div key={href} title={reason}
                   className="flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg select-none"
                   style={{ color: '#B0A090', opacity: 0.5, cursor: 'not-allowed' }}>
                   <Icon size={14} strokeWidth={1.6} />
