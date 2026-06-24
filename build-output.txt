@@ -1,0 +1,891 @@
+﻿
+> luca-culinary-studio@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/32) ...
+   Generating static pages (8/32) 
+node.exe : Error: Element type is invalid: expected a string (for built-in components) or a 
+class/function (for composite components) but got: undefined.
+In Zeile:1 Zeichen:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: Element ...got: undefined.:String) [], RemoteExc 
+   eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/fermentation". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/_not-found". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/admin". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/ki-sous-chef". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/register". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/rezepte/neu". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/wein-pairing". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/tellerdesigner". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/zutaten". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/menuegenerator". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/login". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/rezepte". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/mein-stil". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+   Generating static pages (16/32) 
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/projekte". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+   Generating static pages (24/32) 
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/profil". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539) {
+  digest: '106057731'
+}
+
+Error occurred prerendering page "/kreativlabor". Read more: 
+https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for 
+composite components) but got: undefined.
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61600)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:61547)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+    at nM (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:58561)
+    at nL (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:64547)
+    at nB (C:\Users\lucak\luca-culinary-studio\node_modules\next\dist\compiled\next-server\app-page.r
+untime.prod.js:12:67539)
+ ✓ Generating static pages (32/32)
+
+> Export encountered errors on following paths:
+	/_not-found/page: /_not-found
+	/admin/page: /admin
+	/fermentation/page: /fermentation
+	/ki-sous-chef/page: /ki-sous-chef
+	/kreativlabor/page: /kreativlabor
+	/login/page: /login
+	/mein-stil/page: /mein-stil
+	/menuegenerator/page: /menuegenerator
+	/page: /
+	/profil/page: /profil
+	/projekte/page: /projekte
+	/register/page: /register
+	/rezepte/neu/page: /rezepte/neu
+	/rezepte/page: /rezepte
+	/tellerdesigner/page: /tellerdesigner
+	/wein-pairing/page: /wein-pairing
+	/zutaten/page: /zutaten

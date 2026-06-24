@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppShell from '@/components/layout/AppShell';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'LUCA Culinary Creator',
   description: 'Professionelle Küchen-App für Koch & Creator Luca',
