@@ -339,6 +339,13 @@ export default function ProfilPage() {
           stats={stats}
           avatarUrl={profile?.avatar_url}
           onAvatarClick={() => fileInputRef.current?.click()}
+          socialLinks={{
+            instagram: profile?.instagram,
+            tiktok:    profile?.tiktok,
+            youtube:   profile?.youtube,
+            website:   profile?.website,
+            linkedin:  profile?.linkedin,
+          }}
         />
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />

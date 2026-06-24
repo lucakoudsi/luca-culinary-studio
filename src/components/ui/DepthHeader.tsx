@@ -1,18 +1,56 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { Camera, Music2, PlayCircle, Globe, Briefcase } from 'lucide-react'
 
 type Particle = { x: number; y: number; z: number; c: string }
 
-export default function DepthHeader({ initial, name, role, stats, avatarUrl, onAvatarClick }: {
+type SocialLinks = {
+  instagram?: string | null
+  tiktok?: string | null
+  youtube?: string | null
+  website?: string | null
+  linkedin?: string | null
+}
+
+function buildUrl(platform: string, value: string): string {
+  const v = value.trim()
+  if (!v) return ''
+  if (v.startsWith('http://') || v.startsWith('https://')) return v
+  const clean = v.replace(/^@/, '')
+  switch (platform) {
+    case 'instagram': return `https://instagram.com/${clean}`
+    case 'tiktok':    return `https://tiktok.com/@${clean}`
+    case 'youtube':   return `https://youtube.com/${clean}`
+    case 'linkedin':  return `https://linkedin.com/in/${clean}`
+    case 'website':   return `https://${v}`
+    default:          return v
+  }
+}
+
+const SOCIAL_ICONS: { key: keyof SocialLinks; Icon: React.ElementType }[] = [
+  { key: 'instagram', Icon: Camera      },
+  { key: 'tiktok',    Icon: Music2      },
+  { key: 'youtube',   Icon: PlayCircle  },
+  { key: 'website',   Icon: Globe       },
+  { key: 'linkedin',  Icon: Briefcase   },
+]
+
+export default function DepthHeader({ initial, name, role, stats, avatarUrl, onAvatarClick, socialLinks }: {
   initial: string
   name: string
   role: string
   stats: { rezepte: number; projekte: number; fermente: number }
   avatarUrl?: string | null
   onAvatarClick?: () => void
+  socialLinks?: SocialLinks
 }) {
-  const canvasRef   = useRef<HTMLCanvasElement>(null)
+  const canvasRef    = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const activeSocial = SOCIAL_ICONS.map(s => ({
+    ...s,
+    url: socialLinks?.[s.key] ? buildUrl(s.key, socialLinks[s.key]!) : '',
+  })).filter(s => s.url)
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return
@@ -89,7 +127,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
 
   return (
     <div ref={containerRef} style={{
-      position: 'relative', height: '200px', borderRadius: '18px',
+      position: 'relative', height: '220px', borderRadius: '18px',
       overflow: 'hidden', background: '#F4EFE9', marginBottom: '1.25rem',
       border: '0.5px solid #E8E0D8',
     }}>
@@ -100,6 +138,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
         position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
         gap: '18px', padding: '0 30px', zIndex: 3, pointerEvents: 'none',
       }}>
+        {/* Avatar */}
         <div style={{ position: 'relative', flexShrink: 0 }}>
           {avatarUrl ? (
             <img src={avatarUrl} alt="" style={{
@@ -128,6 +167,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
           </div>
         </div>
 
+        {/* Name + Role + Social */}
         <div>
           <h2 style={{
             fontFamily: 'var(--font-playfair, serif)', fontSize: '22px',
@@ -135,8 +175,45 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
           }}>{name}</h2>
           <div style={{
             fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase',
-            color: '#6B3A4B', marginTop: '3px',
+            color: '#6B3A4B', marginTop: '4px',
           }}>{role}</div>
+
+          {/* Social icons — only when at least one link is filled */}
+          {activeSocial.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', marginTop: '10px', pointerEvents: 'all' }}>
+              {activeSocial.map(({ key, Icon, url }) => (
+                <a
+                  key={key}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    width: '30px', height: '30px', borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(107,58,75,0.08)', border: '1px solid #E8E0D8',
+                    color: '#6B3A4B', transition: 'all 0.15s', flexShrink: 0,
+                    textDecoration: 'none',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLAnchorElement
+                    el.style.background = '#6B3A4B'
+                    el.style.color = 'white'
+                    el.style.transform = 'translateY(-2px)'
+                    el.style.borderColor = '#6B3A4B'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLAnchorElement
+                    el.style.background = 'rgba(107,58,75,0.08)'
+                    el.style.color = '#6B3A4B'
+                    el.style.transform = 'none'
+                    el.style.borderColor = '#E8E0D8'
+                  }}
+                >
+                  <Icon size={13} />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
