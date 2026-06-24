@@ -63,11 +63,15 @@ export async function PATCH(req: NextRequest) {
       if (key in body) update[key] = body[key];
     }
 
+    console.log('[profil PATCH] user_id:', user.id, 'fields:', Object.keys(update));
+
     const { data, error } = await db
       .from('profiles')
-      .upsert(update)
+      .upsert(update, { onConflict: 'id' })
       .select()
       .single();
+
+    console.log('[profil PATCH] result:', error ? error.message : 'success');
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ profile: data });

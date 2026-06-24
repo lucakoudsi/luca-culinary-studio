@@ -97,6 +97,7 @@ export default function ProfilPage() {
   const [name, setName]               = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
+  const [profileError, setProfileError]   = useState('');
 
   // Tab 2
   const [kuechenstil, setKuechenstil]       = useState('');
@@ -107,6 +108,7 @@ export default function ProfilPage() {
   const [inspirationen, setInspirationen]   = useState('');
   const [stilSaving, setStilSaving]         = useState(false);
   const [stilSuccess, setStilSuccess]       = useState(false);
+  const [stilError, setStilError]           = useState('');
 
   // Tab 3
   const [currentPw, setCurrentPw]   = useState('');
@@ -154,22 +156,40 @@ export default function ProfilPage() {
   // ── Actions ────────────────────────────────────────────────────────────────
   const saveProfile = async () => {
     setProfileSaving(true);
-    await fetch('/api/profil', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ full_name: name }),
-    });
-    setProfileSaving(false); setProfileSuccess(true);
-    setTimeout(() => setProfileSuccess(false), 3000);
+    setProfileError('');
+    try {
+      const res = await fetch('/api/profil', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: name }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setProfileError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 3000);
+    } catch {
+      setProfileError('Netzwerkfehler. Bitte versuche es erneut.');
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const saveKuechenstil = async () => {
     setStilSaving(true);
-    await fetch('/api/profil', {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kuechenstil, spezialitaeten, bio, lieblingszutaten: tags.join(', '), inspirationen }),
-    });
-    setStilSaving(false); setStilSuccess(true);
-    setTimeout(() => setStilSuccess(false), 3000);
+    setStilError('');
+    try {
+      const res = await fetch('/api/profil', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kuechenstil, spezialitaeten, bio, lieblingszutaten: tags.join(', '), inspirationen }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setStilError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setStilSuccess(true);
+      setTimeout(() => setStilSuccess(false), 3000);
+    } catch {
+      setStilError('Netzwerkfehler. Bitte versuche es erneut.');
+    } finally {
+      setStilSaving(false);
+    }
   };
 
   const changePassword = async () => {
@@ -342,6 +362,7 @@ export default function ProfilPage() {
                   </div>
                   <p style={{ fontSize: 10, color: '#C0B5A8', marginTop: 4 }}>E-Mail kann nicht geändert werden.</p>
                 </div>
+                {profileError && <ErrorBanner message={profileError} />}
                 {profileSuccess && <SuccessBanner />}
                 <SaveButton onClick={saveProfile} loading={profileSaving} />
               </div>
@@ -434,6 +455,7 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
+                {stilError && <ErrorBanner message={stilError} />}
                 {stilSuccess && <SuccessBanner />}
                 <SaveButton onClick={saveKuechenstil} loading={stilSaving} />
               </div>
