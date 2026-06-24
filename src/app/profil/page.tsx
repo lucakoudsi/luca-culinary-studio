@@ -120,6 +120,7 @@ export default function ProfilPage() {
   const [pwError, setPwError]       = useState('');
 
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError]     = useState('');
 
   // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -211,14 +212,27 @@ export default function ProfilPage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset so the same file can be re-selected if needed
+    e.target.value = '';
     setAvatarLoading(true);
-    const form = new FormData(); form.append('avatar', file);
+    setAvatarError('');
     try {
+      const form = new FormData();
+      form.append('avatar', file);
       const res = await fetch('/api/profil/avatar', { method: 'POST', body: form });
       const d = await res.json();
-      if (d.avatar_url) setProfile(prev => prev ? { ...prev, avatar_url: d.avatar_url } : null);
-    } catch {}
-    setAvatarLoading(false);
+      if (!res.ok) {
+        setAvatarError(d.error || 'Upload fehlgeschlagen.');
+        return;
+      }
+      if (d.avatar_url) {
+        setProfile(prev => prev ? { ...prev, avatar_url: d.avatar_url } : prev);
+      }
+    } catch {
+      setAvatarError('Netzwerkfehler beim Upload.');
+    } finally {
+      setAvatarLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -261,10 +275,20 @@ export default function ProfilPage() {
           Mein Profil
         </h1>
 
+        {/* Avatar upload feedback */}
+        {avatarError && (
+          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] mb-3"
+            style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#E06B6B' }}>
+            {avatarError}
+            <button onClick={() => setAvatarError('')} style={{ marginLeft: 'auto', opacity: 0.6 }}>✕</button>
+          </div>
+        )}
+
         {/* 3D Header */}
+        <div style={{ position: 'relative' }}>
         {avatarLoading && (
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10 }}>
-            <Loader2 size={20} className="animate-spin" style={{ color: '#C9A84C' }} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 10, borderRadius: 18, background: 'rgba(21,16,15,0.4)' }}>
+            <Loader2 size={24} className="animate-spin" style={{ color: '#C9A84C' }} />
           </div>
         )}
         <DepthHeader
@@ -275,6 +299,7 @@ export default function ProfilPage() {
           avatarUrl={profile?.avatar_url}
           onAvatarClick={() => fileInputRef.current?.click()}
         />
+        </div>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
       </div>
 
