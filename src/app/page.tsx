@@ -58,11 +58,28 @@ const MEIN_STIL = {
 export default function DashboardPage() {
   const router = useRouter();
   const { recipes } = useStore();
-  const [greeting, setGreeting] = useState('GUTEN MORGEN');
-  const [search, setSearch]     = useState('');
-  const [weather, setWeather]   = useState<{ temp: number; code: number } | null>(null);
+  const [greeting, setGreeting]       = useState('GUTEN MORGEN');
+  const [search, setSearch]           = useState('');
+  const [weather, setWeather]         = useState<{ temp: number; code: number } | null>(null);
+  const [displayName, setDisplayName] = useState('Chef');
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
+
+  useEffect(() => {
+    fetch('/api/profil')
+      .then(r => r.json())
+      .then(d => {
+        const full  = (d.profile?.full_name ?? '').trim();
+        const email = (d.user?.email ?? '').trim();
+        if (full) {
+          setDisplayName(full.split(' ')[0]);
+        } else if (email) {
+          const prefix = email.split('@')[0];
+          setDisplayName(prefix.charAt(0).toUpperCase() + prefix.slice(1));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch('https://api.open-meteo.com/v1/forecast?latitude=49.99&longitude=8.27&current=temperature_2m,weather_code')
@@ -86,7 +103,7 @@ export default function DashboardPage() {
             </div>
             <h1 className="font-heading font-bold leading-none"
               style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
-              {greeting}, LUCA.
+              {greeting}, {displayName.toUpperCase()}.
             </h1>
             <p className="mt-2" style={{ color: '#8B7355', fontSize: 13 }}>
               Bereit für neue kulinarische Meisterwerke?
@@ -148,7 +165,7 @@ export default function DashboardPage() {
               </div>
               <h2 className="font-heading font-bold leading-tight mb-3"
                 style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#2C2420', letterSpacing: '1px' }}>
-                {greeting}, Luca.
+                {greeting}, {displayName}.
               </h2>
               <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
                 Ich habe 3 neue Inspirationen basierend auf<br />
