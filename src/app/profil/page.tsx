@@ -189,7 +189,7 @@ export default function ProfilPage() {
   const [anfragenLoading, setAnfragenLoading] = useState(false);
   const [anfragenTitels, setAnfragenTitels] = useState<Record<string, string>>({});
   const [anfragenActing, setAnfragenActing] = useState<string | null>(null);
-  const [anfragenSuccess, setAnfragenSuccess] = useState<string | null>(null);
+  const [anfragenSuccessMsg, setAnfragenSuccessMsg] = useState<string | null>(null);
   const [anfragenError, setAnfragenError]   = useState('');
   const [showProcessed, setShowProcessed]   = useState(false);
   const [pendingCount, setPendingCount]     = useState(0);
@@ -363,6 +363,7 @@ export default function ProfilPage() {
     setAnfragenActing(id);
     setAnfragenError('');
     try {
+      const name = anfragen.find(r => r.id === id)?.name ?? '';
       const res = await fetch(`/api/admin/requests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -372,8 +373,8 @@ export default function ProfilPage() {
       if (!res.ok) { setAnfragenError(d.error || 'Annehmen fehlgeschlagen.'); return; }
       setAnfragen(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
       setPendingCount(prev => Math.max(0, prev - 1));
-      setAnfragenSuccess(id);
-      setTimeout(() => setAnfragenSuccess(null), 3000);
+      setAnfragenSuccessMsg(`${name} wurde angenommen und die Willkommens-Email wurde versendet.`);
+      setTimeout(() => setAnfragenSuccessMsg(null), 4000);
     } catch {
       setAnfragenError('Netzwerkfehler.');
     } finally {
@@ -1041,6 +1042,14 @@ export default function ProfilPage() {
                 </div>
               )}
 
+              {anfragenSuccessMsg && (
+                <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] mb-4"
+                  style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#3A7A38' }}>
+                  <CheckCircle size={13} style={{ flexShrink: 0 }} />
+                  {anfragenSuccessMsg}
+                </div>
+              )}
+
               {anfragenLoading && anfragen.length === 0 && (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
@@ -1066,15 +1075,6 @@ export default function ProfilPage() {
                         background: '#FFFFFF', borderRadius: 14, border: '1px solid #E8E0D8',
                         padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
                       }}>
-                        {/* Success overlay */}
-                        {anfragenSuccess === req.id && (
-                          <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] mb-3"
-                            style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#5A9A58' }}>
-                            <CheckCircle size={13} />
-                            {req.name} wurde angenommen und die Willkommens-Email wurde versendet.
-                          </div>
-                        )}
-
                         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                           {/* Initials */}
                           <div style={{
