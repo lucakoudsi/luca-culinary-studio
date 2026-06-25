@@ -355,7 +355,9 @@ export default function ProfilPage() {
       console.log('[anfragen] response data:', JSON.stringify(d));
       if (!res.ok) { setAnfragenError(d.error || 'Laden fehlgeschlagen.'); return; }
       const reqs: AccessRequest[] = d.requests ?? [];
-      console.log('[anfragen] parsed requests:', reqs.length, reqs.map(r => ({ email: r.email, status: r.status })));
+      console.log('[anfragen] alle einträge:', JSON.stringify(reqs));
+      console.log('[anfragen] pending filter:', reqs.filter(r => r.status === 'pending').map(r => r.email));
+      console.log('[anfragen] bearbeitet filter:', reqs.filter(r => r.status && r.status !== 'pending').map(r => ({ email: r.email, status: r.status })));
       setAnfragen(reqs);
       setAnfragenLoaded(true);
       setPendingCount(reqs.filter(r => r.status === 'pending').length);
