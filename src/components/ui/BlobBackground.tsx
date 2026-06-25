@@ -40,16 +40,16 @@ export default function BlobBackground() {
       <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%' }}>
         <defs>
           <filter id="goo">
-            <feGaussianBlur stdDeviation="28" result="blur"/>
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="goo"/>
+            <feGaussianBlur stdDeviation="15" result="blur"/>
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 30 -12" result="goo"/>
           </filter>
         </defs>
         <g filter="url(#goo)">
-          <circle ref={refs[0]} cx="150" cy="200" r="95" fill="#6B3A4B" opacity="0.55"/>
-          <circle ref={refs[1]} cx="250" cy="180" r="78" fill="#9A5468" opacity="0.5"/>
-          <circle ref={refs[2]} cx="200" cy="250" r="68" fill="#C9A84C" opacity="0.35"/>
-          <circle ref={refs[3]} cx="100" cy="230" r="58" fill="#6B3A4B" opacity="0.45"/>
-          <circle ref={refs[4]} cx="310" cy="200" r="62" fill="#7D4558" opacity="0.45"/>
+          <circle ref={refs[0]} cx="150" cy="200" r="130" fill="#6B3A4B" opacity="0.7"/>
+          <circle ref={refs[1]} cx="250" cy="180" r="110" fill="#9A5468" opacity="0.65"/>
+          <circle ref={refs[2]} cx="200" cy="250" r="95"  fill="#C9A84C" opacity="0.5"/>
+          <circle ref={refs[3]} cx="100" cy="230" r="80"  fill="#6B3A4B" opacity="0.6"/>
+          <circle ref={refs[4]} cx="310" cy="200" r="85"  fill="#7D4558" opacity="0.6"/>
         </g>
       </svg>
     </div>

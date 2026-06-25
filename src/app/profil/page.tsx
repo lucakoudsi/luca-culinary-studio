@@ -523,7 +523,7 @@ export default function ProfilPage() {
     <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
 
       {/* Breadcrumb + Header area */}
-      <div style={{ padding: '2rem 2rem 0' }}>
+      <div className="px-4 sm:px-8 pt-6 sm:pt-8">
         <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(107,58,75,0.55)', marginBottom: 6 }}>
           ✦ &nbsp;Einstellungen
         </div>
@@ -566,36 +566,37 @@ export default function ProfilPage() {
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
       </div>
 
-      {/* Two-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '1.25rem', padding: '0 2rem 2rem' }}>
+      {/* Two-column grid → single column on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-5 px-4 sm:px-8 pb-20 md:pb-8 mt-0">
 
         {/* ── Left nav column ─────────────────────────────────────────────── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-          {/* Nav card */}
-          <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', padding: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+          {/* Nav card — horizontal scroll on mobile, vertical on md+ */}
+          <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', boxShadow: '0 2px 12px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+            <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1 p-2" style={{ scrollbarWidth: 'none' }}>
             {NAV.map(({ id, label, sublabel, Icon, badge }) => (
               <button key={id} onClick={() => setActiveTab(id)}
+                className="flex-shrink-0 md:flex-shrink flex items-center gap-2.5 rounded-[10px] transition-all text-left"
                 style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 12,
-                  padding: '10px 10px 10px 12px', borderRadius: 10, cursor: 'pointer',
-                  borderLeft: activeTab === id ? '3px solid #6B3A4B' : '3px solid transparent',
+                  padding: '8px 12px', minWidth: 'max-content', cursor: 'pointer',
                   background: activeTab === id ? 'rgba(107,58,75,0.06)' : 'transparent',
-                  border: 'none', textAlign: 'left', transition: 'all 0.15s',
-                  marginBottom: 2,
+                  border: 'none',
+                  outline: activeTab === id ? '2px solid rgba(107,58,75,0.15)' : '2px solid transparent',
+                  marginBottom: 0,
                 }}
                 onMouseEnter={e => { if (activeTab !== id) e.currentTarget.style.background = 'rgba(107,58,75,0.03)'; }}
                 onMouseLeave={e => { if (activeTab !== id) e.currentTarget.style.background = 'transparent'; }}>
                 <div style={{
-                  width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center',
+                  width: 30, height: 30, borderRadius: 8, display: 'flex', alignItems: 'center',
                   justifyContent: 'center', flexShrink: 0,
                   background: activeTab === id ? '#6B3A4B' : 'rgba(107,58,75,0.08)',
                   transition: 'all 0.15s',
                 }}>
                   <Icon size={14} style={{ color: activeTab === id ? '#FFFFFF' : '#8B7355' }} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                     {label}
                     {badge && badge > 0 ? (
                       <span style={{ fontSize: 10, fontWeight: 700, background: '#6B3A4B', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>
@@ -603,10 +604,11 @@ export default function ProfilPage() {
                       </span>
                     ) : null}
                   </div>
-                  <div style={{ fontSize: 11, color: '#B09880', marginTop: 1 }}>{sublabel}</div>
+                  <div className="hidden md:block" style={{ fontSize: 11, color: '#B09880', marginTop: 1 }}>{sublabel}</div>
                 </div>
               </button>
             ))}
+            </div>
           </div>
 
           {/* Member since */}

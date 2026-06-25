@@ -82,12 +82,12 @@ export default function MeinStilPage() {
 
   return (
     <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+      <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Deine Signatur</div>
         <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Mein Stil</h1>
         <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Kulinarisches Profil & persönliche Handschrift</p>
       </div>
-      <div className="p-8 max-w-[1200px]">
+      <div className="px-4 sm:px-8 py-6 max-w-[1200px]">
 
       {/* Hero */}
       <div className="bg-card border border-border rounded-xl p-7 mb-6 relative overflow-hidden">

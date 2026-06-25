@@ -126,32 +126,34 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
   }, [])
 
   return (
-    <div ref={containerRef} style={{
-      position: 'relative', height: '220px', borderRadius: '18px',
-      overflow: 'hidden', background: '#F4EFE9', marginBottom: '1.25rem',
-      border: '0.5px solid #E8E0D8',
-    }}>
+    <div ref={containerRef}
+      className="h-[130px] sm:h-[180px] md:h-[220px]"
+      style={{
+        position: 'relative', borderRadius: '18px',
+        overflow: 'hidden', background: '#F4EFE9', marginBottom: '1.25rem',
+        border: '0.5px solid #E8E0D8',
+      }}>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
 
       {/* Avatar + Name */}
       <div style={{
         position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-        gap: '18px', padding: '0 30px', zIndex: 3, pointerEvents: 'none',
+        gap: '14px', padding: '0 16px', zIndex: 3, pointerEvents: 'none',
       }}>
         {/* Avatar */}
         <div style={{ position: 'relative', flexShrink: 0 }}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" style={{
-              width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover',
+            <img src={avatarUrl} alt="" className="w-14 h-14 sm:w-20 sm:h-20" style={{
+              borderRadius: '50%', objectFit: 'cover',
               border: '3px solid white',
               boxShadow: '0 4px 20px rgba(107,58,75,0.25)',
             }} />
           ) : (
-            <div style={{
-              width: '80px', height: '80px', borderRadius: '50%',
+            <div className="w-14 h-14 sm:w-20 sm:h-20" style={{
+              borderRadius: '50%',
               background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '28px', color: 'white', fontWeight: 500,
+              fontSize: '22px', color: 'white', fontWeight: 500,
               border: '3px solid white',
               boxShadow: '0 4px 20px rgba(107,58,75,0.25)',
             }}>{initial}</div>
@@ -219,8 +221,8 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
 
       {/* Stats */}
       <div style={{
-        position: 'absolute', bottom: '16px', right: '30px',
-        display: 'flex', gap: '24px', zIndex: 3,
+        position: 'absolute', bottom: '10px', right: '16px',
+        display: 'flex', gap: '16px', zIndex: 3,
       }}>
         {([['Rezepte', stats.rezepte], ['Projekte', stats.projekte], ['Fermente', stats.fermente]] as [string, number][]).map(([l, n]) => (
           <div key={l} style={{ textAlign: 'center' }}>

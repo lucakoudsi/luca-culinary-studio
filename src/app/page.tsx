@@ -155,7 +155,7 @@ export default function DashboardPage() {
             <div className="absolute inset-0 pointer-events-none"
               style={{ background: 'radial-gradient(ellipse 60% 80% at 20% 50%, rgba(107,58,75,0.03) 0%, transparent 70%)' }} />
 
-            <div className="relative z-10 p-6 sm:p-8" style={{ maxWidth: '60%' }}>
+            <div className="relative z-10 p-6 sm:p-8 max-w-[80%] sm:max-w-[60%]">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 sm:mb-5"
                 style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
                 <span style={{ color: '#6B3A4B', fontSize: 10 }}>✦</span>

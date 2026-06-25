@@ -188,12 +188,12 @@ export default function ZutatenPage() {
 
   return (
     <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+      <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Botanik & Aromen</div>
         <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Zutatenbibliothek</h1>
         <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{filtered.length} Zutaten · Klicke für Aromaprofil & Pairings</p>
       </div>
-      <div className="p-8 max-w-[1400px]">
+      <div className="px-4 sm:px-8 py-6 max-w-[1400px]">
 
         <div className="bg-card border border-border rounded-xl px-5 py-4 mb-7 space-y-3">
           <div className="flex gap-4 flex-wrap items-center">
@@ -202,10 +202,10 @@ export default function ZutatenPage() {
               <input value={ingredientSearch} onChange={e => setIngredientSearch(e.target.value)} placeholder="Zutat oder Aroma suchen…"
                 className="w-full bg-card-hover border border-border-strong rounded-lg pl-9 pr-3.5 py-2 text-text-primary text-[13px] outline-none focus:border-gold/40" />
             </div>
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-1.5 overflow-x-auto pb-0.5 md:flex-wrap md:overflow-x-visible" style={{ scrollbarWidth: 'none' }}>
               {seasonOptions.map(s => (
                 <button key={s} onClick={() => setIngredientSeasonFilter(s)}
-                  className="px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
+                  className="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all"
                   style={{
                     background: ingredientSeasonFilter === s ? `${seasonColors[s] ?? 'rgba(107,58,75,0.1)'}18` : 'rgba(0,0,0,0.04)',
                     border: `1px solid ${ingredientSeasonFilter === s ? (seasonColors[s] ?? '#6B3A4B') + '40' : 'rgba(0,0,0,0.08)'}`,
@@ -216,10 +216,10 @@ export default function ZutatenPage() {
               ))}
             </div>
           </div>
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5 md:flex-wrap md:overflow-x-visible" style={{ scrollbarWidth: 'none' }}>
             {categoryOptions.map(c => (
               <button key={c} onClick={() => setIngredientCategoryFilter(c)}
-                className="px-3 py-1 rounded-full text-[11px] font-medium transition-all"
+                className="flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-all"
                 style={{
                   background: ingredientCategoryFilter === c ? 'rgba(107,58,75,0.1)' : 'transparent',
                   border: `1px solid ${ingredientCategoryFilter === c ? 'rgba(107,58,75,0.3)' : 'rgba(0,0,0,0.07)'}`,
