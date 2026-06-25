@@ -28,13 +28,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Check for any existing entry for this email
-  const { data: existing } = await supabase
+  const { data: existing, error: existingErr } = await supabase
     .from('access_requests')
     .select('id, status')
     .eq('email', email)
     .maybeSingle();
 
-  console.log('[register] existing entry:', existing);
+  console.log('[register] existing entry:', existing, 'err:', existingErr?.message ?? null);
 
   if (existing) {
     if (existing.status === 'pending') {
@@ -54,39 +54,48 @@ export async function POST(req: NextRequest) {
       console.log('[register] approved entry found, auth account exists:', authAccountExists);
 
       if (authAccountExists) {
-        // Active account — user should log in, not re-register
         return NextResponse.json(
           { error: 'Diese Email-Adresse ist bereits registriert. Bitte logge dich ein.' },
           { status: 409 }
         );
       }
 
-      // Auth account was deleted but access_requests wasn't cleaned up — allow re-registration
-      console.log('[register] auth account gone, cleaning up stale approved entry for', email);
+      // Auth account deleted — clean up stale approved entry so email is free
+      console.log('[register] auth account gone, deleting stale approved entry for', email);
       await supabase.from('access_requests').delete().eq('email', email);
     } else {
-      // status = 'rejected', 'deleted', or anything else → allow re-registration
+      // status = 'rejected' or anything else → allow re-registration
       console.log('[register] cleaning up old entry with status:', existing.status, 'for', email);
       await supabase.from('access_requests').delete().eq('email', email);
     }
   }
 
-  const { data, error } = await supabase
+  // UPSERT (defensive: handles UNIQUE-constraint races; requires UNIQUE(email) in DB)
+  // If no unique constraint exists, falls back to plain INSERT behaviour.
+  console.log('[register] inserting:', { name, email });
+  const { data: inserted, error: insertError } = await supabase
     .from('access_requests')
-    .insert({ name, email, password_temp: password, grund })
+    .upsert(
+      { name, email, password_temp: password, grund, status: 'pending' },
+      { onConflict: 'email', ignoreDuplicates: false }
+    )
     .select('id, approve_token, reject_token')
     .single();
 
-  console.log('[register] insert result:', error ? error.message : 'ok, id=' + data?.id);
+  console.log('[register] upsert result:',
+    insertError
+      ? `error: ${insertError.message} (code: ${insertError.code})`
+      : `ok, id=${inserted?.id}`
+  );
 
-  if (error) {
-    console.error('[register-request] DB insert failed:', error.message, error.code);
-    return NextResponse.json({ error: `Datenbankfehler: ${error.message}` }, { status: 500 });
+  if (insertError) {
+    console.error('[register-request] upsert failed:', insertError.message, insertError.code);
+    return NextResponse.json({ error: `Datenbankfehler: ${insertError.message}` }, { status: 500 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const approveUrl = `${appUrl}/api/admin/approve?token=${data.approve_token}`;
-  const rejectUrl  = `${appUrl}/api/admin/reject?token=${data.reject_token}`;
+  const appUrl      = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const approveUrl  = `${appUrl}/api/admin/approve?token=${inserted?.approve_token ?? ''}`;
+  const rejectUrl   = `${appUrl}/api/admin/reject?token=${inserted?.reject_token ?? ''}`;
 
   try {
     await sendAccessRequestEmail({ name, email, grund, approveUrl, rejectUrl });

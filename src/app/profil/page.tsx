@@ -335,9 +335,9 @@ export default function ProfilPage() {
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
-  // Anfragen-Tab: Daten laden wenn Tab erstmals aktiv wird
+  // Anfragen-Tab: bei jedem Wechsel neu laden (kein Cache) damit neue Registrierungen sofort erscheinen
   useEffect(() => {
-    if (activeTab === 'anfragen' && isAdmin && !anfragenLoaded) {
+    if (activeTab === 'anfragen' && isAdmin) {
       loadAnfragen();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
