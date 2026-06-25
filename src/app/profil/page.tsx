@@ -8,7 +8,7 @@ import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
-  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon,
+  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2,
 } from 'lucide-react';
 import { ADMIN_EMAIL, TITLE_TO_TIER, getUserTier } from '@/config/roles';
 
@@ -182,6 +182,8 @@ export default function ProfilPage() {
   const [adminLoading, setAdminLoading]     = useState(false);
   const [adminActing, setAdminActing]       = useState<string | null>(null);
   const [adminSuccess, setAdminSuccess]     = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteActing, setDeleteActing]     = useState<string | null>(null);
 
   // Tab 6 – Anfragen (Admin only)
   const [anfragen, setAnfragen]             = useState<AccessRequest[]>([]);
@@ -423,6 +425,21 @@ export default function ProfilPage() {
       }
     } catch {}
     setAdminActing(null);
+  };
+
+  const deleteUser = async (userId: string) => {
+    setDeleteActing(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+      const d = await res.json();
+      if (!res.ok) { alert(d.error || 'Löschen fehlgeschlagen.'); return; }
+      setAdminUsers(prev => prev.filter(u => u.id !== userId));
+      setDeleteConfirmId(null);
+    } catch {
+      alert('Netzwerkfehler.');
+    } finally {
+      setDeleteActing(null);
+    }
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -916,62 +933,122 @@ export default function ProfilPage() {
                 const tl = u.email === ADMIN_EMAIL ? 'Admin' : (TIER_LABEL[tier] ?? `Stufe ${tier}`);
                 const initials = (u.full_name || u.email)
                   .split(/[\s@]/).map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+                const isConfirming = deleteConfirmId === u.id;
                 return (
                   <div key={u.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 14px', borderRadius: 12, marginBottom: 6,
+                    borderRadius: 12, marginBottom: 6,
                     background: u.email === ADMIN_EMAIL ? 'rgba(86,46,60,0.04)' : '#FAFAF9',
-                    border: '1px solid #EEE8E2',
+                    border: isConfirming ? '1px solid rgba(192,80,80,0.35)' : '1px solid #EEE8E2',
+                    overflow: 'hidden', transition: 'border-color 0.15s',
                   }}>
-                    {/* Avatar */}
-                    {u.avatar_url ? (
-                      <img src={u.avatar_url} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                    ) : (
-                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 600, flexShrink: 0 }}>
-                        {initials}
-                      </div>
-                    )}
+                    {/* Main row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' }}>
+                      {/* Avatar */}
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt="" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 600, flexShrink: 0 }}>
+                          {initials}
+                        </div>
+                      )}
 
-                    {/* Name + email */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {u.full_name || '—'}
+                      {/* Name + email */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {u.full_name || '—'}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#9A8070', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {u.email}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 11, color: '#9A8070', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {u.email}
+
+                      {/* Tier badge */}
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: '3px 8px', borderRadius: 999, background: tc.bg, color: tc.text, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        {tl}
                       </div>
+
+                      {/* Dropdown + Delete — disabled for admin */}
+                      {u.email === ADMIN_EMAIL ? (
+                        <div style={{ width: 160, fontSize: 11, color: '#C0B5A8', textAlign: 'center', flexShrink: 0 }}>Administrator</div>
+                      ) : (
+                        <>
+                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                            <select
+                              value={u.titel ?? ''}
+                              disabled={adminActing === u.id}
+                              onChange={e => saveAdminTitle(u.id, e.target.value || null)}
+                              style={{
+                                width: 180, padding: '6px 10px', borderRadius: 8, fontSize: 12,
+                                background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
+                                cursor: 'pointer', outline: 'none',
+                              }}>
+                              <option value="">— kein Titel —</option>
+                              {ALL_TITLES.map(t => (
+                                <option key={t} value={t}>{t}</option>
+                              ))}
+                            </select>
+                            {adminActing === u.id && (
+                              <Loader2 size={12} className="animate-spin absolute right-8 top-1/2 -translate-y-1/2" style={{ color: '#6B3A4B' }} />
+                            )}
+                            {adminSuccess === u.id && (
+                              <CheckCircle size={13} color="#5A9A58" className="absolute right-8 top-1/2 -translate-y-1/2" />
+                            )}
+                          </div>
+
+                          {/* Delete button */}
+                          <button
+                            onClick={() => setDeleteConfirmId(isConfirming ? null : u.id)}
+                            title="Nutzer löschen"
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              padding: '5px', borderRadius: 6, flexShrink: 0,
+                              color: isConfirming ? '#C05050' : 'rgba(192,80,80,0.45)',
+                              display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.color = '#C05050')}
+                            onMouseLeave={e => (e.currentTarget.style.color = isConfirming ? '#C05050' : 'rgba(192,80,80,0.45)')}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
                     </div>
 
-                    {/* Tier badge */}
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: '3px 8px', borderRadius: 999, background: tc.bg, color: tc.text, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                      {tl}
-                    </div>
-
-                    {/* Dropdown — disabled for admin */}
-                    {u.email === ADMIN_EMAIL ? (
-                      <div style={{ width: 160, fontSize: 11, color: '#C0B5A8', textAlign: 'center', flexShrink: 0 }}>Administrator</div>
-                    ) : (
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
-                        <select
-                          value={u.titel ?? ''}
-                          disabled={adminActing === u.id}
-                          onChange={e => saveAdminTitle(u.id, e.target.value || null)}
-                          style={{
-                            width: 180, padding: '6px 10px', borderRadius: 8, fontSize: 12,
-                            background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
-                            cursor: 'pointer', outline: 'none',
-                          }}>
-                          <option value="">— kein Titel —</option>
-                          {ALL_TITLES.map(t => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
-                        {adminActing === u.id && (
-                          <Loader2 size={12} className="animate-spin absolute right-8 top-1/2 -translate-y-1/2" style={{ color: '#6B3A4B' }} />
-                        )}
-                        {adminSuccess === u.id && (
-                          <CheckCircle size={13} color="#5A9A58" className="absolute right-8 top-1/2 -translate-y-1/2" />
-                        )}
+                    {/* Inline confirmation panel */}
+                    {isConfirming && (
+                      <div style={{
+                        padding: '10px 14px 12px',
+                        borderTop: '1px solid rgba(192,80,80,0.15)',
+                        background: 'rgba(192,80,80,0.03)',
+                      }}>
+                        <p style={{ fontSize: 12, color: '#4A2020', margin: '0 0 10px', lineHeight: 1.5 }}>
+                          Nutzer <strong>{u.full_name || u.email}</strong> ({u.email}) wirklich löschen?<br />
+                          Der Account wird entfernt, die Email kann erneut verwendet werden.
+                        </p>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            style={{
+                              padding: '5px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
+                              background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#8B7355', cursor: 'pointer',
+                            }}>
+                            Abbrechen
+                          </button>
+                          <button
+                            onClick={() => deleteUser(u.id)}
+                            disabled={deleteActing === u.id}
+                            className="flex items-center gap-1.5 disabled:opacity-40"
+                            style={{
+                              padding: '5px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
+                              background: 'linear-gradient(135deg,#C05050,#A03030)', color: '#fff',
+                              border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+                            }}>
+                            {deleteActing === u.id
+                              ? <Loader2 size={12} className="animate-spin" />
+                              : <Trash2 size={12} />}
+                            Löschen
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
