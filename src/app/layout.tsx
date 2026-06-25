@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'LUCA Culinary Creator',
-  description: 'Professionelle Küchen-App für Koch & Creator Luca',
+  description: 'Professionelle Küchen-App für kulinarische Profis & Creator.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

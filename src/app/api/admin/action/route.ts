@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { sendApprovedEmail, sendRejectedEmail } from '@/lib/email';
-
-const ADMIN_EMAIL = 'luca.koudsi@gmail.com';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 export async function POST(req: NextRequest) {
   let supabaseResponse = NextResponse.next({ request: req });

@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { User, TrendingUp, Leaf, Award, Star } from 'lucide-react';
 
 const tagCloud = [
@@ -65,6 +66,20 @@ function TagCloud() {
 }
 
 export default function MeinStilPage() {
+  const [profileName, setProfileName] = useState('');
+
+  useEffect(() => {
+    fetch('/api/profil')
+      .then(r => r.json())
+      .then(d => {
+        const full = (d.profile?.full_name ?? '').trim();
+        const email = (d.user?.email ?? '').trim();
+        if (full) setProfileName(full);
+        else if (email) setProfileName(email.split('@')[0].replace(/^\w/, (c: string) => c.toUpperCase()));
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
@@ -84,7 +99,7 @@ export default function MeinStilPage() {
             <User size={28} color="#6B3A4B" strokeWidth={1.5} />
           </div>
           <div>
-            <h2 className="font-heading text-[22px] font-bold text-text-primary mb-0.5">Luca Koudsi</h2>
+            <h2 className="font-heading text-[22px] font-bold text-text-primary mb-0.5">{profileName || '—'}</h2>
             <div className="text-[13px] font-semibold mb-3" style={{ color: '#6B3A4B' }}>Fine Dining · Fusion · Modern European</div>
             <p className="text-[13px] text-text-secondary leading-relaxed max-w-2xl">
               Meine Küche verbindet klassische europäische Techniken mit fernöstlichen Aromen und einem tiefen

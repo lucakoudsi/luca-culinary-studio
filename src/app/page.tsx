@@ -134,7 +134,7 @@ export default function DashboardPage() {
                 })()}
               </div>
               <div className="text-[11px]" style={{ color: '#B09880' }}>
-                {new Date().toLocaleDateString('de-DE', { weekday: 'long' })} · Mainz
+                {new Date().toLocaleDateString('de-DE', { weekday: 'long' })}
               </div>
             </div>
           </div>

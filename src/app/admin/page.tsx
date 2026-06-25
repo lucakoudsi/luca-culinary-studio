@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { CheckCircle, XCircle, Clock, Loader2, ShieldOff } from 'lucide-react';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 type Request = {
   id: string;
@@ -12,8 +13,6 @@ type Request = {
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 };
-
-const ADMIN_EMAIL = 'luca.koudsi@gmail.com';
 
 export default function AdminPage() {
   const router = useRouter();

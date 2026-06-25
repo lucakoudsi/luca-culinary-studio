@@ -18,6 +18,7 @@ const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: 
 
 type Profile = {
   full_name: string | null;
+  titel: string | null;
   avatar_url: string | null;
   kuechenstil: string | null;
   spezialitaeten: string | null;
@@ -534,7 +535,7 @@ export default function ProfilPage() {
         <DepthHeader
           initial={initials[0] ?? '?'}
           name={displayName || '—'}
-          role="Chef & Creator"
+          role={profile?.titel || 'Chef'}
           stats={stats}
           avatarUrl={profile?.avatar_url}
           onAvatarClick={() => fileInputRef.current?.click()}
