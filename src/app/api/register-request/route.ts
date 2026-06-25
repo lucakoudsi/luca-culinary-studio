@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server-Konfigurationsfehler (Supabase).' }, { status: 500 });
   }
 
-  // Alle Einträge für diese Email holen (nicht maybeSingle — schlägt lautlos fehl bei mehreren Rows)
+  // Alle bestehenden Einträge für diese Email laden
   const { data: existingEntries, error: existingErr } = await supabase
     .from('access_requests')
     .select('id, status')
@@ -32,9 +32,8 @@ export async function POST(req: NextRequest) {
 
   console.log('[register] existing entries:', existingEntries?.length ?? 0, existingEntries, 'err:', existingErr?.message ?? null);
 
-  const hasPending  = existingEntries?.some(e => e.status === 'pending');
-  const hasApproved = existingEntries?.some(e => e.status === 'approved');
-
+  // Einzige Blockierung: offene Anfrage läuft bereits
+  const hasPending = existingEntries?.some(e => e.status === 'pending');
   if (hasPending) {
     return NextResponse.json(
       { error: 'Für diese Email-Adresse existiert bereits eine offene Anfrage. Bitte warte auf Genehmigung.' },
@@ -42,33 +41,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (hasApproved) {
-    // Prüfe ob Auth-Account noch existiert
-    const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
-    const authAccountExists = usersData?.users?.some(
-      u => u.email?.toLowerCase() === email.toLowerCase()
-    );
-    console.log('[register] approved entry found, auth account exists:', authAccountExists);
-    if (authAccountExists) {
-      return NextResponse.json(
-        { error: 'Diese Email-Adresse ist bereits registriert. Bitte logge dich ein.' },
-        { status: 409 }
-      );
-    }
-    console.log('[register] auth account gone — allowing re-registration for', email);
-  }
-
-  // Alle alten Einträge löschen (inkl. Duplikate durch früheren UPSERT-Bug)
+  // Alle alten Einträge löschen (approved, rejected, Duplikate, egal)
   if (existingEntries && existingEntries.length > 0) {
     const { error: delErr } = await supabase
       .from('access_requests')
       .delete()
       .eq('email', email);
-    console.log('[register] deleted old entries for', email, 'err:', delErr?.message ?? null);
+    console.log('[register] deleted', existingEntries.length, 'old entries for', email, 'err:', delErr?.message ?? null);
   }
 
-  // Sauberer INSERT mit explizitem status='pending'
-  console.log('[register] inserting fresh entry:', { name, email });
+  // Neuen Eintrag mit status='pending' anlegen
+  console.log('[register] inserting fresh pending entry:', { name, email });
   const { data: inserted, error: insertError } = await supabase
     .from('access_requests')
     .insert({
@@ -85,7 +68,7 @@ export async function POST(req: NextRequest) {
   console.log('[register] insert result:',
     insertError
       ? `error: ${insertError.message} (code: ${insertError.code})`
-      : `ok, id=${inserted?.id}`
+      : `ok, id=${inserted?.id}, status=pending`
   );
 
   if (insertError) {
