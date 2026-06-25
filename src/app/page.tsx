@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStore } from '@/lib/store';
-import { Search, ChevronRight, ArrowRight } from 'lucide-react';
+import { Search, ChevronRight, ArrowRight, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { FEATURES } from '@/config/features';
 
@@ -24,18 +23,6 @@ function getWeatherInfo(code: number) {
   return                  { icon: '⛈️', color: '#8B7355' };
 }
 
-const PROJECTS = [
-  { id: 1, title: 'Herbst-Menü 2024',    category: 'Fine Dining', komponenten: 4, progress: 75, img: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400' },
-  { id: 2, title: 'Signature Dessert',   category: 'Patisserie',  komponenten: 3, progress: 40, img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400' },
-  { id: 3, title: 'Fermentations-Serie', category: 'Modern',      komponenten: 6, progress: 90, img: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400' },
-];
-
-const IDEAS = [
-  { emoji: '🍋', combo: 'Yuzu & Schwarzer Sesam',  type: 'Dessert Idee',   ingredients: 'Yuzu, Schwarzer Sesam' },
-  { emoji: '🌿', combo: 'Trüffel & Topinambur',    type: 'Vorspeise Idee', ingredients: 'Trüffel, Topinambur' },
-  { emoji: '🫐', combo: 'Rote Bete & Meerrettich', type: 'Hauptgang Idee', ingredients: 'Rote Bete, Meerrettich' },
-];
-
 const SAISON = [
   { emoji: '🍓', name: 'Erdbeere',  label: 'Hauptsaison' },
   { emoji: '🌸', name: 'Holunder',  label: 'Hauptsaison' },
@@ -49,22 +36,55 @@ const INSPIRATION = [
   { title: 'Miso-Karamell Komposition',         sub: 'Dessert · Fusion',         img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=120' },
 ];
 
-const MEIN_STIL = {
-  techniken: ['Sous-vide', 'Fermentieren', 'Räuchern', 'Gelieren'],
-  texturen:  ['Knusprig-Cremig', 'Flüssig-Fest', 'Seidig-Rau'],
-  richtung:  ['Japanisch-Europäisch', 'Farm-to-Table', 'Molekular'],
+type Project = {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+  status: string;
+  recipe_ids: number[];
+  menu_ids: number[];
 };
+
+type Idea = {
+  id: number;
+  text: string;
+  tag: string;
+};
+
+type Stats = {
+  rezepte: number;
+  projekte: number;
+  fermente: number;
+  dieseWoche: number;
+};
+
+type MeinStil = {
+  kuechenstil: string;
+  spezialitaeten: string;
+  lieblingszutaten: string;
+};
+
+function splitTags(str: string): string[] {
+  return str.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { recipes } = useStore();
-  const [greeting, setGreeting]       = useState('GUTEN MORGEN');
-  const [search, setSearch]           = useState('');
-  const [weather, setWeather]         = useState<{ temp: number; code: number } | null>(null);
-  const [displayName, setDisplayName] = useState('Chef');
+  const [greeting, setGreeting]         = useState('GUTEN MORGEN');
+  const [search, setSearch]             = useState('');
+  const [weather, setWeather]           = useState<{ temp: number; code: number } | null>(null);
+  const [displayName, setDisplayName]   = useState('Chef');
+
+  const [stats, setStats]               = useState<Stats>({ rezepte: 0, projekte: 0, fermente: 0, dieseWoche: 0 });
+  const [projects, setProjects]         = useState<Project[]>([]);
+  const [ideas, setIdeas]               = useState<Idea[]>([]);
+  const [meinStil, setMeinStil]         = useState<MeinStil>({ kuechenstil: '', spezialitaeten: '', lieblingszutaten: '' });
+  const [dataLoaded, setDataLoaded]     = useState(false);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
+  // Profil für Displayname
   useEffect(() => {
     fetch('/api/profil')
       .then(r => r.json())
@@ -81,12 +101,29 @@ export default function DashboardPage() {
       .catch(() => {});
   }, []);
 
+  // Dashboard-Daten: Stats, Projekte, Ideen, Mein Stil
+  useEffect(() => {
+    fetch('/api/dashboard/stats')
+      .then(r => r.json())
+      .then(d => {
+        if (d.stats)    setStats(d.stats);
+        if (d.projects) setProjects(d.projects);
+        if (d.ideas)    setIdeas(d.ideas);
+        if (d.meinStil) setMeinStil(d.meinStil);
+        setDataLoaded(true);
+      })
+      .catch(() => setDataLoaded(true));
+  }, []);
+
+  // Wetter
   useEffect(() => {
     fetch('https://api.open-meteo.com/v1/forecast?latitude=49.99&longitude=8.27&current=temperature_2m,weather_code')
       .then(r => r.json())
       .then(d => setWeather({ temp: Math.round(d.current.temperature_2m), code: d.current.weather_code }))
       .catch(() => {});
   }, []);
+
+  const hasMeinStil = meinStil.kuechenstil || meinStil.spezialitaeten || meinStil.lieblingszutaten;
 
   return (
     <div className="flex" style={{ minHeight: '100vh', background: '#FAF8F5' }}>
@@ -168,8 +205,8 @@ export default function DashboardPage() {
                 {greeting}, {displayName}.
               </h2>
               <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
-                Ich habe 3 neue Inspirationen basierend auf<br />
-                der aktuellen Saison für dich vorbereitet.
+                Entdecke neue Inspirationen und verwalte<br />
+                deine kulinarischen Projekte.
               </p>
               <button
                 onClick={() => FEATURES.AI_ENABLED && router.push('/ki-sous-chef')}
@@ -191,7 +228,8 @@ export default function DashboardPage() {
           {/* Meine Projekte */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading font-bold" style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              <h2 className="font-heading font-bold"
+                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Meine Projekte
               </h2>
               <Link href="/projekte" className="text-[12px] flex items-center gap-1 transition-colors"
@@ -199,94 +237,173 @@ export default function DashboardPage() {
                 Alle <ChevronRight size={13} />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PROJECTS.map(p => (
-                <Link key={p.id} href={`/projekte/${p.id}`} className="block">
-                  <div className="relative rounded-xl overflow-hidden cursor-pointer group"
-                    style={{ border: '1px solid #E8E0D8', height: 190 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.4)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'}>
-                    <img src={p.img} alt=""
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                    <div className="absolute inset-0"
-                      style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.35) 55%, rgba(10,10,10,0.05) 100%)' }} />
-                    <div className="absolute inset-x-0 bottom-0 p-4">
-                      <div className="text-[10px] tracking-[2px] uppercase mb-1"
-                        style={{ color: 'rgba(201,168,76,0.85)' }}>{p.category}</div>
-                      <div className="font-heading font-bold mb-2.5"
-                        style={{ fontSize: 14, color: '#F5F0E8' }}>{p.title}</div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-[2px] rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
-                          <div className="h-full rounded-full" style={{ width: `${p.progress}%`, background: 'linear-gradient(90deg, #562E3C, #6B3A4B)' }} />
-                        </div>
-                        <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: '#E2C06A' }}>{p.progress}%</span>
-                      </div>
-                    </div>
-                    <div className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(0,0,0,0.5)', color: 'rgba(245,240,232,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                      {p.komponenten} Komp.
-                    </div>
-                  </div>
+
+            {!dataLoaded ? (
+              // Skeleton
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="rounded-xl animate-pulse"
+                    style={{ height: 140, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                ))}
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="rounded-xl p-8 text-center border border-dashed"
+                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
+                <FolderOpen size={28} style={{ color: '#C0B5A8', margin: '0 auto 10px' }} />
+                <p style={{ fontSize: 14, color: '#9A8070', marginBottom: 12 }}>Noch keine Projekte</p>
+                <Link href="/projekte"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all"
+                  style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                  Erstes Projekt erstellen <ArrowRight size={13} />
                 </Link>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {projects.map(p => {
+                  const komponenten = (p.recipe_ids?.length ?? 0) + (p.menu_ids?.length ?? 0);
+                  return (
+                    <Link key={p.id} href={`/projekte/${p.id}`} className="block">
+                      <div className="relative rounded-xl overflow-hidden cursor-pointer group transition-all"
+                        style={{ border: '1px solid #E8E0D8', minHeight: 130, background: '#FFFFFF' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.35)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)'; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                        {/* Color accent top bar */}
+                        <div className="h-1 w-full" style={{ background: p.color || '#6B3A4B' }} />
+                        <div className="p-4">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="font-heading font-bold leading-tight"
+                              style={{ fontSize: 14, color: '#2C2420' }}>{p.name}</div>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
+                              style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)' }}>
+                              {p.status}
+                            </span>
+                          </div>
+                          {p.description && (
+                            <p className="text-[12px] leading-relaxed mb-3 line-clamp-2"
+                              style={{ color: '#9A8070' }}>{p.description}</p>
+                          )}
+                          {komponenten > 0 && (
+                            <div className="text-[11px]" style={{ color: '#B09880' }}>
+                              {komponenten} Komponente{komponenten !== 1 ? 'n' : ''}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* Ideen für dich */}
           <section>
-            <h2 className="font-heading font-bold mb-4"
-              style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
-              Ideen für dich
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {IDEAS.map(idea => (
-                <div key={idea.combo}
-                  className="rounded-xl p-4 cursor-pointer transition-all bg-white border border-border"
-                  onClick={() => router.push(`/kreativlabor?ingredients=${encodeURIComponent(idea.ingredients)}`)}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)';
-                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8';
-                    (e.currentTarget as HTMLDivElement).style.transform = 'none';
-                    (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-                  }}>
-                  <div className="text-2xl mb-3">{idea.emoji}</div>
-                  <div className="font-heading font-bold mb-1" style={{ fontSize: 14, color: '#2C2420' }}>{idea.combo}</div>
-                  <div className="flex items-center gap-1 mt-2 text-[12px] font-medium" style={{ color: '#6B3A4B' }}>
-                    {idea.type} <ArrowRight size={12} />
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading font-bold"
+                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+                Ideen für dich
+              </h2>
+              <Link href="/ki-sous-chef" className="text-[12px] flex items-center gap-1"
+                style={{ color: '#6B3A4B' }}>
+                Mehr <ChevronRight size={13} />
+              </Link>
             </div>
+
+            {!dataLoaded ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="rounded-xl animate-pulse"
+                    style={{ height: 90, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                ))}
+              </div>
+            ) : ideas.length === 0 ? (
+              <div className="rounded-xl p-6 text-center border border-dashed"
+                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
+                <p style={{ fontSize: 13, color: '#B09880' }}>
+                  Noch keine Ideen gespeichert
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ideas.map(idea => (
+                  <div key={idea.id}
+                    className="rounded-xl p-4 cursor-pointer transition-all bg-white border border-border"
+                    onClick={() => router.push('/ki-sous-chef')}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)';
+                      (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)';
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)';
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8';
+                      (e.currentTarget as HTMLDivElement).style.transform = 'none';
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+                    }}>
+                    <div className="font-heading font-bold mb-1.5 leading-snug"
+                      style={{ fontSize: 13, color: '#2C2420' }}>{idea.text}</div>
+                    {idea.tag && (
+                      <div className="flex items-center gap-1 mt-2 text-[11px] font-medium" style={{ color: '#6B3A4B' }}>
+                        {idea.tag} <ArrowRight size={11} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Mein Stil */}
           <section style={{ borderTop: '1px solid #E8E0D8', paddingTop: 28 }}>
-            <h2 className="font-heading font-bold mb-4"
-              style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
-              Mein Stil
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { label: 'Häufig genutzt',     items: MEIN_STIL.techniken },
-                { label: 'Lieblings-Texturen', items: MEIN_STIL.texturen },
-                { label: 'Küchenrichtung',     items: MEIN_STIL.richtung },
-              ].map(col => (
-                <div key={col.label} className="rounded-xl p-4 bg-white border border-border">
-                  <div className="text-[10px] tracking-[3px] uppercase mb-3"
-                    style={{ color: '#B09880' }}>{col.label}</div>
-                  {col.items.map(item => (
-                    <div key={item} className="flex items-center gap-2 py-1.5 text-[13px]"
-                      style={{ color: '#8B7355' }}>
-                      <span style={{ color: '#6B3A4B', fontSize: 7 }}>◆</span> {item}
-                    </div>
-                  ))}
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading font-bold"
+                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+                Mein Stil
+              </h2>
+              <Link href="/mein-stil" className="text-[12px] flex items-center gap-1"
+                style={{ color: '#6B3A4B' }}>
+                Bearbeiten <ChevronRight size={13} />
+              </Link>
             </div>
+
+            {!dataLoaded ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="rounded-xl animate-pulse"
+                    style={{ height: 100, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                ))}
+              </div>
+            ) : !hasMeinStil ? (
+              <div className="rounded-xl p-6 text-center border border-dashed"
+                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
+                <p style={{ fontSize: 13, color: '#B09880', marginBottom: 10 }}>
+                  Noch kein Küchenstil eingetragen
+                </p>
+                <Link href="/mein-stil"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold"
+                  style={{ color: '#6B3A4B' }}>
+                  Jetzt einrichten <ArrowRight size={13} />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Küchenrichtung',    value: meinStil.kuechenstil },
+                  { label: 'Spezialitäten',      value: meinStil.spezialitaeten },
+                  { label: 'Lieblingszutaten',   value: meinStil.lieblingszutaten },
+                ].filter(col => col.value).map(col => (
+                  <div key={col.label} className="rounded-xl p-4 bg-white border border-border">
+                    <div className="text-[10px] tracking-[3px] uppercase mb-3"
+                      style={{ color: '#B09880' }}>{col.label}</div>
+                    {splitTags(col.value).slice(0, 5).map(item => (
+                      <div key={item} className="flex items-center gap-2 py-1.5 text-[13px]"
+                        style={{ color: '#8B7355' }}>
+                        <span style={{ color: '#6B3A4B', fontSize: 7 }}>◆</span> {item}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
         </div>
@@ -325,7 +442,7 @@ export default function DashboardPage() {
           <div>
             <div className="text-[10px] tracking-[3px] uppercase mb-4"
               style={{ color: 'rgba(107,58,75,0.65)' }}>
-              ✦ &nbsp;Saison im Juni
+              ✦ &nbsp;Saison im {new Date().toLocaleDateString('de-DE', { month: 'long' })}
             </div>
             <div className="space-y-2">
               {SAISON.map(s => (
@@ -342,7 +459,7 @@ export default function DashboardPage() {
 
           <div className="border-t border-border" />
 
-          {/* Übersicht */}
+          {/* Übersicht KPIs */}
           <div>
             <div className="text-[10px] tracking-[3px] uppercase mb-4"
               style={{ color: 'rgba(107,58,75,0.65)' }}>
@@ -350,14 +467,15 @@ export default function DashboardPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { label: 'Rezepte',     value: recipes.length || 24, icon: '📋' },
-                { label: 'Projekte',    value: 3,                    icon: '🎯' },
-                { label: 'Ideen',       value: 12,                   icon: '💡' },
-                { label: 'Diese Woche', value: 5,                    icon: '📅' },
+                { label: 'Rezepte',     value: dataLoaded ? stats.rezepte    : '—', icon: '📋' },
+                { label: 'Projekte',    value: dataLoaded ? stats.projekte   : '—', icon: '🎯' },
+                { label: 'Fermente',    value: dataLoaded ? stats.fermente   : '—', icon: '🫙' },
+                { label: 'Diese Woche', value: dataLoaded ? stats.dieseWoche : '—', icon: '📅' },
               ].map(s => (
                 <div key={s.label} className="p-3 rounded-xl text-center bg-white border border-border">
                   <div className="text-[15px] mb-1">{s.icon}</div>
-                  <div className="font-heading font-bold" style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
+                  <div className={`font-heading font-bold ${!dataLoaded ? 'animate-pulse' : ''}`}
+                    style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
                   <div className="text-[10px]" style={{ color: '#B09880' }}>{s.label}</div>
                 </div>
               ))}
