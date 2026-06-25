@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
-import { ADMIN_EMAIL, TITLE_TO_TIER } from '@/config/roles';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,10 +31,8 @@ export async function POST(
   }
 
   try {
-    const { titel } = await req.json();
-    if (titel && !(titel in TITLE_TO_TIER)) {
-      return NextResponse.json({ error: 'Ungültiger Titel' }, { status: 400 });
-    }
+    const { titel, stufe } = await req.json();
+    const stufeNum: number = (typeof stufe === 'number' && stufe >= 1 && stufe <= 4) ? stufe : 2;
 
     const admin = createAdminClient();
 
@@ -68,11 +66,12 @@ export async function POST(
       return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
-    // Upsert profile with titel + full_name
+    // Upsert profile with titel, stufe, full_name
     if (authData.user) {
       const profileFields: Record<string, unknown> = {
         id: authData.user.id,
         full_name: request.name,
+        stufe: stufeNum,
         updated_at: new Date().toISOString(),
       };
       if (titel) profileFields.titel = titel;
@@ -89,7 +88,13 @@ export async function POST(
 
     // Send welcome email
     const titleUsed = titel || 'Hobbykoch';
-    const titleDesc = titleDescriptions[titleUsed] ?? '';
+    const stufeDescs: Record<number, string> = {
+      1: 'Du kannst das Dashboard und Rezepte ansehen.',
+      2: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation und mehr.',
+      3: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
+      4: 'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
+    };
+    const titleDesc = stufeDescs[stufeNum] ?? titleDescriptions[titleUsed] ?? '';
     console.log('[approve] sending welcome email to:', request.email);
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);

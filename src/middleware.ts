@@ -67,11 +67,11 @@ export async function middleware(request: NextRequest) {
       );
       const { data: profile } = await admin
         .from('profiles')
-        .select('titel')
+        .select('stufe')
         .eq('id', user.id)
         .maybeSingle();
 
-      const tier = getUserTier(user.email, profile?.titel);
+      const tier = getUserTier(user.email, profile?.stufe);
       if (tier < minTier) {
         const url = request.nextUrl.clone();
         url.pathname = '/';

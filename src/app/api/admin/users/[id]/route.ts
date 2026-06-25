@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
-import { ADMIN_EMAIL, TITLE_TO_TIER } from '@/config/roles';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +38,7 @@ export async function DELETE(
         .from('access_requests')
         .update({ deleted_at: new Date().toISOString() })
         .eq('email', email);
-      if (arErr) console.warn('[delete user] access_requests update failed (column may not exist yet):', arErr.message);
+      if (arErr) console.warn('[delete user] access_requests update failed:', arErr.message);
     }
 
     return NextResponse.json({ success: true });
@@ -58,21 +58,31 @@ export async function PATCH(
   }
 
   try {
-    const { titel } = await req.json();
+    const { titel, stufe } = await req.json();
 
-    // Only allow known titles (or null to clear)
-    if (titel !== null && !(titel in TITLE_TO_TIER)) {
-      return NextResponse.json({ error: 'Ungültiger Titel' }, { status: 400 });
+    // stufe must be 1-4 if provided
+    if (stufe !== undefined && stufe !== null) {
+      const s = Number(stufe);
+      if (!Number.isInteger(s) || s < 1 || s > 4) {
+        return NextResponse.json({ error: 'Ungültige Stufe (1–4)' }, { status: 400 });
+      }
     }
+
+    const update: Record<string, unknown> = {
+      id: params.id,
+      updated_at: new Date().toISOString(),
+    };
+    if (titel !== undefined) update.titel = titel;
+    if (stufe !== undefined) update.stufe = stufe;
 
     const admin = createAdminClient();
     const { error } = await admin
       .from('profiles')
-      .upsert({ id: params.id, titel, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+      .upsert(update, { onConflict: 'id' });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    console.log('[admin/users PATCH] updated titel for', params.id, '→', titel);
+    console.log('[admin/users PATCH]', params.id, 'titel:', titel, 'stufe:', stufe);
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error('[admin/users PATCH]', e);

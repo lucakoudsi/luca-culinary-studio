@@ -47,7 +47,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       if (u) {
         fetch('/api/profil').then(r => r.json()).then(d => {
           setAvatarUrl(d.profile?.avatar_url ?? null);
-          setUserTier(getUserTier(u.email, d.profile?.titel));
+          setUserTier(getUserTier(u.email, d.profile?.stufe));
         }).catch(() => setUserTier(1));
       }
     });

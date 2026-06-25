@@ -1,11 +1,26 @@
 export const ADMIN_EMAIL = 'luca.koudsi@gmail.com';
 
-export const TITLE_TO_TIER: Record<string, number> = {
-  'Gast / Beobachter': 1, 'Gastronom': 1,
-  'Hobbykoch': 2, 'Jungkoch / Auszubildende:r': 2, 'Commis': 2,
-  'Chef de Partie': 3, 'Pâtissier': 3, 'Food-Entwickler': 3,
-  'Sous-Chef': 4, 'Küchenchef': 4, 'Kulinarischer Berater': 4, 'Chef & Creator': 4,
-};
+export const ALL_TITLES = [
+  'Gast / Beobachter',
+  'Gastronom',
+  'Hobbykoch',
+  'Jungkoch / Auszubildende:r',
+  'Commis',
+  'Chef de Partie',
+  'Pâtissier',
+  'Food-Entwickler',
+  'Sous-Chef',
+  'Küchenchef',
+  'Kulinarischer Berater',
+  'Chef & Creator',
+];
+
+export const STUFEN = [
+  { stufe: 1, label: 'Stufe 1 · Gast',      desc: 'Dashboard + Rezepte ansehen'                 },
+  { stufe: 2, label: 'Stufe 2 · Einsteiger', desc: '+ Zutaten, Rezepte erstellen, Fermentation'  },
+  { stufe: 3, label: 'Stufe 3 · Profi',      desc: '+ Projekte, Mein Stil'                       },
+  { stufe: 4, label: 'Stufe 4 · Leitung',    desc: '+ Wein & Pairing, KI-Funktionen'            },
+];
 
 // Minimum tier required per route prefix
 export const PAGE_MIN_TIER: Record<string, number> = {
@@ -23,14 +38,14 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/tellerdesigner':4,
 };
 
-export function getUserTier(email: string | null | undefined, titel: string | null | undefined): number {
+// Tier now comes directly from profiles.stufe, not from the titel
+export function getUserTier(email: string | null | undefined, stufe: number | null | undefined): number {
   if (email === ADMIN_EMAIL) return 99;
-  return TITLE_TO_TIER[titel ?? ''] ?? 1;
+  return stufe ?? 1;
 }
 
 // Returns the minimum tier required for a given pathname
 export function getMinTierForPath(pathname: string): number {
-  // Longest matching prefix wins
   let best = 1;
   let bestLen = 0;
   for (const [prefix, tier] of Object.entries(PAGE_MIN_TIER)) {

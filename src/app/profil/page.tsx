@@ -10,7 +10,7 @@ import {
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
   Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2,
 } from 'lucide-react';
-import { ADMIN_EMAIL, TITLE_TO_TIER, getUserTier } from '@/config/roles';
+import { ADMIN_EMAIL, ALL_TITLES, STUFEN, getUserTier } from '@/config/roles';
 
 const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
 
@@ -19,6 +19,7 @@ const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: 
 type Profile = {
   full_name: string | null;
   titel: string | null;
+  stufe: number | null;
   avatar_url: string | null;
   kuechenstil: string | null;
   spezialitaeten: string | null;
@@ -51,9 +52,8 @@ type AdminUser = {
   full_name: string;
   avatar_url: string | null;
   titel: string | null;
+  stufe: number | null;
 };
-
-const ALL_TITLES = Object.keys(TITLE_TO_TIER);
 
 const TIER_LABEL: Record<number, string> = { 1: 'Gast', 2: 'Einsteiger', 3: 'Profi', 4: 'Leitung' };
 const TIER_COLOR: Record<number, { bg: string; text: string }> = {
@@ -178,19 +178,22 @@ export default function ProfilPage() {
   const [socialError, setSocialError]   = useState('');
 
   // Tab 5 – Verwaltung (Admin only)
-  const [adminUsers, setAdminUsers]         = useState<AdminUser[]>([]);
-  const [adminSearch, setAdminSearch]       = useState('');
-  const [adminLoading, setAdminLoading]     = useState(false);
-  const [adminActing, setAdminActing]       = useState<string | null>(null);
-  const [adminSuccess, setAdminSuccess]     = useState<string | null>(null);
+  const [adminUsers, setAdminUsers]           = useState<AdminUser[]>([]);
+  const [adminSearch, setAdminSearch]         = useState('');
+  const [adminLoading, setAdminLoading]       = useState(false);
+  const [adminActing, setAdminActing]         = useState<string | null>(null);
+  const [adminSuccess, setAdminSuccess]       = useState<string | null>(null);
+  const [adminStufeActing, setAdminStufeActing] = useState<string | null>(null);
+  const [adminStufeSuccess, setAdminStufeSuccess] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [deleteActing, setDeleteActing]     = useState<string | null>(null);
+  const [deleteActing, setDeleteActing]       = useState<string | null>(null);
 
   // Tab 6 – Anfragen (Admin only)
   const [anfragen, setAnfragen]             = useState<AccessRequest[]>([]);
   const [anfragenLoaded, setAnfragenLoaded] = useState(false);
   const [anfragenLoading, setAnfragenLoading] = useState(false);
   const [anfragenTitels, setAnfragenTitels] = useState<Record<string, string>>({});
+  const [anfragenStufen, setAnfragenStufen] = useState<Record<string, number>>({});
   const [anfragenActing, setAnfragenActing] = useState<string | null>(null);
   const [anfragenSuccessMsg, setAnfragenSuccessMsg] = useState<string | null>(null);
   const [anfragenError, setAnfragenError]   = useState('');
@@ -370,7 +373,7 @@ export default function ProfilPage() {
       const res = await fetch(`/api/admin/requests/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titel: anfragenTitels[id] || null }),
+        body: JSON.stringify({ titel: anfragenTitels[id] || null, stufe: anfragenStufen[id] ?? 2 }),
       });
       const d = await res.json();
       if (!res.ok) {
@@ -441,6 +444,23 @@ export default function ProfilPage() {
       }
     } catch {}
     setAdminActing(null);
+  };
+
+  const saveAdminStufe = async (userId: string, stufe: number) => {
+    setAdminStufeActing(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stufe }),
+      });
+      if (res.ok) {
+        setAdminUsers(prev => prev.map(u => u.id === userId ? { ...u, stufe } : u));
+        setAdminStufeSuccess(userId);
+        setTimeout(() => setAdminStufeSuccess(null), 2000);
+      }
+    } catch {}
+    setAdminStufeActing(null);
   };
 
   const deleteUser = async (userId: string) => {
@@ -946,7 +966,7 @@ export default function ProfilPage() {
                 u.email.toLowerCase().includes(adminSearch.toLowerCase()) ||
                 u.full_name.toLowerCase().includes(adminSearch.toLowerCase())
               ).map(u => {
-                const tier = getUserTier(u.email, u.titel);
+                const tier = getUserTier(u.email, u.stufe);
                 const tc = TIER_COLOR[tier] ?? TIER_COLOR[1];
                 const tl = u.email === ADMIN_EMAIL ? 'Admin' : (TIER_LABEL[tier] ?? `Stufe ${tier}`);
                 const initials = (u.full_name || u.email)
@@ -985,18 +1005,20 @@ export default function ProfilPage() {
                         {tl}
                       </div>
 
-                      {/* Dropdown + Delete — disabled for admin */}
+                      {/* Dropdowns + Delete — disabled for admin */}
                       {u.email === ADMIN_EMAIL ? (
-                        <div style={{ width: 160, fontSize: 11, color: '#C0B5A8', textAlign: 'center', flexShrink: 0 }}>Administrator</div>
+                        <div style={{ fontSize: 11, color: '#C0B5A8', textAlign: 'center', flexShrink: 0 }}>Administrator</div>
                       ) : (
                         <>
+                          {/* Titel dropdown */}
                           <div style={{ position: 'relative', flexShrink: 0 }}>
+                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 3 }}>Titel</div>
                             <select
                               value={u.titel ?? ''}
                               disabled={adminActing === u.id}
                               onChange={e => saveAdminTitle(u.id, e.target.value || null)}
                               style={{
-                                width: 180, padding: '6px 10px', borderRadius: 8, fontSize: 12,
+                                width: 160, padding: '5px 8px', borderRadius: 8, fontSize: 12,
                                 background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
                                 cursor: 'pointer', outline: 'none',
                               }}>
@@ -1006,10 +1028,34 @@ export default function ProfilPage() {
                               ))}
                             </select>
                             {adminActing === u.id && (
-                              <Loader2 size={12} className="animate-spin absolute right-8 top-1/2 -translate-y-1/2" style={{ color: '#6B3A4B' }} />
+                              <Loader2 size={12} className="animate-spin absolute right-2 bottom-1.5" style={{ color: '#6B3A4B' }} />
                             )}
                             {adminSuccess === u.id && (
-                              <CheckCircle size={13} color="#5A9A58" className="absolute right-8 top-1/2 -translate-y-1/2" />
+                              <CheckCircle size={12} color="#5A9A58" className="absolute right-2 bottom-1.5" />
+                            )}
+                          </div>
+
+                          {/* Stufe dropdown */}
+                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 3 }}>Stufe</div>
+                            <select
+                              value={u.stufe ?? 1}
+                              disabled={adminStufeActing === u.id}
+                              onChange={e => saveAdminStufe(u.id, Number(e.target.value))}
+                              style={{
+                                width: 160, padding: '5px 8px', borderRadius: 8, fontSize: 12,
+                                background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
+                                cursor: 'pointer', outline: 'none',
+                              }}>
+                              {STUFEN.map(s => (
+                                <option key={s.stufe} value={s.stufe}>{s.label}</option>
+                              ))}
+                            </select>
+                            {adminStufeActing === u.id && (
+                              <Loader2 size={12} className="animate-spin absolute right-2 bottom-1.5" style={{ color: '#6B3A4B' }} />
+                            )}
+                            {adminStufeSuccess === u.id && (
+                              <CheckCircle size={12} color="#5A9A58" className="absolute right-2 bottom-1.5" />
                             )}
                           </div>
 
@@ -1022,6 +1068,7 @@ export default function ProfilPage() {
                               padding: '5px', borderRadius: 6, flexShrink: 0,
                               color: isConfirming ? '#C05050' : 'rgba(192,80,80,0.45)',
                               display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                              alignSelf: 'flex-end', marginBottom: 2,
                             }}
                             onMouseEnter={e => (e.currentTarget.style.color = '#C05050')}
                             onMouseLeave={e => (e.currentTarget.style.color = isConfirming ? '#C05050' : 'rgba(192,80,80,0.45)')}
@@ -1075,9 +1122,13 @@ export default function ProfilPage() {
 
               {/* Permissions overview */}
               <div style={{ marginTop: '2.5rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.25rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 0.5rem' }}>
                   Rechte-Übersicht
                 </h3>
+                <p style={{ fontSize: 12, color: '#9A8070', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+                  Titel (Anzeigename) und Stufe (Berechtigung) sind getrennt einstellbar.
+                  Ein <em>„Sous-Chef"</em> kann z.B. Stufe 1 haben, wenn er nur zuschauen soll.
+                </p>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
@@ -1196,15 +1247,24 @@ export default function ProfilPage() {
                           <p style={{ fontSize: 13, color: '#2C2420', margin: 0, lineHeight: 1.55 }}>{req.grund}</p>
                         </div>
 
-                        {/* Titel + Buttons */}
-                        <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* Titel + Stufe + Buttons */}
+                        <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                           <div>
-                            <label style={{ ...labelStyle, marginBottom: 4 }}>Titel vergeben</label>
+                            <label style={{ ...labelStyle, marginBottom: 4 }}>Titel (Anzeigename)</label>
                             <select
                               value={anfragenTitels[req.id] ?? 'Hobbykoch'}
                               onChange={e => setAnfragenTitels(prev => ({ ...prev, [req.id]: e.target.value }))}
                               style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420', outline: 'none' }}>
                               {ALL_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ ...labelStyle, marginBottom: 4 }}>Stufe (Berechtigung)</label>
+                            <select
+                              value={anfragenStufen[req.id] ?? 2}
+                              onChange={e => setAnfragenStufen(prev => ({ ...prev, [req.id]: Number(e.target.value) }))}
+                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420', outline: 'none' }}>
+                              {STUFEN.map(s => <option key={s.stufe} value={s.stufe}>{s.label}</option>)}
                             </select>
                           </div>
 

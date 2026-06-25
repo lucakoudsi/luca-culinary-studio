@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     // All profiles
     const { data: profiles } = await admin
       .from('profiles')
-      .select('id, full_name, avatar_url, titel');
+      .select('id, full_name, avatar_url, titel, stufe');
 
     const profileMap = new Map((profiles ?? []).map(p => [p.id, p]));
 
@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
       full_name:  profileMap.get(u.id)?.full_name ?? u.user_metadata?.full_name ?? '',
       avatar_url: profileMap.get(u.id)?.avatar_url ?? null,
       titel:      profileMap.get(u.id)?.titel ?? null,
+      stufe:      profileMap.get(u.id)?.stufe ?? null,
     }));
 
     // Sort: admin first, then by email
