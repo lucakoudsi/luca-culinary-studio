@@ -6,19 +6,11 @@ import { ADMIN_EMAIL } from '@/config/roles';
 
 export const dynamic = 'force-dynamic';
 
-const titleDescriptions: Record<string, string> = {
-  'Gast / Beobachter':          'Du kannst das Dashboard und Rezepte ansehen.',
-  'Gastronom':                  'Du kannst das Dashboard und Rezepte ansehen.',
-  'Hobbykoch':                  'Du hast Zugriff auf Rezepte, Zutaten und Fermentation.',
-  'Jungkoch / Auszubildende:r': 'Du hast Zugriff auf Rezepte, Zutaten und Fermentation.',
-  'Commis':                     'Du hast Zugriff auf Rezepte, Zutaten und Fermentation.',
-  'Chef de Partie':             'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
-  'Pâtissier':                  'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
-  'Food-Entwickler':            'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
-  'Sous-Chef':                  'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
-  'Küchenchef':                 'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
-  'Kulinarischer Berater':      'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
-  'Chef & Creator':             'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
+const stufeDescs: Record<number, string> = {
+  1: 'Du kannst das Dashboard und Rezepte ansehen.',
+  2: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation und mehr.',
+  3: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
+  4: 'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
 };
 
 export async function POST(
@@ -66,7 +58,7 @@ export async function POST(
       return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
-    // Upsert profile with titel, stufe, full_name
+    // Upsert profile
     if (authData.user) {
       const profileFields: Record<string, unknown> = {
         id: authData.user.id,
@@ -88,20 +80,17 @@ export async function POST(
 
     // Send welcome email
     const titleUsed = titel || 'Hobbykoch';
-    const stufeDescs: Record<number, string> = {
-      1: 'Du kannst das Dashboard und Rezepte ansehen.',
-      2: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation und mehr.',
-      3: 'Du hast Zugriff auf Rezepte, Zutaten, Fermentation, Projekte und Mein Stil.',
-      4: 'Du hast vollen Zugriff auf alle Bereiche inkl. Wein & Pairing.',
-    };
-    const titleDesc = stufeDescs[stufeNum] ?? titleDescriptions[titleUsed] ?? '';
+    const titleDesc = stufeDescs[stufeNum] ?? '';
+
     console.log('[approve] sending welcome email to:', request.email);
+    console.log('[approve] resend key present:', !!process.env.RESEND_API_KEY, '| key len:', process.env.RESEND_API_KEY?.length ?? 0);
+
     try {
       const resend = new Resend(process.env.RESEND_API_KEY);
       const result = await resend.emails.send({
         from: 'Culinary Studio <onboarding@resend.dev>',
         to: request.email,
-        subject: 'Willkommen im LUCA Culinary Studio! 🎉',
+        subject: 'Willkommen im LUCA Culinary Studio!',
         html: `<!DOCTYPE html>
 <html>
 <body style="background:#FAF8F5;margin:0;padding:0;font-family:Georgia,serif;">
@@ -113,7 +102,7 @@ export async function POST(
     <div style="background:#FFFFFF;padding:40px;border:1px solid #E8E0D8;border-top:none;border-radius:0 0 16px 16px;">
       <p style="color:#2C2420;font-size:16px;margin:0 0 20px;">Hallo ${request.name},</p>
       <div style="background:rgba(90,154,88,0.08);border:1px solid rgba(90,154,88,0.25);border-radius:10px;padding:14px 18px;margin-bottom:24px;">
-        <p style="color:#3A7A38;font-size:14px;margin:0;font-weight:600;">&#10003; Deine Anfrage wurde angenommen &#8211; du bist jetzt freigeschaltet!</p>
+        <p style="color:#3A7A38;font-size:14px;margin:0;font-weight:600;">&#10003; Deine Anfrage wurde angenommen &ndash; du bist jetzt freigeschaltet!</p>
       </div>
       <div style="background:#FAF8F5;border:1px solid #EEE8E2;border-radius:10px;padding:16px 18px;margin-bottom:28px;">
         <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#B09880;margin-bottom:8px;">Dein Titel</div>
@@ -127,7 +116,7 @@ export async function POST(
         </a>
       </div>
       <p style="color:#2C2420;font-size:14px;line-height:1.7;text-align:center;margin:0;">
-        Wir freuen uns auf dich und w&uuml;nschen dir viel Spa&szlig;<br>und Inspiration in der K&uuml;che! &#127829;
+        Wir freuen uns auf dich und w&uuml;nschen dir viel Spa&szlig;<br>und Inspiration in der K&uuml;che!
       </p>
       <hr style="border:none;border-top:1px solid #EEE8E2;margin:28px 0;"/>
       <p style="color:#9A8070;font-size:13px;text-align:center;margin:0;">
@@ -141,12 +130,21 @@ export async function POST(
 </body>
 </html>`,
       });
+
+      // Resend gibt bei Fehler { data: null, error: {...} } statt throw
       console.log('[approve] email result:', JSON.stringify(result));
+      if (result.error) {
+        console.error('[approve] welcome email REJECTED by Resend:', result.error);
+        console.error('[approve] HINWEIS: onboarding@resend.dev darf nur an die eigene Resend-Account-Email senden.');
+        console.error('[approve] Fuer andere Empfaenger: eigene Domain in Resend verifizieren und from-Adresse aendern.');
+      } else {
+        console.log('[approve] welcome email sent successfully, id:', result.data?.id);
+      }
     } catch (e) {
-      console.error('[approve] welcome email failed (non-fatal):', e);
+      console.error('[approve] welcome email exception:', e);
     }
 
-    console.log('[approve] approved request', params.id, 'for', request.email, 'with titel:', titleUsed);
+    console.log('[approve] approved request', params.id, 'for', request.email);
     return NextResponse.json({ success: true });
   } catch (e) {
     console.error('[approve]', e);
