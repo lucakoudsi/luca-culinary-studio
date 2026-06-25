@@ -373,8 +373,16 @@ export default function ProfilPage() {
         body: JSON.stringify({ titel: anfragenTitels[id] || null }),
       });
       const d = await res.json();
-      if (!res.ok) { setAnfragenError(d.error || 'Annehmen fehlgeschlagen.'); return; }
-      setAnfragen(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+      if (!res.ok) {
+        setAnfragenError(d.error || 'Annehmen fehlgeschlagen.');
+        // 409 = already processed in DB but state is stale → remove card
+        if (res.status === 409) {
+          setAnfragen(prev => prev.filter(r => r.id !== id));
+          setPendingCount(prev => Math.max(0, prev - 1));
+        }
+        return;
+      }
+      setAnfragen(prev => prev.filter(r => r.id !== id));
       setPendingCount(prev => Math.max(0, prev - 1));
       setAnfragenSuccessMsg(`${name} wurde angenommen und die Willkommens-Email wurde versendet.`);
       setTimeout(() => setAnfragenSuccessMsg(null), 4000);
@@ -391,8 +399,15 @@ export default function ProfilPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST' });
       const d = await res.json();
-      if (!res.ok) { setAnfragenError(d.error || 'Ablehnen fehlgeschlagen.'); return; }
-      setAnfragen(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
+      if (!res.ok) {
+        setAnfragenError(d.error || 'Ablehnen fehlgeschlagen.');
+        if (res.status === 409) {
+          setAnfragen(prev => prev.filter(r => r.id !== id));
+          setPendingCount(prev => Math.max(0, prev - 1));
+        }
+        return;
+      }
+      setAnfragen(prev => prev.filter(r => r.id !== id));
       setPendingCount(prev => Math.max(0, prev - 1));
     } catch {
       setAnfragenError('Netzwerkfehler.');
