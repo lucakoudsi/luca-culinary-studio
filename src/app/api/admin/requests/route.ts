@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const user = await getRequestUser(req);
+  console.log('[admin/requests] user:', user?.email ?? 'null', '| isAdmin:', user?.email === ADMIN_EMAIL);
   if (!user || user.email !== ADMIN_EMAIL) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -16,6 +17,10 @@ export async function GET(req: NextRequest) {
       .from('access_requests')
       .select('id, name, email, grund, status, created_at')
       .order('created_at', { ascending: false });
+
+    console.log('[admin/requests] raw data:', JSON.stringify(data));
+    console.log('[admin/requests] error:', error);
+    console.log('[admin/requests] count:', data?.length ?? 0, '| statuses:', data?.map(r => ({ email: r.email, status: r.status })));
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ requests: data ?? [] });

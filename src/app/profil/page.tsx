@@ -335,22 +335,27 @@ export default function ProfilPage() {
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
-  // Anfragen-Tab: bei jedem Wechsel neu laden (kein Cache) damit neue Registrierungen sofort erscheinen
+  // Anfragen-Tab: neu laden wenn Tab aktiv wird ODER wenn user sich ändert (Auth-Timing-Fix)
+  // user?.email statt isAdmin (abgeleitet nach diesem Hook) um TDZ zu vermeiden
   useEffect(() => {
-    if (activeTab === 'anfragen' && isAdmin) {
+    if (activeTab === 'anfragen' && user?.email === ADMIN_EMAIL) {
       loadAnfragen();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, user?.email]);
 
   const loadAnfragen = async () => {
     setAnfragenLoading(true);
     setAnfragenError('');
     try {
+      console.log('[anfragen] fetching /api/admin/requests ...');
       const res = await fetch('/api/admin/requests');
       const d = await res.json();
+      console.log('[anfragen] response status:', res.status, '| ok:', res.ok);
+      console.log('[anfragen] response data:', JSON.stringify(d));
       if (!res.ok) { setAnfragenError(d.error || 'Laden fehlgeschlagen.'); return; }
       const reqs: AccessRequest[] = d.requests ?? [];
+      console.log('[anfragen] parsed requests:', reqs.length, reqs.map(r => ({ email: r.email, status: r.status })));
       setAnfragen(reqs);
       setAnfragenLoaded(true);
       setPendingCount(reqs.filter(r => r.status === 'pending').length);
@@ -358,7 +363,8 @@ export default function ProfilPage() {
       const initTitels: Record<string, string> = {};
       reqs.forEach(r => { if (r.status === 'pending') initTitels[r.id] = 'Hobbykoch'; });
       setAnfragenTitels(initTitels);
-    } catch {
+    } catch (e) {
+      console.error('[anfragen] fetch error:', e);
       setAnfragenError('Netzwerkfehler.');
     } finally {
       setAnfragenLoading(false);
@@ -1204,7 +1210,7 @@ export default function ProfilPage() {
 
               {/* Pending */}
               {(() => {
-                const pending = anfragen.filter(r => r.status === 'pending');
+                const pending = anfragen.filter(r => !r.status || r.status === 'pending');
                 if (!anfragenLoading && anfragenLoaded && pending.length === 0) {
                   return (
                     <div className="flex flex-col items-center justify-center py-12 text-center" style={{ color: '#C0B5A8' }}>
@@ -1294,19 +1300,19 @@ export default function ProfilPage() {
               })()}
 
               {/* Bearbeitet toggle */}
-              {anfragenLoaded && anfragen.some(r => r.status !== 'pending') && (
+              {anfragenLoaded && anfragen.some(r => r.status && r.status !== 'pending') && (
                 <div>
                   <button
                     onClick={() => setShowProcessed(p => !p)}
                     className="flex items-center gap-2 text-[12px] font-medium mb-3 transition-colors"
                     style={{ color: '#9A8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     {showProcessed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    Bearbeitet ({anfragen.filter(r => r.status !== 'pending').length})
+                    Bearbeitet ({anfragen.filter(r => r.status && r.status !== 'pending').length})
                   </button>
 
                   {showProcessed && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {anfragen.filter(r => r.status !== 'pending').map(req => (
+                      {anfragen.filter(r => r.status && r.status !== 'pending').map(req => (
                         <div key={req.id} style={{
                           display: 'flex', alignItems: 'center', gap: 10,
                           padding: '10px 14px', borderRadius: 10,
