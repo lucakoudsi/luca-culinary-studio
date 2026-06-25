@@ -32,13 +32,14 @@ export async function DELETE(
       return NextResponse.json({ error: deleteErr.message }, { status: 500 });
     }
 
-    // Soft-delete in access_requests (keep history)
+    // Hard-delete from access_requests so the email is immediately free for re-registration
     if (email) {
       const { error: arErr } = await admin
         .from('access_requests')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('email', email);
-      if (arErr) console.warn('[delete user] access_requests update failed:', arErr.message);
+      if (arErr) console.warn('[delete user] access_requests cleanup failed:', arErr.message);
+      else console.log('[delete user] access_requests entry removed for', email);
     }
 
     return NextResponse.json({ success: true });

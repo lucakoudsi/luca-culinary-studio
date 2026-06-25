@@ -27,10 +27,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server-Konfigurationsfehler (Supabase).' }, { status: 500 });
   }
 
-  // Check for existing entry — select id + status + deleted_at
+  // Check for any existing entry for this email
   const { data: existing } = await supabase
     .from('access_requests')
-    .select('id, status, deleted_at')
+    .select('id, status')
     .eq('email', email)
     .maybeSingle();
 
@@ -38,22 +38,37 @@ export async function POST(req: NextRequest) {
 
   if (existing) {
     if (existing.status === 'pending') {
-      return NextResponse.json({ error: 'Für diese Email-Adresse existiert bereits eine offene Anfrage.' }, { status: 409 });
+      return NextResponse.json(
+        { error: 'Für diese Email-Adresse existiert bereits eine offene Anfrage. Bitte warte auf Genehmigung.' },
+        { status: 409 }
+      );
     }
 
-    // Active approved account → block
-    if (existing.status === 'approved' && !existing.deleted_at) {
-      return NextResponse.json({ error: 'Diese Email-Adresse wurde bereits genehmigt.' }, { status: 409 });
-    }
+    if (existing.status === 'approved') {
+      // Check if the Auth account actually still exists (might have been deleted by admin)
+      const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      const authAccountExists = usersData?.users?.some(
+        u => u.email?.toLowerCase() === email.toLowerCase()
+      );
 
-    // Rejected or deleted account → remove old entry so re-registration works
-    // (also handles unique constraint on email)
-    const { error: delErr } = await supabase
-      .from('access_requests')
-      .delete()
-      .eq('email', email);
-    if (delErr) console.warn('[register] cleanup old entry failed:', delErr.message);
-    else console.log('[register] cleaned up old entry for', email, '(status:', existing.status, ', deleted_at:', existing.deleted_at, ')');
+      console.log('[register] approved entry found, auth account exists:', authAccountExists);
+
+      if (authAccountExists) {
+        // Active account — user should log in, not re-register
+        return NextResponse.json(
+          { error: 'Diese Email-Adresse ist bereits registriert. Bitte logge dich ein.' },
+          { status: 409 }
+        );
+      }
+
+      // Auth account was deleted but access_requests wasn't cleaned up — allow re-registration
+      console.log('[register] auth account gone, cleaning up stale approved entry for', email);
+      await supabase.from('access_requests').delete().eq('email', email);
+    } else {
+      // status = 'rejected', 'deleted', or anything else → allow re-registration
+      console.log('[register] cleaning up old entry with status:', existing.status, 'for', email);
+      await supabase.from('access_requests').delete().eq('email', email);
+    }
   }
 
   const { data, error } = await supabase
