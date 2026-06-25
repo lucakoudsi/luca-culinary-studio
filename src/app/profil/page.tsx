@@ -350,8 +350,17 @@ export default function ProfilPage() {
     try {
       console.log('[anfragen] fetching /api/admin/requests ...');
       const res = await fetch('/api/admin/requests');
-      const d = await res.json();
       console.log('[anfragen] response status:', res.status, '| ok:', res.ok);
+      // res.json() wirft wenn der Server HTML statt JSON zurückgibt (z.B. bei Route-Crash)
+      let d: { requests?: AccessRequest[]; error?: string };
+      try {
+        d = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        console.error('[anfragen] non-JSON response:', res.status, text.slice(0, 200));
+        setAnfragenError(`Server-Fehler ${res.status}: Route gibt kein JSON zurück. Vercel Logs prüfen.`);
+        return;
+      }
       console.log('[anfragen] response data:', JSON.stringify(d));
       if (!res.ok) { setAnfragenError(d.error || 'Laden fehlgeschlagen.'); return; }
       const reqs: AccessRequest[] = d.requests ?? [];
