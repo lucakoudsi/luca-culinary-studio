@@ -5,61 +5,56 @@ import Link from 'next/link';
 import { Leaf, ChevronLeft } from 'lucide-react';
 
 const MONTH_NAMES_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-const SEASON_MONTHS: Record<string, number[]> = {
-  'Frühling': [2,3,4], 'Frühsommer': [4,5,6], 'Sommer': [5,6,7],
-  'Spätsommer': [6,7,8], 'Herbst': [8,9,10], 'Winter': [11,0,1],
+const MONTH_TO_SEASON: Record<number, string> = {
+  0: 'Winter', 1: 'Winter',  2: 'Frühling', 3: 'Frühling',
+  4: 'Frühling', 5: 'Sommer', 6: 'Sommer',  7: 'Sommer',
+  8: 'Herbst',  9: 'Herbst', 10: 'Herbst',  11: 'Winter',
 };
-
-function isSaisonal(saison: string | null | undefined, month: number): boolean {
-  if (!saison) return false;
-  const s = saison.toLowerCase();
-  if (s.includes(MONTH_NAMES_DE[month].toLowerCase())) return true;
-  for (const [season, months] of Object.entries(SEASON_MONTHS)) {
-    if (s.includes(season.toLowerCase()) && months.includes(month)) return true;
-  }
-  return false;
-}
+const SEASON_COLORS: Record<string, string> = {
+  Frühling: '#7CB87A', Sommer: '#E8A838', Herbst: '#C4743A', Winter: '#7BB8D4', Ganzjährig: '#A89880',
+};
 
 type Zutat = {
   id: number;
   name: string;
   kategorie: string;
-  saison: string | null;
+  saison: string[] | string | null;
   image_url: string | null;
   beschreibung: string | null;
 };
 
-type FilterType = 'Alle' | 'Hauptsaison' | 'Beginn' | 'Ausklang';
-
-const FILTER_OPTS: FilterType[] = ['Alle', 'Hauptsaison', 'Beginn', 'Ausklang'];
-const FILTER_COLORS: Record<FilterType, string> = {
-  'Alle':       '#6B3A4B',
-  'Hauptsaison':'#7CB87A',
-  'Beginn':     '#C9A84C',
-  'Ausklang':   '#9A8070',
-};
+const SEASON_TABS = ['Alle', 'Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'];
 
 export default function SaisonPage() {
-  const month = new Date().getMonth();
+  const now = new Date();
+  const month = now.getMonth();
   const currentMonth = MONTH_NAMES_DE[month];
+  const currentSeason = MONTH_TO_SEASON[month];
 
   const [all, setAll]         = useState<Zutat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState<FilterType>('Alle');
+  const [filter, setFilter]   = useState<string>(currentSeason);
 
   useEffect(() => {
     fetch('/api/zutaten')
       .then(r => r.json())
       .then((items: Zutat[]) => {
-        setAll(items.filter(z => isSaisonal(z.saison, month)));
+        // Show only items that have at least one season assigned
+        setAll(items.filter(z => {
+          const arr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
+          return arr.length > 0;
+        }));
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [month]);
+  }, []);
 
   const filtered = filter === 'Alle'
     ? all
-    : all.filter(z => z.saison?.toLowerCase().includes(filter.toLowerCase()));
+    : all.filter(z => {
+        const arr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
+        return arr.includes(filter);
+      });
 
   // Group by kategorie
   const groups: Record<string, Zutat[]> = {};
@@ -86,7 +81,7 @@ export default function SaisonPage() {
               Saison im {currentMonth}
             </h1>
             <p className="mt-2 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-              {all.length} saisonale Zutaten diesen Monat
+              {filtered.length} Zutaten {filter === 'Alle' ? 'mit Saisonzuordnung' : `— ${filter}`}
             </p>
           </div>
           <Link href="/" className="flex items-center gap-1.5 text-[12px] font-medium mt-1"
@@ -97,17 +92,21 @@ export default function SaisonPage() {
 
         {/* Filter Tabs */}
         <div className="flex gap-2 mt-5 flex-wrap">
-          {FILTER_OPTS.map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className="px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all"
-              style={{
-                background: filter === f ? FILTER_COLORS[f] : 'var(--surface-2)',
-                color:      filter === f ? '#FFFFFF'         : 'var(--text-muted)',
-                border:     filter === f ? `1px solid ${FILTER_COLORS[f]}` : '1px solid var(--border)',
-              }}>
-              {f}
-            </button>
-          ))}
+          {SEASON_TABS.map(f => {
+            const color = SEASON_COLORS[f] ?? '#6B3A4B';
+            const active = filter === f;
+            return (
+              <button key={f} onClick={() => setFilter(f)}
+                className="px-4 py-1.5 rounded-full text-[11px] font-semibold transition-all"
+                style={{
+                  background: active ? color : 'var(--surface-2)',
+                  color:      active ? '#FFFFFF' : 'var(--text-muted)',
+                  border:     active ? `1px solid ${color}` : '1px solid var(--border)',
+                }}>
+                {f === currentSeason ? `${f} (jetzt)` : f}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -124,8 +123,10 @@ export default function SaisonPage() {
           <div className="text-center py-20">
             <Leaf size={36} style={{ color: '#C0B5A8', margin: '0 auto 12px' }} />
             <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
-              Keine Zutaten für diesen Filter gefunden.
+              Keine Zutaten für diese Saison gefunden.
             </p>
+            <button onClick={() => setFilter('Alle')} className="mt-4 text-[13px] font-medium"
+              style={{ color: '#6B3A4B' }}>Alle anzeigen →</button>
           </div>
         ) : (
           <div className="space-y-10">
@@ -140,39 +141,48 @@ export default function SaisonPage() {
                   <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{items.length}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {items.map(z => (
-                    <div key={z.id}
-                      className="rounded-2xl overflow-hidden bg-card border border-border card-hover cursor-default">
-                      {/* Image */}
-                      <div style={{ height: 110, background: 'var(--surface-2)', overflow: 'hidden' }}>
-                        {z.image_url ? (
-                          <img src={z.image_url} alt={z.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span style={{ fontSize: 32 }}>🌿</span>
+                  {items.map(z => {
+                    const saisonArr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
+                    const primarySeason = saisonArr[0];
+                    const seasonColor = SEASON_COLORS[primarySeason ?? ''] ?? '#A89880';
+                    return (
+                      <div key={z.id}
+                        className="rounded-2xl overflow-hidden bg-card border border-border card-hover cursor-default">
+                        <div style={{ height: 110, background: 'var(--surface-2)', overflow: 'hidden' }}>
+                          {z.image_url ? (
+                            <img src={z.image_url} alt={z.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span style={{ fontSize: 32 }}>🌿</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <div className="font-semibold text-[13px] leading-tight mb-1.5"
+                            style={{ color: 'var(--text)' }}>{z.name}</div>
+                          <div className="flex flex-wrap gap-1 mb-1.5">
+                            {saisonArr.map(s => (
+                              <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+                                style={{
+                                  background: `${SEASON_COLORS[s] ?? '#A89880'}18`,
+                                  color: SEASON_COLORS[s] ?? '#A89880',
+                                  border: `1px solid ${SEASON_COLORS[s] ?? '#A89880'}35`,
+                                }}>
+                                {s}
+                              </span>
+                            ))}
                           </div>
-                        )}
+                          {z.beschreibung && (
+                            <p className="text-[11px] leading-snug line-clamp-2"
+                              style={{ color: 'var(--text-muted)' }}>
+                              {z.beschreibung}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      {/* Info */}
-                      <div className="p-3">
-                        <div className="font-semibold text-[13px] leading-tight mb-1.5"
-                          style={{ color: 'var(--text)' }}>{z.name}</div>
-                        {z.saison && (
-                          <div className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold"
-                            style={{ background: 'rgba(124,184,122,0.12)', color: '#5A9A58', border: '1px solid rgba(124,184,122,0.25)' }}>
-                            {z.saison.length > 24 ? z.saison.slice(0, 24) + '…' : z.saison}
-                          </div>
-                        )}
-                        {z.beschreibung && (
-                          <p className="mt-1.5 text-[11px] leading-snug line-clamp-2"
-                            style={{ color: 'var(--text-muted)' }}>
-                            {z.beschreibung}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

@@ -24,21 +24,18 @@ function getWeatherInfo(code: number) {
   return                  { icon: '⛈️', color: 'var(--text-muted)' };
 }
 
-const MONTH_NAMES_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-const SEASON_MONTHS: Record<string, number[]> = {
-  'Frühling': [2,3,4], 'Frühsommer': [4,5,6], 'Sommer': [5,6,7],
-  'Spätsommer': [6,7,8], 'Herbst': [8,9,10], 'Winter': [11,0,1],
+const MONTH_TO_SEASON: Record<number, string> = {
+  0: 'Winter', 1: 'Winter',  2: 'Frühling', 3: 'Frühling',
+  4: 'Frühling', 5: 'Sommer', 6: 'Sommer',  7: 'Sommer',
+  8: 'Herbst',  9: 'Herbst', 10: 'Herbst',  11: 'Winter',
 };
-function isSaisonal(saison: string | null | undefined, month: number): boolean {
+function isSaisonal(saison: string[] | string | null | undefined, month: number): boolean {
   if (!saison) return false;
-  const s = saison.toLowerCase();
-  if (s.includes(MONTH_NAMES_DE[month].toLowerCase())) return true;
-  for (const [season, months] of Object.entries(SEASON_MONTHS)) {
-    if (s.includes(season.toLowerCase()) && months.includes(month)) return true;
-  }
-  return false;
+  const season = MONTH_TO_SEASON[month];
+  const arr = Array.isArray(saison) ? saison : [String(saison)];
+  return arr.some(s => s === season || s === 'Ganzjährig');
 }
-type SaisonItem = { id: number; name: string; kategorie: string; saison: string; image_url: string | null };
+type SaisonItem = { id: number; name: string; kategorie: string; saison: string[] | string | null; image_url: string | null };
 
 const INSPIRATION = [
   { title: 'Yuzu Kosho – Japanische Würzpaste', sub: 'Fermentation · Japanisch', img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=120' },
@@ -500,7 +497,9 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
                     {s.saison && (
-                      <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>{s.saison}</div>
+                      <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>
+                        {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
+                      </div>
                     )}
                   </div>
                   <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
