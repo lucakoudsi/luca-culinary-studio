@@ -311,6 +311,7 @@ export default function ProfilPage() {
       if (!res.ok) { setProfileError(d.error || 'Speichern fehlgeschlagen.'); return; }
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
+      window.dispatchEvent(new CustomEvent('profile-updated', { detail: { full_name: name } }));
     } catch {
       setProfileError('Netzwerkfehler. Bitte versuche es erneut.');
     } finally {

@@ -56,6 +56,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
   const [profileName, setProfileName] = useState('');
+  const [fullName, setFullName]     = useState('');
   const [userTier, setUserTier]     = useState<number>(99);
 
   // Settings panel
@@ -76,6 +77,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       if (u) {
         fetch('/api/profil').then(r => r.json()).then(d => {
           setAvatarUrl(d.profile?.avatar_url ?? null);
+          setFullName(d.profile?.full_name ?? '');
           setProfileName(d.profile?.full_name?.split(' ')[0] ?? '');
           setUserTier(getUserTier(u.email, d.profile?.stufe));
           setEmailUpdates(d.profile?.email_updates ?? true);
@@ -89,6 +91,15 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     if (t === 'light' || t === 'dark' || t === 'auto') setTheme(t);
     const f = localStorage.getItem('fontSize') as FontSize | null;
     if (f === 'klein' || f === 'normal' || f === 'gross') setFontSize(f);
+
+    // Live update when profile is saved from the Profil page
+    const onProfileUpdated = (e: Event) => {
+      const name = (e as CustomEvent<{ full_name: string }>).detail?.full_name ?? '';
+      setFullName(name);
+      setProfileName(name.split(' ')[0] ?? '');
+    };
+    window.addEventListener('profile-updated', onProfileUpdated);
+    return () => window.removeEventListener('profile-updated', onProfileUpdated);
   }, []);
 
   // Click-outside closes settings panel
@@ -123,9 +134,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     setSettingsSaving(false);
   };
 
-  const displayName = user?.user_metadata?.full_name
-    || user?.email?.split('@')[0]
-    || 'Chef';
+  const displayName = fullName || user?.email?.split('@')[0] || 'Chef';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
   return (
