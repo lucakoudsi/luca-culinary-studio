@@ -18,12 +18,12 @@ type Zutat = {
   id: number;
   name: string;
   kategorie: string;
-  saison: string[] | string | null;
+  saison: string[] | null;
   image_url: string | null;
   beschreibung: string | null;
 };
 
-const SEASON_TABS = ['Alle', 'Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'];
+const SEASON_TABS = ['Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'];
 
 export default function SaisonPage() {
   const now = new Date();
@@ -31,30 +31,29 @@ export default function SaisonPage() {
   const currentMonth = MONTH_NAMES_DE[month];
   const currentSeason = MONTH_TO_SEASON[month];
 
-  const [all, setAll]         = useState<Zutat[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter]   = useState<string>(currentSeason);
+  const [itemsBySeason, setItemsBySeason] = useState<Record<string, Zutat[]>>({});
+  const [loading, setLoading]             = useState(true);
+  const [filter, setFilter]               = useState<string>(currentSeason);
 
   useEffect(() => {
-    fetch('/api/zutaten')
-      .then(r => r.json())
-      .then((items: Zutat[]) => {
-        // Show only items that have at least one season assigned
-        setAll(items.filter(z => {
-          const arr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
-          return arr.length > 0;
-        }));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    // Fetch all seasons in parallel
+    Promise.all(
+      [...SEASON_TABS].map(s =>
+        fetch(`/api/saison?season=${encodeURIComponent(s)}`)
+          .then(r => r.json())
+          .then((items: Zutat[]) => [s, items] as [string, Zutat[]])
+          .catch(() => [s, []] as [string, Zutat[]])
+      )
+    ).then(results => {
+      const map: Record<string, Zutat[]> = {};
+      results.forEach(([s, items]) => { map[s] = items; });
+      setItemsBySeason(map);
+      setLoading(false);
+    });
   }, []);
 
-  const filtered = filter === 'Alle'
-    ? all
-    : all.filter(z => {
-        const arr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
-        return arr.includes(filter);
-      });
+  const all = itemsBySeason[filter] ?? [];
+  const filtered = all;
 
   // Group by kategorie
   const groups: Record<string, Zutat[]> = {};
@@ -81,7 +80,7 @@ export default function SaisonPage() {
               Saison im {currentMonth}
             </h1>
             <p className="mt-2 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-              {filtered.length} Zutaten {filter === 'Alle' ? 'mit Saisonzuordnung' : `— ${filter}`}
+              {loading ? '…' : filtered.length} Zutaten — {filter}
             </p>
           </div>
           <Link href="/" className="flex items-center gap-1.5 text-[12px] font-medium mt-1"
@@ -125,8 +124,8 @@ export default function SaisonPage() {
             <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>
               Keine Zutaten für diese Saison gefunden.
             </p>
-            <button onClick={() => setFilter('Alle')} className="mt-4 text-[13px] font-medium"
-              style={{ color: '#6B3A4B' }}>Alle anzeigen →</button>
+            <button onClick={() => setFilter(currentSeason)} className="mt-4 text-[13px] font-medium"
+              style={{ color: '#6B3A4B' }}>Aktuelle Saison →</button>
           </div>
         ) : (
           <div className="space-y-10">
