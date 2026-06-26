@@ -35,7 +35,8 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/wein-pairing':  4,
   '/kreativlabor':  4,
   '/menuegenerator':4,
-  '/tellerdesigner':4,
+  '/tellerdesigner':    4,
+  '/zutatenstammbaum':  1,
 };
 
 // Tier now comes directly from profiles.stufe, not from the titel

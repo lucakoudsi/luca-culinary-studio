@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, FlaskConical, Utensils,
-  Leaf, Sun, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
+  Leaf, Sun, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings, GitFork,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    aiLocked: true  },
   { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: true  },
   { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: true  },
+  { href: '/zutatenstammbaum',label: 'Stammbaum',        icon: GitFork,         aiLocked: false },
   { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            aiLocked: false },
   { href: '/saison',          label: 'Saisonkalender',   icon: Sun,             aiLocked: false },
   { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            aiLocked: false },
