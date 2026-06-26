@@ -1,42 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase-admin';
+import { createAdminClient } from '@/lib/supabase-admin'
+import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 
-export const dynamic = 'force-dynamic';
-
-function getCurrentSeason(): string {
-  const month = new Date().getMonth() + 1; // 1–12
-  if (month >= 3 && month <= 5) return 'Frühling';
-  if (month >= 6 && month <= 8) return 'Sommer';
-  if (month >= 9 && month <= 11) return 'Herbst';
-  return 'Winter';
-}
-
-const COLS = 'id, name, kategorie, saison, image_url, beschreibung';
-
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const db = createAdminClient();
-    const { searchParams } = new URL(req.url);
-    const season = searchParams.get('season') || getCurrentSeason();
+    const { searchParams } = new URL(request.url)
+    const season = searchParams.get('season') || 'Sommer'
 
-    console.log('[saison] season:', season);
+    console.log('[saison] calling RPC with season:', season)
+    const supabase = createAdminClient()
 
-    // Two separate contains() calls — more reliable than .or() with cs operator
-    const [r1, r2] = await Promise.all([
-      db.from('zutaten').select(COLS).contains('saison', [season]).order('name'),
-      db.from('zutaten').select(COLS).contains('saison', ['Ganzjährig']).order('name'),
-    ]);
+    const { data, error } = await supabase
+      .rpc('get_seasonal_zutaten', { season_name: season })
 
-    console.log('[saison] season count:', r1.data?.length, 'error:', r1.error?.message);
-    console.log('[saison] ganzjaehrig count:', r2.data?.length, 'error:', r2.error?.message);
+    console.log('[saison] RPC result count:', data?.length, 'error:', error)
 
-    const seasonItems    = r1.data ?? [];
-    const ganzjaehrig    = (r2.data ?? []).filter(z => !seasonItems.some(s => s.id === z.id));
-    const merged         = [...seasonItems, ...ganzjaehrig];
+    if (error) {
+      console.error('[saison] RPC error:', error)
+      return NextResponse.json([])
+    }
 
-    return NextResponse.json(merged);
+    return NextResponse.json(data ?? [])
   } catch (e) {
-    console.error('[saison API catch]', e);
-    return NextResponse.json([]);
+    console.error('[saison] crash:', e)
+    return NextResponse.json([])
   }
 }
