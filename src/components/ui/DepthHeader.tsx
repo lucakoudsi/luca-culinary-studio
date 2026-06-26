@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useRef } from 'react'
 import { Camera, Music2, PlayCircle, Globe, Briefcase } from 'lucide-react'
 
@@ -87,9 +87,11 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
     let animId: number
     function draw() {
       const g = ctx.createLinearGradient(0, 0, cv.width, cv.height)
-      g.addColorStop(0, '#F4EFE9')
-      g.addColorStop(0.5, '#F0E8E0')
-      g.addColorStop(1, '#EDE4DC')
+      const style = getComputedStyle(document.documentElement)
+      const s2 = style.getPropertyValue('--surface-2').trim() || '#F4EFE9'
+      g.addColorStop(0, s2)
+      g.addColorStop(0.5, s2)
+      g.addColorStop(1, s2)
       ctx.fillStyle = g
       ctx.fillRect(0, 0, cv.width, cv.height)
       const cx = cv.width / 2
@@ -130,8 +132,8 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
       className="h-[130px] sm:h-[180px] md:h-[220px]"
       style={{
         position: 'relative', borderRadius: '18px',
-        overflow: 'hidden', background: '#F4EFE9', marginBottom: '1.25rem',
-        border: '0.5px solid #E8E0D8',
+        overflow: 'hidden', background: 'var(--surface-2)', marginBottom: '1.25rem',
+        border: '0.5px solid var(--border)',
       }}>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0 }} />
 
@@ -173,7 +175,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
         <div>
           <h2 style={{
             fontFamily: 'var(--font-playfair, serif)', fontSize: '22px',
-            color: '#2C2420', fontWeight: 500, margin: 0,
+            color: 'var(--text)', fontWeight: 500, margin: 0,
           }}>{name}</h2>
           <div style={{
             fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase',
@@ -192,7 +194,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
                   style={{
                     width: '30px', height: '30px', borderRadius: '8px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(107,58,75,0.08)', border: '1px solid #E8E0D8',
+                    background: 'rgba(107,58,75,0.08)', border: '1px solid var(--border)',
                     color: '#6B3A4B', transition: 'all 0.15s', flexShrink: 0,
                     textDecoration: 'none',
                   }}
@@ -208,7 +210,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
                     el.style.background = 'rgba(107,58,75,0.08)'
                     el.style.color = '#6B3A4B'
                     el.style.transform = 'none'
-                    el.style.borderColor = '#E8E0D8'
+                    el.style.borderColor = 'var(--border, #E8E0D8)'
                   }}
                 >
                   <Icon size={13} />
@@ -232,7 +234,7 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
             }}>{n}</div>
             <div style={{
               fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase',
-              color: '#9A8070',
+              color: 'var(--text-muted)',
             }}>{l}</div>
           </div>
         ))}

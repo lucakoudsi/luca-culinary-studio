@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, ArrowRight, FolderOpen } from 'lucide-react';
@@ -15,12 +15,12 @@ function getGreeting() {
 
 function getWeatherInfo(code: number) {
   if (code === 0)  return { icon: '☀️', color: '#C8882A' };
-  if (code <= 3)   return { icon: '⛅', color: '#8B7355' };
-  if (code <= 48)  return { icon: '🌫️', color: '#8B7355' };
+  if (code <= 3)   return { icon: '⛅', color: 'var(--text-muted)' };
+  if (code <= 48)  return { icon: '🌫️', color: 'var(--text-muted)' };
   if (code <= 67)  return { icon: '🌧️', color: '#5A9AB4' };
   if (code <= 77)  return { icon: '❄️', color: '#5A9AB4' };
   if (code <= 82)  return { icon: '🌦️', color: '#5A9AB4' };
-  return                  { icon: '⛈️', color: '#8B7355' };
+  return                  { icon: '⛈️', color: 'var(--text-muted)' };
 }
 
 const SAISON = [
@@ -139,10 +139,10 @@ export default function DashboardPage() {
               ✦ &nbsp;Willkommen zurück
             </div>
             <h1 className="font-heading font-bold leading-none"
-              style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+              style={{ fontSize: 'clamp(22px, 4vw, 34px)', color: 'var(--text)', letterSpacing: '3px', textTransform: 'uppercase' }}>
               {greeting}, {displayName.toUpperCase()}.
             </h1>
-            <p className="mt-2" style={{ color: '#8B7355', fontSize: 13 }}>
+            <p className="mt-2" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
               Bereit für neue kulinarische Meisterwerke?
             </p>
           </div>
@@ -150,14 +150,14 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3 sm:gap-4 mt-1 flex-shrink-0">
             <div className="relative hidden sm:block">
               <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: '#B09880' }} />
+                style={{ color: 'var(--text-muted)' }} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Suchen…"
                 className="pl-9 pr-4 py-2.5 rounded-xl text-[13px] outline-none w-44 lg:w-48 transition-all border border-border"
                 style={{ background: 'var(--surface, #FFFFFF)', color: 'var(--text, #2C2420)' }} />
             </div>
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2.5">
-                <div className="text-[13px] font-semibold" style={{ color: '#2C2420' }}>
+                <div className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>
                   {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
                 </div>
                 {weather && (() => {
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                   );
                 })()}
               </div>
-              <div className="text-[11px]" style={{ color: '#B09880' }}>
+              <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                 {new Date().toLocaleDateString('de-DE', { weekday: 'long' })}
               </div>
             </div>
@@ -201,10 +201,10 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h2 className="font-heading font-bold leading-tight mb-3"
-                style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: '#2C2420', letterSpacing: '1px' }}>
+                style={{ fontSize: 'clamp(18px, 3vw, 28px)', color: 'var(--text)', letterSpacing: '1px' }}>
                 {greeting}, {displayName}.
               </h2>
-              <p style={{ color: '#8B7355', fontSize: 14, lineHeight: 1.75 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.75 }}>
                 Entdecke neue Inspirationen und verwalte<br />
                 deine kulinarischen Projekte.
               </p>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading font-bold"
-                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+                style={{ fontSize: 16, color: 'var(--text)', letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Meine Projekte
               </h2>
               <Link href="/projekte" className="text-[12px] flex items-center gap-1 transition-colors"
@@ -248,9 +248,9 @@ export default function DashboardPage() {
               </div>
             ) : projects.length === 0 ? (
               <div className="rounded-xl p-8 text-center border border-dashed"
-                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
+                style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
                 <FolderOpen size={28} style={{ color: '#C0B5A8', margin: '0 auto 10px' }} />
-                <p style={{ fontSize: 14, color: '#9A8070', marginBottom: 12 }}>Noch keine Projekte</p>
+                <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>Noch keine Projekte</p>
                 <Link href="/projekte"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all"
                   style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
@@ -272,7 +272,7 @@ export default function DashboardPage() {
                         <div className="p-4">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="font-heading font-bold leading-tight"
-                              style={{ fontSize: 14, color: '#2C2420' }}>{p.name}</div>
+                              style={{ fontSize: 14, color: 'var(--text)' }}>{p.name}</div>
                             <span className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
                               style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)' }}>
                               {p.status}
@@ -280,10 +280,10 @@ export default function DashboardPage() {
                           </div>
                           {p.description && (
                             <p className="text-[12px] leading-relaxed mb-3 line-clamp-2"
-                              style={{ color: '#9A8070' }}>{p.description}</p>
+                              style={{ color: 'var(--text-muted)' }}>{p.description}</p>
                           )}
                           {komponenten > 0 && (
-                            <div className="text-[11px]" style={{ color: '#B09880' }}>
+                            <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                               {komponenten} Komponente{komponenten !== 1 ? 'n' : ''}
                             </div>
                           )}
@@ -300,7 +300,7 @@ export default function DashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading font-bold"
-                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+                style={{ fontSize: 16, color: 'var(--text)', letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Ideen für dich
               </h2>
               <Link href="/ki-sous-chef" className="text-[12px] flex items-center gap-1"
@@ -318,8 +318,8 @@ export default function DashboardPage() {
               </div>
             ) : ideas.length === 0 ? (
               <div className="rounded-xl p-6 text-center border border-dashed"
-                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
-                <p style={{ fontSize: 13, color: '#B09880' }}>
+                style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                   Noch keine Ideen gespeichert
                 </p>
               </div>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
                       (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
                     }}>
                     <div className="font-heading font-bold mb-1.5 leading-snug"
-                      style={{ fontSize: 13, color: '#2C2420' }}>{idea.text}</div>
+                      style={{ fontSize: 13, color: 'var(--text)' }}>{idea.text}</div>
                     {idea.tag && (
                       <div className="flex items-center gap-1 mt-2 text-[11px] font-medium" style={{ color: '#6B3A4B' }}>
                         {idea.tag} <ArrowRight size={11} />
@@ -353,10 +353,10 @@ export default function DashboardPage() {
           </section>
 
           {/* Mein Stil */}
-          <section style={{ borderTop: '1px solid #E8E0D8', paddingTop: 28 }}>
+          <section style={{ borderTop: '1px solid var(--border)', paddingTop: 28 }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-heading font-bold"
-                style={{ fontSize: 16, color: '#2C2420', letterSpacing: '3px', textTransform: 'uppercase' }}>
+                style={{ fontSize: 16, color: 'var(--text)', letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Mein Stil
               </h2>
               <Link href="/mein-stil" className="text-[12px] flex items-center gap-1"
@@ -374,8 +374,8 @@ export default function DashboardPage() {
               </div>
             ) : !hasMeinStil ? (
               <div className="rounded-xl p-6 text-center border border-dashed"
-                style={{ borderColor: '#E8E0D8', background: '#FAFAF9' }}>
-                <p style={{ fontSize: 13, color: '#B09880', marginBottom: 10 }}>
+                style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
                   Noch kein Küchenstil eingetragen
                 </p>
                 <Link href="/mein-stil"
@@ -393,10 +393,10 @@ export default function DashboardPage() {
                 ].filter(col => col.value).map(col => (
                   <div key={col.label} className="rounded-xl p-4 bg-white border border-border">
                     <div className="text-[10px] tracking-[3px] uppercase mb-3"
-                      style={{ color: '#B09880' }}>{col.label}</div>
+                      style={{ color: 'var(--text-muted)' }}>{col.label}</div>
                     {splitTags(col.value).slice(0, 5).map(item => (
                       <div key={item} className="flex items-center gap-2 py-1.5 text-[13px]"
-                        style={{ color: '#8B7355' }}>
+                        style={{ color: 'var(--text-muted)' }}>
                         <span style={{ color: '#6B3A4B', fontSize: 7 }}>◆</span> {item}
                       </div>
                     ))}
@@ -427,8 +427,8 @@ export default function DashboardPage() {
                   onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'}>
                   <img src={item.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold leading-tight" style={{ color: '#2C2420' }}>{item.title}</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: '#B09880' }}>{item.sub}</div>
+                    <div className="text-[12px] font-semibold leading-tight" style={{ color: 'var(--text)' }}>{item.title}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{item.sub}</div>
                   </div>
                   <ChevronRight size={12} style={{ color: 'rgba(107,58,75,0.5)', flexShrink: 0 }} />
                 </div>
@@ -449,7 +449,7 @@ export default function DashboardPage() {
                 <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border">
                   <span className="text-lg flex-shrink-0">{s.emoji}</span>
                   <div>
-                    <div className="text-[13px] font-semibold" style={{ color: '#2C2420' }}>{s.name}</div>
+                    <div className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>{s.name}</div>
                     <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>{s.label}</div>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ export default function DashboardPage() {
                   <div className="text-[15px] mb-1">{s.icon}</div>
                   <div className={`font-heading font-bold ${!dataLoaded ? 'animate-pulse' : ''}`}
                     style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
-                  <div className="text-[10px]" style={{ color: '#B09880' }}>{s.label}</div>
+                  <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{s.label}</div>
                 </div>
               ))}
             </div>

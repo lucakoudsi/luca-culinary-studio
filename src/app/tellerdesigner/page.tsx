@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { Palette, Download, RefreshCw, Loader2, CheckCircle, BookOpen } from 'lucide-react';
@@ -140,18 +140,18 @@ export default function TellerdesignerPage() {
 
   if (loadingRecipes) {
     return (
-      <div style={{ background: '#FAF8F5', minHeight: '100vh' }} className="flex items-center justify-center">
+      <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
         <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
       </div>
     );
   }
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Tellergestaltung</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
-        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Wähle Rezept und Stil – erhalte 3 Anrichte-Varianten</p>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
+        <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>Wähle Rezept und Stil – erhalte 3 Anrichte-Varianten</p>
       </div>
       <div className="p-8 max-w-[1400px]">
 
@@ -161,8 +161,8 @@ export default function TellerdesignerPage() {
             style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
             <BookOpen size={28} color="#6B3A4B" strokeWidth={1.5} />
           </div>
-          <p className="font-heading text-xl mb-2" style={{ color: '#2C2420' }}>Noch keine Rezepte vorhanden</p>
-          <p className="text-[13px]" style={{ color: '#8B7355' }}>
+          <p className="font-heading text-xl mb-2" style={{ color: 'var(--text)' }}>Noch keine Rezepte vorhanden</p>
+          <p className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
             Erstelle zuerst ein Rezept im Rezeptarchiv.
           </p>
           <a href="/rezepte/neu"

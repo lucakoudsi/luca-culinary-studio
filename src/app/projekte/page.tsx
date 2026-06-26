@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Project } from '@/types';
@@ -275,12 +275,12 @@ export default function ProjektePage() {
   };
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Meine Arbeit</div>
-          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
-          <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
+          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
+          <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
         </div>
         <div className="mt-1">
           <button onClick={() => setShowNew(true)}

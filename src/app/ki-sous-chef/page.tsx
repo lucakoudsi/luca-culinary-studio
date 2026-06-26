@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useRef, useEffect } from 'react';
 import { ChefHat, Send, Loader2, User } from 'lucide-react';
 import { FEATURES } from '@/config/features';
@@ -94,16 +94,16 @@ export default function KiSousChefPage() {
   };
 
   return (
-    <div className="flex flex-col" style={{ background: '#FAF8F5', height: '100vh' }}>
+    <div className="flex flex-col" style={{ background: 'var(--bg)', height: '100vh' }}>
       <div className="px-8 pt-8 pb-6 flex-shrink-0"
-        style={{ borderBottom: '1px solid #E8E0D8' }}>
+        style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
           style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Kulinarische KI</div>
         <h1 className="font-heading font-bold leading-none"
-          style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
+          style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>
           KI-Sous-Chef
         </h1>
-        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>
+        <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
           Dein kulinarischer Assistent für Rezepte, Techniken und Inspiration
         </p>
       </div>
@@ -169,7 +169,7 @@ export default function KiSousChefPage() {
       {/* Input */}
       {!FEATURES.AI_ENABLED ? (
         <div className="flex-shrink-0 rounded-xl px-4 py-3 text-center text-[13px]"
-          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', color: '#B09880' }}>
+          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', color: 'var(--text-muted)' }}>
           KI-Sous-Chef wird bald verfügbar — OpenAI API Key wird eingerichtet
         </div>
       ) : (

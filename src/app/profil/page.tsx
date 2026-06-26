@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -94,7 +94,7 @@ const PERM_TIERS = [
 const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] outline-none transition-all placeholder:text-[#C0B5A8]';
 const fieldStyle = { background: 'var(--bg, #F9F7F4)', border: '1px solid var(--border, #E8E0D8)', color: 'var(--text, #2C2420)' };
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: 10, color: '#8B7355',
+  display: 'block', fontSize: 10, color: 'var(--text-muted)',
   marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase',
 };
 
@@ -596,7 +596,7 @@ export default function ProfilPage() {
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#FAF8F5' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
         <Loader2 size={28} className="animate-spin" style={{ color: '#6B3A4B' }} />
       </div>
     );
@@ -626,7 +626,7 @@ export default function ProfilPage() {
         <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(107,58,75,0.55)', marginBottom: 6 }}>
           ✦ &nbsp;Einstellungen
         </div>
-        <h1 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 28, fontWeight: 700, color: '#2C2420', letterSpacing: 2, textTransform: 'uppercase', margin: '0 0 1.25rem' }}>
+        <h1 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 28, fontWeight: 700, color: 'var(--text)', letterSpacing: 2, textTransform: 'uppercase', margin: '0 0 1.25rem' }}>
           Mein Profil
         </h1>
 
@@ -692,10 +692,10 @@ export default function ProfilPage() {
                   background: activeTab === id ? '#6B3A4B' : 'rgba(107,58,75,0.08)',
                   transition: 'all 0.15s',
                 }}>
-                  <Icon size={14} style={{ color: activeTab === id ? '#FFFFFF' : '#8B7355' }} />
+                  <Icon size={14} style={{ color: activeTab === id ? '#FFFFFF' : 'var(--text-muted)' }} />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
                     {label}
                     {badge && badge > 0 ? (
                       <span style={{ fontSize: 10, fontWeight: 700, background: '#6B3A4B', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>
@@ -703,7 +703,7 @@ export default function ProfilPage() {
                       </span>
                     ) : null}
                   </div>
-                  <div className="hidden md:block" style={{ fontSize: 11, color: '#B09880', marginTop: 1 }}>{sublabel}</div>
+                  <div className="hidden md:block" style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>{sublabel}</div>
                 </div>
               </button>
             ))}
@@ -711,11 +711,11 @@ export default function ProfilPage() {
           </div>
 
           {/* Member since */}
-          <div style={{ background: '#FFFFFF', borderRadius: 14, border: '1px solid #E8E0D8', padding: '12px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)', padding: '12px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: 9, letterSpacing: '2px', textTransform: 'uppercase', color: '#C0B5A8', marginBottom: 4 }}>
               Mitglied seit
             </div>
-            <div style={{ fontSize: 13, color: '#8B7355', fontWeight: 500 }}>{memberSince}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>{memberSince}</div>
           </div>
 
           {/* Logout */}
@@ -735,7 +735,7 @@ export default function ProfilPage() {
           {/* ── Tab 1: Profil ───────────────────────────────────────────── */}
           {activeTab === 'profil' && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
                 Profil bearbeiten
               </h3>
               <div className="space-y-5" style={{ maxWidth: 420 }}>
@@ -768,7 +768,7 @@ export default function ProfilPage() {
           {/* ── Tab 2: Küchenstil ──────────────────────────────────────── */}
           {activeTab === 'kuechenstil' && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
                 Kulinarisches Profil
               </h3>
               <div className="space-y-5" style={{ maxWidth: 520 }}>
@@ -861,7 +861,7 @@ export default function ProfilPage() {
           {/* ── Tab: Mein Stil ─────────────────────────────────────────── */}
           {activeTab === 'mein-stil' && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
                 Mein kulinarischer Stil
               </h3>
 
@@ -946,15 +946,15 @@ export default function ProfilPage() {
                     ] as { label: string; left: string; right: string; value: number; set: (v: number) => void }[]).map(s => (
                       <div key={s.label}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                          <span style={{ fontSize: 11, color: '#8B7355', fontWeight: 600 }}>{s.label}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{s.label}</span>
                           <span style={{ fontSize: 10, color: '#C0B5A8' }}>{s.value}%</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 11, color: '#9A8070', flexShrink: 0, minWidth: 60, textAlign: 'right' }}>{s.left}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, minWidth: 60, textAlign: 'right' }}>{s.left}</span>
                           <input type="range" min={0} max={100} value={s.value}
                             onChange={e => s.set(Number(e.target.value))}
                             style={{ flex: 1, accentColor: '#6B3A4B', height: 4, cursor: 'pointer' }} />
-                          <span style={{ fontSize: 11, color: '#9A8070', flexShrink: 0, minWidth: 60 }}>{s.right}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, minWidth: 60 }}>{s.right}</span>
                         </div>
                       </div>
                     ))}
@@ -1014,7 +1014,7 @@ export default function ProfilPage() {
           {/* ── Tab 3: Social Media ────────────────────────────────────── */}
           {activeTab === 'social' && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
                 Social Media & Links
               </h3>
               <div className="space-y-5" style={{ maxWidth: 460 }}>
@@ -1084,7 +1084,7 @@ export default function ProfilPage() {
           {/* ── Tab 4: Sicherheit ──────────────────────────────────────── */}
           {activeTab === 'sicherheit' && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
                 Passwort ändern
               </h3>
               <div className="space-y-5" style={{ maxWidth: 420 }}>
@@ -1100,7 +1100,7 @@ export default function ProfilPage() {
                       onFocus={onFocus} onBlur={onBlur} />
                     <button type="button" onClick={() => setShowCurrent(p => !p)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
-                      style={{ color: '#B09880' }}
+                      style={{ color: 'var(--text-muted)' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
                       onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
                       {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1119,7 +1119,7 @@ export default function ProfilPage() {
                       onFocus={onFocus} onBlur={onBlur} />
                     <button type="button" onClick={() => setShowNew(p => !p)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
-                      style={{ color: '#B09880' }}
+                      style={{ color: 'var(--text-muted)' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
                       onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
                       {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1146,7 +1146,7 @@ export default function ProfilPage() {
                     )}
                     <button type="button" onClick={() => setShowConfirm(p => !p)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
-                      style={{ color: '#B09880' }}
+                      style={{ color: 'var(--text-muted)' }}
                       onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
                       onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
                       {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -1164,7 +1164,7 @@ export default function ProfilPage() {
           {/* ── Tab 5: Verwaltung (Admin only) ─────────────────────────── */}
           {activeTab === 'verwaltung' && isAdmin && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.75rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.75rem' }}>
                 Nutzerverwaltung
               </h3>
 
@@ -1175,7 +1175,7 @@ export default function ProfilPage() {
                   <input type="text" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
                     placeholder="Nach Name oder E-Mail suchen…"
                     className="w-full pl-10 pr-4 py-3 rounded-xl text-[13px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
-                    style={{ background: '#F9F7F4', border: '1px solid #E8E0D8' }}
+                    style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
                     onFocus={onFocus} onBlur={onBlur} />
                 </div>
                 <button onClick={loadAdminUsers} disabled={adminLoading}
@@ -1224,10 +1224,10 @@ export default function ProfilPage() {
 
                       {/* Name + email */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#2C2420', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {u.full_name || '—'}
                         </div>
-                        <div style={{ fontSize: 11, color: '#9A8070', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {u.email}
                         </div>
                       </div>
@@ -1244,14 +1244,14 @@ export default function ProfilPage() {
                         <>
                           {/* Titel dropdown */}
                           <div style={{ position: 'relative', flexShrink: 0 }}>
-                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 3 }}>Titel</div>
+                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Titel</div>
                             <select
                               value={u.titel ?? ''}
                               disabled={adminActing === u.id}
                               onChange={e => saveAdminTitle(u.id, e.target.value || null)}
                               style={{
                                 width: 160, padding: '5px 8px', borderRadius: 8, fontSize: 12,
-                                background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
+                                background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)',
                                 cursor: 'pointer', outline: 'none',
                               }}>
                               <option value="">— kein Titel —</option>
@@ -1269,14 +1269,14 @@ export default function ProfilPage() {
 
                           {/* Stufe dropdown */}
                           <div style={{ position: 'relative', flexShrink: 0 }}>
-                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 3 }}>Stufe</div>
+                            <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 3 }}>Stufe</div>
                             <select
                               value={u.stufe ?? 1}
                               disabled={adminStufeActing === u.id}
                               onChange={e => saveAdminStufe(u.id, Number(e.target.value))}
                               style={{
                                 width: 160, padding: '5px 8px', borderRadius: 8, fontSize: 12,
-                                background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420',
+                                background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)',
                                 cursor: 'pointer', outline: 'none',
                               }}>
                               {STUFEN.map(s => (
@@ -1327,7 +1327,7 @@ export default function ProfilPage() {
                             onClick={() => setDeleteConfirmId(null)}
                             style={{
                               padding: '5px 14px', borderRadius: 7, fontSize: 12, fontWeight: 600,
-                              background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#8B7355', cursor: 'pointer',
+                              background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text-muted)', cursor: 'pointer',
                             }}>
                             Abbrechen
                           </button>
@@ -1354,18 +1354,18 @@ export default function ProfilPage() {
 
               {/* Permissions overview */}
               <div style={{ marginTop: '2.5rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 0.5rem' }}>
+                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 0.5rem' }}>
                   Rechte-Übersicht
                 </h3>
-                <p style={{ fontSize: 12, color: '#9A8070', marginBottom: '1.25rem', lineHeight: 1.6 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
                   Titel (Anzeigename) und Stufe (Berechtigung) sind getrennt einstellbar.
                   Ein <em>„Sous-Chef"</em> kann z.B. Stufe 1 haben, wenn er nur zuschauen soll.
                 </p>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid #E8E0D8' }}>
-                        <th style={{ textAlign: 'left', padding: '8px 12px', color: '#8B7355', fontWeight: 600, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
+                      <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                        <th style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--text-muted)', fontWeight: 600, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' }}>
                           Bereich
                         </th>
                         {PERM_TIERS.map(({ tier, label }) => (
@@ -1378,7 +1378,7 @@ export default function ProfilPage() {
                     <tbody>
                       {PERM_ROWS.map(({ label, minTier }, i) => (
                         <tr key={label} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', borderBottom: '1px solid #F0EAE4' }}>
-                          <td style={{ padding: '9px 12px', color: '#2C2420', fontWeight: 500 }}>{label}</td>
+                          <td style={{ padding: '9px 12px', color: 'var(--text)', fontWeight: 500 }}>{label}</td>
                           {PERM_TIERS.map(({ tier }) => (
                             <td key={tier} style={{ textAlign: 'center', padding: '9px 10px' }}>
                               {tier >= minTier ? (
@@ -1401,7 +1401,7 @@ export default function ProfilPage() {
           {activeTab === 'anfragen' && isAdmin && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: 0 }}>
+                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
                   Registrierungsanfragen
                 </h3>
                 <button onClick={loadAnfragen} disabled={anfragenLoading}
@@ -1450,7 +1450,7 @@ export default function ProfilPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '1.5rem' }}>
                     {pending.map(req => (
                       <div key={req.id} style={{
-                        background: '#FFFFFF', borderRadius: 14, border: '1px solid #E8E0D8',
+                        background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)',
                         padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
                       }}>
                         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -1465,18 +1465,18 @@ export default function ProfilPage() {
                           </div>
 
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: 14, color: '#2C2420' }}>{req.name}</div>
-                            <div style={{ fontSize: 12, color: '#9A8070', marginTop: 1 }}>{req.email}</div>
-                            <div style={{ fontSize: 11, color: '#B09880', marginTop: 2 }}>
+                            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{req.name}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{req.email}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
                               {new Date(req.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </div>
                         </div>
 
                         {/* Grund */}
-                        <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: '#F9F7F4', border: '1px solid #EEE8E2' }}>
-                          <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: '#B09880', marginBottom: 4 }}>Warum möchtest du Zugang?</div>
-                          <p style={{ fontSize: 13, color: '#2C2420', margin: 0, lineHeight: 1.55 }}>{req.grund}</p>
+                        <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid #EEE8E2' }}>
+                          <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>Warum möchtest du Zugang?</div>
+                          <p style={{ fontSize: 13, color: 'var(--text)', margin: 0, lineHeight: 1.55 }}>{req.grund}</p>
                         </div>
 
                         {/* Titel + Stufe + Buttons */}
@@ -1486,7 +1486,7 @@ export default function ProfilPage() {
                             <select
                               value={anfragenTitels[req.id] ?? 'Hobbykoch'}
                               onChange={e => setAnfragenTitels(prev => ({ ...prev, [req.id]: e.target.value }))}
-                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420', outline: 'none' }}>
+                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none' }}>
                               {ALL_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                           </div>
@@ -1495,7 +1495,7 @@ export default function ProfilPage() {
                             <select
                               value={anfragenStufen[req.id] ?? 2}
                               onChange={e => setAnfragenStufen(prev => ({ ...prev, [req.id]: Number(e.target.value) }))}
-                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: '#F9F7F4', border: '1px solid #E8E0D8', color: '#2C2420', outline: 'none' }}>
+                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none' }}>
                               {STUFEN.map(s => <option key={s.stufe} value={s.stufe}>{s.label}</option>)}
                             </select>
                           </div>
@@ -1531,7 +1531,7 @@ export default function ProfilPage() {
                   <button
                     onClick={() => setShowProcessed(p => !p)}
                     className="flex items-center gap-2 text-[12px] font-medium mb-3 transition-colors"
-                    style={{ color: '#9A8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     {showProcessed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     Bearbeitet ({anfragen.filter(r => r.status && r.status !== 'pending').length})
                   </button>
@@ -1542,7 +1542,7 @@ export default function ProfilPage() {
                         <div key={req.id} style={{
                           display: 'flex', alignItems: 'center', gap: 10,
                           padding: '10px 14px', borderRadius: 10,
-                          background: '#FAFAF9', border: '1px solid #EEE8E2', opacity: 0.8,
+                          background: 'var(--bg)', border: '1px solid #EEE8E2', opacity: 0.8,
                         }}>
                           <div style={{
                             width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
@@ -1553,8 +1553,8 @@ export default function ProfilPage() {
                             {req.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 500, color: '#2C2420' }}>{req.name}</div>
-                            <div style={{ fontSize: 11, color: '#B09880' }}>{req.email}</div>
+                            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{req.name}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.email}</div>
                           </div>
                           <span style={{
                             fontSize: 10, fontWeight: 700, letterSpacing: 0.5, padding: '3px 8px', borderRadius: 999,

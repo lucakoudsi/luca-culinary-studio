@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -146,12 +146,12 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             </div>
             <div className="min-w-0">
               <div className="font-heading font-bold leading-none tracking-[3px]"
-                style={{ fontSize: 14, color: 'var(--text-primary, #2C2420)', textTransform: 'uppercase' }}>LUCA</div>
+                style={{ fontSize: 14, color: 'var(--text, #2C2420)', textTransform: 'uppercase' }}>LUCA</div>
               <div className="tracking-[2px] uppercase mt-0.5"
                 style={{ fontSize: 8, color: 'var(--text-muted, #B09880)' }}>Culinary Creator</div>
             </div>
             {mobileOpen && (
-              <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: '#8B7355' }}>
+              <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: 'var(--text-muted)' }}>
                 <X size={18} />
               </button>
             )}
@@ -192,7 +192,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   background: '#6B3A4B',
                   color: '#FFFFFF',
                 } : {
-                  color: 'var(--text-secondary, #8B7355)',
+                  color: 'var(--text-muted, #8B7355)',
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
@@ -294,7 +294,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   }}>
                   <span style={{
                     position: 'absolute', top: 3, left: emailUpdates ? 19 : 3,
-                    width: 16, height: 16, borderRadius: '50%', background: '#FFFFFF',
+                    width: 16, height: 16, borderRadius: '50%', background: 'var(--surface)',
                     transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }} />
                 </button>
@@ -320,7 +320,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   }}>
                   <span style={{
                     position: 'absolute', top: 3, left: profilOeffentlich ? 19 : 3,
-                    width: 16, height: 16, borderRadius: '50%', background: '#FFFFFF',
+                    width: 16, height: 16, borderRadius: '50%', background: 'var(--surface)',
                     transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }} />
                 </button>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { Wine, Search, MapPin, Calendar, Loader2 } from 'lucide-react';
 
@@ -111,11 +111,11 @@ export default function WeinPairingPage() {
   const filtered = results.filter(w => filter === 'Alle' || w.type === filter);
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
-      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid #E8E0D8' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Sommellerie</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>Wein & Pairing</h1>
-        <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>Gib ein Gericht oder eine Zutat ein für präzise Weinempfehlungen</p>
+        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Wein & Pairing</h1>
+        <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>Gib ein Gericht oder eine Zutat ein für präzise Weinempfehlungen</p>
       </div>
       <div className="p-8 max-w-[1200px]">
 

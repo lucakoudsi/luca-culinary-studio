@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, X } from 'lucide-react';
 
@@ -67,7 +67,7 @@ function emptyForm(): FormState {
 // ── Shared input styles ───────────────────────────────────────────────────────
 
 const inputBase: React.CSSProperties = {
-  background: '#F5EFE8', border: '1px solid #DDD5CB', color: '#2C2420',
+  background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)',
   width: '100%', borderRadius: 8, padding: '10px 14px', fontSize: 13, outline: 'none',
 };
 
@@ -122,17 +122,17 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(44,36,32,0.45)', backdropFilter: 'blur(4px)' }}>
       <div className="relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: '#FDFAF7', border: '1px solid #E8E0D8' }}>
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4"
-          style={{ borderBottom: '1px solid #E8E0D8' }}>
+          style={{ borderBottom: '1px solid var(--border)' }}>
           <h2 className="font-heading font-bold text-[19px]"
-            style={{ color: '#2C2420', letterSpacing: '1px' }}>
+            style={{ color: 'var(--text)', letterSpacing: '1px' }}>
             {mode === 'create' ? 'Neue Fermentation' : 'Fermentation bearbeiten'}
           </h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/5 transition-colors">
-            <X size={18} style={{ color: '#8B7355' }} />
+            <X size={18} style={{ color: 'var(--text-muted)' }} />
           </button>
         </div>
 
@@ -204,8 +204,8 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
               <div className="mb-2 space-y-1.5">
                 {existingNotizen.map(n => (
                   <div key={n.id} className="rounded-lg px-3 py-2 text-[11px]"
-                    style={{ background: '#F0EBE3', color: '#6B5744' }}>
-                    <span style={{ color: '#2C2420' }}>{n.text}</span>
+                    style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                    <span style={{ color: 'var(--text)' }}>{n.text}</span>
                     <span className="ml-2 opacity-60">{n.date}</span>
                   </div>
                 ))}
@@ -223,10 +223,10 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4"
-          style={{ borderTop: '1px solid #E8E0D8' }}>
+          style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={onClose} disabled={saving}
             className="px-4 py-2 rounded-lg text-[13px] font-semibold"
-            style={{ background: '#EDE8E3', color: '#6B5744' }}>
+            style={{ background: '#EDE8E3', color: 'var(--text-muted)' }}>
             Abbrechen
           </button>
           <button onClick={handleSave} disabled={saving}
@@ -249,20 +249,20 @@ function DeleteModal({ name, onConfirm, onClose, deleting }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(44,36,32,0.45)', backdropFilter: 'blur(4px)' }}>
       <div className="w-full max-w-sm rounded-2xl shadow-2xl"
-        style={{ background: '#FDFAF7', border: '1px solid #E8E0D8' }}>
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         <div className="px-6 pt-6 pb-5">
-          <h2 className="font-heading font-bold text-[17px] mb-2" style={{ color: '#2C2420' }}>
+          <h2 className="font-heading font-bold text-[17px] mb-2" style={{ color: 'var(--text)' }}>
             Fermentation löschen?
           </h2>
-          <p className="text-[13px]" style={{ color: '#6B5744' }}>
-            <span className="font-semibold" style={{ color: '#2C2420' }}>„{name}"</span> wird unwiderruflich gelöscht.
+          <p className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            <span className="font-semibold" style={{ color: 'var(--text)' }}>„{name}"</span> wird unwiderruflich gelöscht.
           </p>
         </div>
         <div className="flex items-center justify-end gap-3 px-6 py-4"
-          style={{ borderTop: '1px solid #E8E0D8' }}>
+          style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={onClose} disabled={deleting}
             className="px-4 py-2 rounded-lg text-[13px] font-semibold"
-            style={{ background: '#EDE8E3', color: '#6B5744' }}>
+            style={{ background: '#EDE8E3', color: 'var(--text-muted)' }}>
             Abbrechen
           </button>
           <button onClick={onConfirm} disabled={deleting}
@@ -479,19 +479,19 @@ export default function FermentationPage() {
   const done   = projects.filter(p => p.status === 'Abgeschlossen' || p.status === 'Problem');
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* Header */}
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-4"
-        style={{ borderBottom: '1px solid #E8E0D8' }}>
+        style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2"
             style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Laufende Projekte</div>
           <h1 className="font-heading font-bold leading-none"
-            style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>
             Fermentation
           </h1>
-          <p className="mt-1.5" style={{ color: '#8B7355', fontSize: 13 }}>
+          <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
             {loading ? 'Lade…' : `${active.length} laufende Projekte · ${done.length} abgeschlossen`}
           </p>
         </div>

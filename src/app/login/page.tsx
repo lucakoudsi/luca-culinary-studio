@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -76,7 +76,7 @@ export default function LoginPage() {
   };
 
   const fieldCls = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]";
-  const fieldStyle = { background: '#FFFFFF', border: '1px solid #E8E0D8' };
+  const fieldStyle = { background: 'var(--surface)', border: '1px solid var(--border)' };
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.borderColor = 'rgba(107,58,75,0.45)';
@@ -88,10 +88,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#FAF8F5' }}>
+    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
 
       {/* ── Left: Blob Background ─────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: '#FAF8F5' }}>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: 'var(--bg)' }}>
         <BlobBackground />
         {/* Right edge fade */}
         <div className="absolute inset-y-0 right-0 w-32 z-10" style={{
@@ -112,10 +112,10 @@ export default function LoginPage() {
         {/* Bottom text */}
         <div className="relative z-10 mt-auto p-10 pb-12">
           <div className="w-10 h-px mb-4" style={{ background: 'rgba(107,58,75,0.4)' }} />
-          <h2 className="font-heading text-[28px] font-bold leading-tight mb-2" style={{ color: '#2C2420' }}>
+          <h2 className="font-heading text-[28px] font-bold leading-tight mb-2" style={{ color: 'var(--text)' }}>
             Dein digitaler<br />Michelin-Sous-Chef
           </h2>
-          <p style={{ color: '#8B7355', fontSize: 13, letterSpacing: '2px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, letterSpacing: '2px' }}>
             Rezepte · Menüs · Kreationen
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
 
       {/* ── Right: Form ────────────────────────────────────────────────── */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12 relative"
-        style={{ background: '#FAF8F5' }}>
+        style={{ background: 'var(--bg)' }}>
 
         {/* Subtle background glow */}
         <div className="absolute inset-0 pointer-events-none" style={{
@@ -140,7 +140,7 @@ export default function LoginPage() {
           {/* Heading */}
           <div className="mb-7 text-center">
             <h2 className="font-heading text-[24px] font-bold text-[#2C2420]">Willkommen zurück</h2>
-            <p style={{ color: '#8B7355', fontSize: 13, marginTop: 4 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
               Melde dich in deiner Küche an
             </p>
           </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email */}
             <div>
-              <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+              <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                 E-Mail
               </label>
               <div className="relative">
@@ -165,7 +165,7 @@ export default function LoginPage() {
 
             {/* Passwort */}
             <div>
-              <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+              <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                 Passwort
               </label>
               <div className="relative">
@@ -216,7 +216,7 @@ export default function LoginPage() {
           </div>
 
           {/* Register link */}
-          <p className="text-center" style={{ fontSize: 13, color: '#8B7355' }}>
+          <p className="text-center" style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             Noch kein Account?{' '}
             <Link href="/register" className="font-semibold transition-colors"
               style={{ color: '#6B3A4B' }}

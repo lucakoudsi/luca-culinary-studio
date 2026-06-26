@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -12,7 +12,7 @@ const statuses:    RecipeStatus[]     = ['Fertig', 'In Bearbeitung', 'Entwurf'];
 
 const label = "block text-[11px] font-semibold uppercase tracking-widest mb-1.5";
 const input = "w-full rounded-lg px-3.5 py-2.5 text-[13px] outline-none transition-colors";
-const inputStyle = { background: '#FFFFFF', border: '1px solid #E8E0D8', color: '#2C2420' };
+const inputStyle = { background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' };
 
 export default function RezeptBearbeitenPage() {
   const { id }   = useParams<{ id: string }>();
@@ -79,7 +79,7 @@ export default function RezeptBearbeitenPage() {
 
   if (loading) {
     return (
-      <div style={{ background: '#FAF8F5', minHeight: '100vh' }} className="flex items-center justify-center">
+      <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
         <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
       </div>
     );
@@ -87,9 +87,9 @@ export default function RezeptBearbeitenPage() {
 
   if (notFound) {
     return (
-      <div style={{ background: '#FAF8F5', minHeight: '100vh' }} className="flex items-center justify-center">
+      <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
         <div className="text-center">
-          <p className="font-heading text-xl mb-4" style={{ color: '#2C2420' }}>Rezept nicht gefunden</p>
+          <p className="font-heading text-xl mb-4" style={{ color: 'var(--text)' }}>Rezept nicht gefunden</p>
           <button onClick={() => router.push('/rezepte')}
             className="px-5 py-2.5 rounded-xl text-[13px] font-semibold"
             style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
@@ -101,15 +101,15 @@ export default function RezeptBearbeitenPage() {
   }
 
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* Header */}
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6"
-        style={{ borderBottom: '1px solid #E8E0D8' }}>
+        style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
           <button onClick={() => router.back()}
             className="flex items-center gap-2 mb-4 text-[12px] font-medium transition-colors"
-            style={{ color: '#8B7355' }}
+            style={{ color: 'var(--text-muted)' }}
             onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = '#6B3A4B'}
             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = '#8B7355'}>
             <ArrowLeft size={14} /> Zurück
@@ -118,7 +118,7 @@ export default function RezeptBearbeitenPage() {
             ✦ &nbsp;Rezept bearbeiten
           </div>
           <h1 className="font-heading font-bold leading-none"
-            style={{ fontSize: 28, color: '#2C2420', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>
             {title || 'Rezept bearbeiten'}
           </h1>
         </div>
@@ -138,7 +138,7 @@ export default function RezeptBearbeitenPage() {
 
         {/* Title */}
         <div>
-          <label className={label} style={{ color: '#8B7355' }}>Titel *</label>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>Titel *</label>
           <input value={title} onChange={e => setTitle(e.target.value)} className={input}
             style={inputStyle} placeholder="Rezepttitel…" />
         </div>
@@ -146,21 +146,21 @@ export default function RezeptBearbeitenPage() {
         {/* Grid: Category + Difficulty + Time */}
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className={label} style={{ color: '#8B7355' }}>Kategorie</label>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Kategorie</label>
             <select value={category} onChange={e => setCategory(e.target.value as RecipeCategory)}
               className={input + ' cursor-pointer'} style={inputStyle}>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div>
-            <label className={label} style={{ color: '#8B7355' }}>Schwierigkeit</label>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Schwierigkeit</label>
             <select value={difficulty} onChange={e => setDifficulty(e.target.value as RecipeDifficulty)}
               className={input + ' cursor-pointer'} style={inputStyle}>
               {difficulties.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>
-            <label className={label} style={{ color: '#8B7355' }}>Zeit (Minuten)</label>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Zeit (Minuten)</label>
             <input type="number" value={time} onChange={e => setTime(Number(e.target.value))} min={1}
               className={input} style={inputStyle} />
           </div>
@@ -169,7 +169,7 @@ export default function RezeptBearbeitenPage() {
         {/* Grid: Season + Status */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={label} style={{ color: '#8B7355' }}>Saison</label>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Saison</label>
             <div className="flex flex-wrap gap-2">
               {seasons.map(s => (
                 <button key={s} onClick={() => setSeason(s)}
@@ -185,7 +185,7 @@ export default function RezeptBearbeitenPage() {
             </div>
           </div>
           <div>
-            <label className={label} style={{ color: '#8B7355' }}>Status</label>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Status</label>
             <div className="flex gap-2">
               {statuses.map(s => (
                 <button key={s} onClick={() => setStatus(s)}
@@ -204,7 +204,7 @@ export default function RezeptBearbeitenPage() {
 
         {/* Tags */}
         <div>
-          <label className={label} style={{ color: '#8B7355' }}>Tags <span style={{ color: '#B09880', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(komma-getrennt)</span></label>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>Tags <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(komma-getrennt)</span></label>
           <input value={tagsInput} onChange={e => setTagsInput(e.target.value)} className={input}
             style={inputStyle} placeholder="z.B. Sous-vide, Pilze, Herbst" />
           {tagsInput && (
@@ -221,7 +221,7 @@ export default function RezeptBearbeitenPage() {
 
         {/* Description */}
         <div>
-          <label className={label} style={{ color: '#8B7355' }}>Beschreibung</label>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>Beschreibung</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={5}
             className={input + ' resize-none'} style={{ ...inputStyle, lineHeight: 1.7 }}
             placeholder="Kurze Beschreibung des Rezepts, Inspiration, Besonderheiten…" />
@@ -229,7 +229,7 @@ export default function RezeptBearbeitenPage() {
 
         {/* Image */}
         <div>
-          <label className={label} style={{ color: '#8B7355' }}>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>
             <span className="flex items-center gap-1.5"><ImageIcon size={10} /> Foto-URL</span>
           </label>
           <input value={image} onChange={e => setImage(e.target.value)} className={input}
@@ -256,7 +256,7 @@ export default function RezeptBearbeitenPage() {
           </button>
           <button onClick={() => router.back()}
             className="px-5 py-3 rounded-xl text-[13px] font-medium transition-all"
-            style={{ background: 'rgba(0,0,0,0.04)', color: '#8B7355', border: '1px solid rgba(0,0,0,0.08)' }}>
+            style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(0,0,0,0.08)' }}>
             Abbrechen
           </button>
         </div>

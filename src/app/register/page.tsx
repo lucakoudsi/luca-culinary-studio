@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -77,7 +77,7 @@ export default function RegisterPage() {
   };
 
   const fieldCls   = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]";
-  const fieldStyle = { background: '#FFFFFF', border: '1px solid #E8E0D8' };
+  const fieldStyle = { background: 'var(--surface)', border: '1px solid var(--border)' };
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.currentTarget.style.borderColor = 'rgba(107,58,75,0.45)';
@@ -89,10 +89,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#FAF8F5' }}>
+    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
 
       {/* ── Left: Blob Background ─────────────────────────────────────────── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: '#FAF8F5' }}>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: 'var(--bg)' }}>
         <BlobBackground />
         <div className="absolute inset-y-0 right-0 w-32 z-10" style={{
           background: 'linear-gradient(90deg, transparent, #FAF8F5)',
@@ -110,10 +110,10 @@ export default function RegisterPage() {
 
         <div className="relative z-10 mt-auto p-10 pb-12">
           <div className="w-10 h-px mb-4" style={{ background: 'rgba(107,58,75,0.4)' }} />
-          <h2 className="font-heading text-[28px] font-bold leading-tight mb-2" style={{ color: '#2C2420' }}>
+          <h2 className="font-heading text-[28px] font-bold leading-tight mb-2" style={{ color: 'var(--text)' }}>
             Dein digitaler<br />Michelin-Sous-Chef
           </h2>
-          <p style={{ color: '#8B7355', fontSize: 13, letterSpacing: '2px' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, letterSpacing: '2px' }}>
             Rezepte · Menüs · Kreationen
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function RegisterPage() {
 
       {/* ── Right: Form ────────────────────────────────────────────────── */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-10 relative overflow-y-auto"
-        style={{ background: '#FAF8F5' }}>
+        style={{ background: 'var(--bg)' }}>
 
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(107,58,75,0.04) 0%, transparent 70%)',
@@ -143,7 +143,7 @@ export default function RegisterPage() {
                 </div>
               </div>
               <h2 className="font-heading text-[22px] font-bold text-[#2C2420] mb-3">Anfrage eingereicht!</h2>
-              <p style={{ color: '#8B7355', fontSize: 13, lineHeight: 1.8 }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.8 }}>
                 Deine Anfrage wurde eingereicht.<br />
                 Du erhältst eine Email sobald<br />
                 dein Zugang genehmigt wurde.
@@ -153,7 +153,7 @@ export default function RegisterPage() {
             <>
               <div className="mb-6 text-center">
                 <h2 className="font-heading text-[24px] font-bold text-[#2C2420]">Zugang anfragen</h2>
-                <p style={{ color: '#8B7355', fontSize: 13, marginTop: 4 }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
                   Deine Anfrage wird manuell geprüft.
                 </p>
               </div>
@@ -161,7 +161,7 @@ export default function RegisterPage() {
               <form onSubmit={handleRegister} className="space-y-4">
                 {/* Name */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                     Name
                   </label>
                   <div className="relative">
@@ -174,7 +174,7 @@ export default function RegisterPage() {
 
                 {/* Email */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                     E-Mail
                   </label>
                   <div className="relative">
@@ -187,7 +187,7 @@ export default function RegisterPage() {
 
                 {/* Passwort */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                     Passwort
                   </label>
                   <div className="relative">
@@ -207,7 +207,7 @@ export default function RegisterPage() {
 
                 {/* Passwort bestätigen */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                     Passwort bestätigen
                   </label>
                   <div className="relative">
@@ -227,7 +227,7 @@ export default function RegisterPage() {
 
                 {/* Grund */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 10, color: '#8B7355', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
+                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
                     Warum möchtest du Zugang?
                   </label>
                   <div className="relative">
@@ -269,7 +269,7 @@ export default function RegisterPage() {
             <div className="flex-1 h-px" style={{ background: '#E8E0D8' }} />
           </div>
 
-          <p className="text-center" style={{ fontSize: 13, color: '#8B7355' }}>
+          <p className="text-center" style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             Bereits registriert?{' '}
             <Link href="/login" className="font-semibold transition-colors"
               style={{ color: '#6B3A4B' }}

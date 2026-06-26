@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -191,7 +191,7 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#FAF8F5' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'var(--bg)' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-4 border-b border-[#E8E0D8]">
         <div className="flex items-center gap-3">
@@ -522,7 +522,7 @@ export default function NewRezeptPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#FAF8F5' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* ── Sticky Header ─────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 border-b border-[#E8E0D8] px-8 py-4 flex items-center justify-between"
         style={{ background: 'rgba(250,248,245,0.96)', backdropFilter: 'blur(12px)' }}>
