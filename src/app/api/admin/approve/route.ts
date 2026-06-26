@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   if (error || !request) return new NextResponse(html('Nicht gefunden', 'Diese Anfrage existiert nicht.', 'red'), { headers: { 'Content-Type': 'text/html' }, status: 404 });
   if (request.status !== 'pending') return new NextResponse(html('Bereits bearbeitet', `Diese Anfrage hat bereits den Status: ${request.status}`, 'red'), { headers: { 'Content-Type': 'text/html' }, status: 409 });
 
-  const { error: authError } = await supabase.auth.admin.createUser({
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email: request.email,
     password: request.password_temp,
     user_metadata: { full_name: request.name },
@@ -34,6 +34,18 @@ export async function GET(req: NextRequest) {
 
   if (authError) {
     return new NextResponse(html('Fehler', `Account konnte nicht erstellt werden: ${authError.message}`, 'red'), { headers: { 'Content-Type': 'text/html' }, status: 500 });
+  }
+
+  // Ensure profile has stufe set (email-link approvals default to stufe 2)
+  if (authData?.user) {
+    const stufe = typeof request.stufe === 'number' ? request.stufe : 2;
+    const { error: profileErr } = await supabase.from('profiles').upsert({
+      id: authData.user.id,
+      full_name: request.name,
+      stufe,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
+    if (profileErr) console.error('[approve token] profile upsert failed:', profileErr.message);
   }
 
   await supabase

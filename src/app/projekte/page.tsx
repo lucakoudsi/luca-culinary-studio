@@ -1,11 +1,13 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import { getUserTier } from '@/config/roles';
 import type { Project } from '@/types';
 import {
   FolderOpen, Plus, Trash2, BookOpen, X,
-  StickyNote, ChevronRight, Calendar
+  StickyNote, ChevronRight, Calendar, Lock,
 } from 'lucide-react';
 
 const projectColors = ['#6B3A4B', '#7CB87A', '#7BB8D4', '#C4743A', '#E06B6B', '#8B7355', '#9B7DE8'];
@@ -223,8 +225,15 @@ export default function ProjektePage() {
   const { projects, addProject, recipes, fetchProjects, fetchRecipes } = useStore();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [userTier, setUserTier] = useState<number>(99);
 
-  useEffect(() => { fetchProjects(); fetchRecipes(); }, []);
+  useEffect(() => {
+    fetchProjects();
+    fetchRecipes();
+    fetch('/api/profil').then(r => r.json()).then(d => {
+      setUserTier(getUserTier(d.user?.email, d.profile?.stufe));
+    }).catch(() => setUserTier(1));
+  }, []);
 
   // Derive from store so mutations (notes, recipeIds) are reflected live
   const selected = projects.find(p => p.id === selectedId) ?? null;
@@ -284,14 +293,31 @@ export default function ProjektePage() {
           <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
           <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
         </div>
-        <div className="mt-1">
-          <button onClick={() => setShowNew(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
-            <Plus size={15} /> Neues Projekt
-          </button>
-        </div>
+        {userTier >= 3 && (
+          <div className="mt-1">
+            <button onClick={() => setShowNew(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
+              <Plus size={15} /> Neues Projekt
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Info banner for users below tier 3 */}
+      {userTier < 3 && (
+        <div className="mx-8 mt-5 flex items-start gap-3 rounded-xl border px-5 py-4"
+          style={{ background: 'rgba(201,168,76,0.06)', borderColor: 'rgba(201,168,76,0.25)' }}>
+          <Lock size={15} style={{ color: '#C9A84C', marginTop: 1, flexShrink: 0 }} />
+          <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Du benötigst Rang <strong style={{ color: 'var(--text)' }}>Profi</strong> um eigene Projekte zu erstellen.{' '}
+            <Link href="/profil" style={{ color: '#6B3A4B', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Profil ansehen →
+            </Link>
+          </p>
+        </div>
+      )}
+
       <div className="p-8 max-w-[1200px]">
 
       {/* Stats */}
