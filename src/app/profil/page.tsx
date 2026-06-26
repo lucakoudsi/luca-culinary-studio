@@ -41,7 +41,7 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'kuechenstil' | 'mein-stil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
+type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
 
 type AccessRequest = {
   id: string;
@@ -319,25 +319,6 @@ export default function ProfilPage() {
     }
   };
 
-  const saveKuechenstil = async () => {
-    setStilSaving(true);
-    setStilError('');
-    try {
-      const res = await fetch('/api/profil', {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kuechenstil, spezialitaeten, bio, lieblingszutaten: tags.join(', '), inspirationen }),
-      });
-      const d = await res.json();
-      if (!res.ok) { setStilError(d.error || 'Speichern fehlgeschlagen.'); return; }
-      setStilSuccess(true);
-      setTimeout(() => setStilSuccess(false), 3000);
-    } catch {
-      setStilError('Netzwerkfehler. Bitte versuche es erneut.');
-    } finally {
-      setStilSaving(false);
-    }
-  };
-
   const saveMeinStil = async () => {
     setMeinStilSaving(true);
     setMeinStilError('');
@@ -345,6 +326,10 @@ export default function ProfilPage() {
       const res = await fetch('/api/profil', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          kuechenstil,
+          spezialitaeten,
+          bio,
+          lieblingszutaten: tags.join(', '),
           kuechenstil_tags: selectedRichtungen.join(', '),
           techniken: technikTags.join(', '),
           inspirationen: inspirTags.join(', '),
@@ -610,9 +595,8 @@ export default function ProfilPage() {
   const isAdmin = user?.email === ADMIN_EMAIL;
 
   const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType; badge?: number }[] = [
-    { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',     Icon: UserIcon  },
-    { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',     Icon: ChefHat   },
-    { id: 'mein-stil',   label: 'Mein Stil',    sublabel: 'Küche & Stil',    Icon: Star      },
+    { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',       Icon: UserIcon  },
+    { id: 'mein-stil',   label: 'Küche & Stil', sublabel: 'Dein Küchenprofil', Icon: Star      },
     { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',     Icon: Share2    },
     { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',        Icon: Shield    },
     ...(isAdmin ? [
@@ -807,111 +791,95 @@ export default function ProfilPage() {
             </div>
           )}
 
-          {/* ── Tab 2: Küchenstil ──────────────────────────────────────── */}
-          {activeTab === 'kuechenstil' && (
-            <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
-                Kulinarisches Profil
-              </h3>
-              <div className="space-y-5" style={{ maxWidth: 520 }}>
-
-                {/* Two-column: Küchenstil + Spezialitäten */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <label style={labelStyle}>Küchenstil</label>
-                    <div className="relative">
-                      <ChefHat size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="text" value={kuechenstil} onChange={e => setKuechenstil(e.target.value)}
-                        placeholder="Fine Dining…" className={fieldCls} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Spezialitäten</label>
-                    <div className="relative">
-                      <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <input type="text" value={spezialitaeten} onChange={e => setSpezialitaeten(e.target.value)}
-                        placeholder="Fermentation…" className={fieldCls} style={fieldStyle}
-                        onFocus={onFocus} onBlur={onBlur} />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={labelStyle}>
-                    Bio / Über mich
-                    <span style={{ marginLeft: 8, fontWeight: 400, letterSpacing: 0, textTransform: 'none', color: bio.length > 270 ? '#C9A84C' : '#C0B5A8' }}>
-                      {bio.length}/300
-                    </span>
-                  </label>
-                  <textarea value={bio}
-                    onChange={e => { if (e.target.value.length <= 300) setBio(e.target.value); }}
-                    placeholder="Erzähl etwas über dich und deine Küche…"
-                    rows={4}
-                    className="w-full px-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
-                    style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
-                </div>
-
-                <div>
-                  <label style={labelStyle}>Lieblings-Zutaten</label>
-                  {tags.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-                      {tags.map(tag => (
-                        <span key={tag} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 4,
-                          padding: '4px 10px', borderRadius: 999, fontSize: 12,
-                          background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.18)', color: '#6B3A4B',
-                        }}>
-                          {tag}
-                          <button onClick={() => setTags(p => p.filter(t => t !== tag))}
-                            style={{ color: '#6B3A4B', opacity: 0.5, fontSize: 15, lineHeight: 1, marginLeft: 2 }}>×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
-                      placeholder="Zutat + Enter"
-                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
-                      style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
-                    <button onClick={addTag}
-                      style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
-                        background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)', cursor: 'pointer' }}>
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={labelStyle}>Inspirationen</label>
-                  <div className="relative">
-                    <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input type="text" value={inspirationen} onChange={e => setInspirationen(e.target.value)}
-                      placeholder="René Redzepi, Ferran Adrià…" className={fieldCls} style={fieldStyle}
-                      onFocus={onFocus} onBlur={onBlur} />
-                  </div>
-                </div>
-
-                {stilError && <ErrorBanner message={stilError} />}
-                {stilSuccess && <SuccessBanner />}
-                <SaveButton onClick={saveKuechenstil} loading={stilSaving} />
-              </div>
-            </div>
-          )}
-
-          {/* ── Tab: Mein Stil ─────────────────────────────────────────── */}
+          {/* ── Tab: Küche & Stil ──────────────────────────────────────── */}
           {activeTab === 'mein-stil' && (
             <div>
               <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.5rem' }}>
-                Mein kulinarischer Stil
+                Küche &amp; Stil
               </h3>
 
               <div className="space-y-8" style={{ maxWidth: 560 }}>
 
-                {/* Küchenrichtungen */}
+                {/* ── Abschnitt 1: Persönlicher Küchenstil ── */}
+                <div className="space-y-5">
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,58,75,0.5)', paddingBottom: 6, borderBottom: '1px solid var(--border)' }}>
+                    Persönlicher Küchenstil
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label style={labelStyle}>Küchenstil</label>
+                      <div className="relative">
+                        <ChefHat size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input type="text" value={kuechenstil} onChange={e => setKuechenstil(e.target.value)}
+                          placeholder="Fine Dining…" className={fieldCls} style={fieldStyle}
+                          onFocus={onFocus} onBlur={onBlur} />
+                      </div>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Spezialitäten</label>
+                      <div className="relative">
+                        <Sparkles size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input type="text" value={spezialitaeten} onChange={e => setSpezialitaeten(e.target.value)}
+                          placeholder="Fermentation…" className={fieldCls} style={fieldStyle}
+                          onFocus={onFocus} onBlur={onBlur} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>
+                      Bio / Über mich
+                      <span style={{ marginLeft: 8, fontWeight: 400, letterSpacing: 0, textTransform: 'none', color: bio.length > 270 ? '#C9A84C' : '#C0B5A8' }}>
+                        {bio.length}/300
+                      </span>
+                    </label>
+                    <textarea value={bio}
+                      onChange={e => { if (e.target.value.length <= 300) setBio(e.target.value); }}
+                      placeholder="Erzähl etwas über dich und deine Küche…"
+                      rows={4}
+                      className="w-full px-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
+                      style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>Lieblings-Zutaten</label>
+                    {tags.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                        {tags.map(tag => (
+                          <span key={tag} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            padding: '4px 10px', borderRadius: 999, fontSize: 12,
+                            background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.18)', color: '#6B3A4B',
+                          }}>
+                            {tag}
+                            <button onClick={() => setTags(p => p.filter(t => t !== tag))}
+                              style={{ color: '#6B3A4B', opacity: 0.5, fontSize: 15, lineHeight: 1, marginLeft: 2 }}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                        placeholder="Zutat + Enter"
+                        className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                        style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                      <button onClick={addTag}
+                        style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
+                          background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)', cursor: 'pointer' }}>
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Abschnitt 2: Küchenrichtungen ── */}
                 <div>
-                  <label style={labelStyle}>Küchenrichtungen</label>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,58,75,0.5)', paddingBottom: 6, borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+                    Küchenrichtungen
+                  </div>
+                  <label style={labelStyle}>Wähle deine Stile</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
                     {KUECHEN_RICHTUNGEN.map(r => {
                       const sel = selectedRichtungen.includes(r);
@@ -934,9 +902,12 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
-                {/* Lieblingstechniken */}
+                {/* ── Abschnitt 3: Lieblingstechniken ── */}
                 <div>
-                  <label style={labelStyle}>Lieblingstechniken</label>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,58,75,0.5)', paddingBottom: 6, borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+                    Lieblingstechniken
+                  </div>
+                  <label style={labelStyle}>Tags eingeben</label>
                   {technikTags.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                       {technikTags.map(tag => (
@@ -977,9 +948,12 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
-                {/* Geschmacks-Schieberegler */}
+                {/* ── Abschnitt 4: Geschmacksprofil ── */}
                 <div>
-                  <label style={labelStyle}>Geschmacksprofil</label>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,58,75,0.5)', paddingBottom: 6, borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+                    Geschmacksprofil
+                  </div>
+                  <label style={labelStyle}>Schieberegler</label>
                   <div className="space-y-5" style={{ marginTop: 4 }}>
                     {([
                       { label: 'Geschmack', left: 'Frisch', right: 'Umami', value: geschmackUmami, set: setGeschmackUmami },
@@ -1003,9 +977,12 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
-                {/* Inspirationen als Tags */}
+                {/* ── Abschnitt 5: Inspirationen ── */}
                 <div>
-                  <label style={labelStyle}>Inspirationen</label>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(107,58,75,0.5)', paddingBottom: 6, borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
+                    Inspirationen
+                  </div>
+                  <label style={labelStyle}>Tags eingeben</label>
                   {inspirTags.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                       {inspirTags.map(tag => (
