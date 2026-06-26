@@ -198,7 +198,7 @@ export default function DashboardPage() {
               <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800"
                 alt="" className="w-full h-full object-cover" style={{ opacity: 0.6 }} />
               <div className="absolute inset-0"
-                style={{ background: 'linear-gradient(90deg, #FFFFFF 0%, rgba(255,255,255,0.6) 55%, transparent 100%)' }} />
+                style={{ background: 'linear-gradient(90deg, var(--surface) 0%, transparent 100%)' }} />
             </div>
             <div className="absolute inset-0 pointer-events-none"
               style={{ background: 'radial-gradient(ellipse 60% 80% at 20% 50%, rgba(107,58,75,0.03) 0%, transparent 70%)' }} />
@@ -338,7 +338,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ideas.map(idea => (
                   <div key={idea.id}
-                    className="rounded-xl p-4 cursor-pointer transition-all bg-white border border-border"
+                    className="rounded-xl p-4 cursor-pointer transition-all bg-card border border-border"
                     onClick={() => router.push('/ki-sous-chef')}
                     onMouseEnter={e => {
                       (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)';
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                       (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)';
                     }}
                     onMouseLeave={e => {
-                      (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8';
+                      (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)';
                       (e.currentTarget as HTMLDivElement).style.transform = 'none';
                       (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
                     }}>
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                   { label: 'Spezialitäten',      value: meinStil.spezialitaeten },
                   { label: 'Lieblingszutaten',   value: meinStil.lieblingszutaten },
                 ].filter(col => col.value).map(col => (
-                  <div key={col.label} className="rounded-xl p-4 bg-white border border-border">
+                  <div key={col.label} className="rounded-xl p-4 bg-card border border-border">
                     <div className="text-[10px] tracking-[3px] uppercase mb-3"
                       style={{ color: 'var(--text-muted)' }}>{col.label}</div>
                     {splitTags(col.value).slice(0, 5).map(item => (
@@ -433,9 +433,9 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-2">
               {INSPIRATION.map(item => (
-                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all bg-white border border-border"
+                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all bg-card border border-border"
                   onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'}>
+                  onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}>
                   <img src={item.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-semibold leading-tight" style={{ color: 'var(--text)' }}>{item.title}</div>
@@ -457,7 +457,7 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-2">
               {SAISON.map(s => (
-                <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border">
+                <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
                   <span className="text-lg flex-shrink-0">{s.emoji}</span>
                   <div>
                     <div className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>{s.name}</div>
@@ -483,7 +483,7 @@ export default function DashboardPage() {
                 { label: 'Fermente',    value: dataLoaded ? stats.fermente   : '—', icon: '🫙' },
                 { label: 'Diese Woche', value: dataLoaded ? stats.dieseWoche : '—', icon: '📅' },
               ].map(s => (
-                <div key={s.label} className="p-3 rounded-xl text-center bg-white border border-border">
+                <div key={s.label} className="p-3 rounded-xl text-center bg-card border border-border">
                   <div className="text-[15px] mb-1">{s.icon}</div>
                   <div className={`font-heading font-bold ${!dataLoaded ? 'animate-pulse' : ''}`}
                     style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
