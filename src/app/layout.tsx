@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AppShell from '@/components/layout/AppShell';
+import ThemeProvider from '@/components/providers/ThemeProvider';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,11 +10,27 @@ export const metadata: Metadata = {
   description: 'Professionelle Küchen-App für kulinarische Profis & Creator.',
 };
 
+const themeInitScript = `
+(function(){try{
+  var t=localStorage.getItem('theme');
+  var d=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var a=t==='dark'?'dark':t==='light'?'light':d?'dark':'light';
+  document.documentElement.setAttribute('data-theme',a);
+  var f=localStorage.getItem('fontSize');
+  if(f)document.documentElement.style.fontSize=f==='klein'?'14px':f==='gross'?'18px':'16px';
+}catch(e){}})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" className="dark">
+    <html lang="de">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="antialiased">
-        <AppShell>{children}</AppShell>
+        <ThemeProvider>
+          <AppShell>{children}</AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

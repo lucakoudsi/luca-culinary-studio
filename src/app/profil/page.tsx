@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
-  Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles,
+  Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles, Star,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
   Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2,
 } from 'lucide-react';
@@ -32,10 +32,15 @@ type Profile = {
   website: string | null;
   linkedin: string | null;
   created_at: string | null;
+  kuechenstil_tags: string | null;
+  techniken: string | null;
+  geschmack_umami: number | null;
+  geschmack_stil: number | null;
+  geschmack_region: number | null;
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'kuechenstil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
+type Tab = 'profil' | 'kuechenstil' | 'mein-stil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
 
 type AccessRequest = {
   id: string;
@@ -167,6 +172,24 @@ export default function ProfilPage() {
   const [stilSuccess, setStilSuccess]       = useState(false);
   const [stilError, setStilError]           = useState('');
 
+  // Tab: Mein Stil
+  const KUECHEN_RICHTUNGEN = [
+    'Fine Dining', 'Bistro', 'Bäckerei', 'Farm-to-Table',
+    'Fusion', 'Vegan', 'Street Food', 'Regional',
+    'Nordic', 'Asiatisch', 'Mediterran', 'Molekular',
+  ];
+  const [selectedRichtungen, setSelectedRichtungen] = useState<string[]>([]);
+  const [technikTags, setTechnikTags]               = useState<string[]>([]);
+  const [technikInput, setTechnikInput]             = useState('');
+  const [inspirTags, setInspirTags]                 = useState<string[]>([]);
+  const [inspirInput, setInspirInput]               = useState('');
+  const [geschmackUmami, setGeschmackUmami]         = useState(50);
+  const [geschmackStil, setGeschmackStil]           = useState(50);
+  const [geschmackRegion, setGeschmackRegion]       = useState(50);
+  const [meinStilSaving, setMeinStilSaving]         = useState(false);
+  const [meinStilSuccess, setMeinStilSuccess]       = useState(false);
+  const [meinStilError, setMeinStilError]           = useState('');
+
   // Tab 3 – Social Media
   const [instagram, setInstagram]   = useState('');
   const [tiktok, setTiktok]         = useState('');
@@ -231,6 +254,18 @@ export default function ProfilPage() {
             ? d.profile.lieblingszutaten.split(',').map((s: string) => s.trim()).filter(Boolean)
             : []);
           setInspirationen(d.profile.inspirationen ?? '');
+          setSelectedRichtungen(d.profile.kuechenstil_tags
+            ? d.profile.kuechenstil_tags.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : []);
+          setTechnikTags(d.profile.techniken
+            ? d.profile.techniken.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : []);
+          setInspirTags(d.profile.inspirationen
+            ? d.profile.inspirationen.split(',').map((s: string) => s.trim()).filter(Boolean)
+            : []);
+          setGeschmackUmami(d.profile.geschmack_umami ?? 50);
+          setGeschmackStil(d.profile.geschmack_stil ?? 50);
+          setGeschmackRegion(d.profile.geschmack_region ?? 50);
           setInstagram(d.profile.instagram ?? '');
           setTiktok(d.profile.tiktok ?? '');
           setYoutube(d.profile.youtube ?? '');
@@ -296,6 +331,32 @@ export default function ProfilPage() {
       setStilError('Netzwerkfehler. Bitte versuche es erneut.');
     } finally {
       setStilSaving(false);
+    }
+  };
+
+  const saveMeinStil = async () => {
+    setMeinStilSaving(true);
+    setMeinStilError('');
+    try {
+      const res = await fetch('/api/profil', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kuechenstil_tags: selectedRichtungen.join(', '),
+          techniken: technikTags.join(', '),
+          inspirationen: inspirTags.join(', '),
+          geschmack_umami: geschmackUmami,
+          geschmack_stil: geschmackStil,
+          geschmack_region: geschmackRegion,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setMeinStilError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setMeinStilSuccess(true);
+      setTimeout(() => setMeinStilSuccess(false), 3000);
+    } catch {
+      setMeinStilError('Netzwerkfehler.');
+    } finally {
+      setMeinStilSaving(false);
     }
   };
 
@@ -547,6 +608,7 @@ export default function ProfilPage() {
   const NAV: { id: Tab; label: string; sublabel: string; Icon: React.ElementType; badge?: number }[] = [
     { id: 'profil',      label: 'Profil',       sublabel: 'Name & Foto',     Icon: UserIcon  },
     { id: 'kuechenstil', label: 'Küchenstil',   sublabel: 'Dein Profil',     Icon: ChefHat   },
+    { id: 'mein-stil',   label: 'Mein Stil',    sublabel: 'Küche & Stil',    Icon: Star      },
     { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',     Icon: Share2    },
     { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',        Icon: Shield    },
     ...(isAdmin ? [
@@ -792,6 +854,159 @@ export default function ProfilPage() {
                 {stilError && <ErrorBanner message={stilError} />}
                 {stilSuccess && <SuccessBanner />}
                 <SaveButton onClick={saveKuechenstil} loading={stilSaving} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Tab: Mein Stil ─────────────────────────────────────────── */}
+          {activeTab === 'mein-stil' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: '#2C2420', margin: '0 0 1.5rem' }}>
+                Mein kulinarischer Stil
+              </h3>
+
+              <div className="space-y-8" style={{ maxWidth: 560 }}>
+
+                {/* Küchenrichtungen */}
+                <div>
+                  <label style={labelStyle}>Küchenrichtungen</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
+                    {KUECHEN_RICHTUNGEN.map(r => {
+                      const sel = selectedRichtungen.includes(r);
+                      return (
+                        <button key={r}
+                          onClick={() => setSelectedRichtungen(prev =>
+                            sel ? prev.filter(x => x !== r) : [...prev, r]
+                          )}
+                          style={{
+                            padding: '7px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 600,
+                            cursor: 'pointer', transition: 'all 0.15s',
+                            background: sel ? '#6B3A4B' : 'rgba(107,58,75,0.06)',
+                            color: sel ? '#FFFFFF' : '#6B3A4B',
+                            border: sel ? '1px solid #6B3A4B' : '1px solid rgba(107,58,75,0.2)',
+                          }}>
+                          {r}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Lieblingstechniken */}
+                <div>
+                  <label style={labelStyle}>Lieblingstechniken</label>
+                  {technikTags.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {technikTags.map(tag => (
+                        <span key={tag} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '4px 10px', borderRadius: 999, fontSize: 12,
+                          background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', color: '#8B6820',
+                        }}>
+                          {tag}
+                          <button onClick={() => setTechnikTags(p => p.filter(t => t !== tag))}
+                            style={{ color: '#8B6820', opacity: 0.6, fontSize: 15, lineHeight: 1 }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input type="text" value={technikInput} onChange={e => setTechnikInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const t = technikInput.trim();
+                          if (t && !technikTags.includes(t)) setTechnikTags(p => [...p, t]);
+                          setTechnikInput('');
+                        }
+                      }}
+                      placeholder="Sous-vide, Fermentation… + Enter"
+                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                      style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                    <button onClick={() => {
+                      const t = technikInput.trim();
+                      if (t && !technikTags.includes(t)) setTechnikTags(p => [...p, t]);
+                      setTechnikInput('');
+                    }}
+                      style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
+                        background: 'rgba(201,168,76,0.1)', color: '#8B6820', border: '1px solid rgba(201,168,76,0.3)', cursor: 'pointer' }}>
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {/* Geschmacks-Schieberegler */}
+                <div>
+                  <label style={labelStyle}>Geschmacksprofil</label>
+                  <div className="space-y-5" style={{ marginTop: 4 }}>
+                    {([
+                      { label: 'Geschmack', left: 'Frisch', right: 'Umami', value: geschmackUmami, set: setGeschmackUmami },
+                      { label: 'Stil', left: 'Klassisch', right: 'Avantgarde', value: geschmackStil, set: setGeschmackStil },
+                      { label: 'Orientierung', left: 'Regional', right: 'International', value: geschmackRegion, set: setGeschmackRegion },
+                    ] as { label: string; left: string; right: string; value: number; set: (v: number) => void }[]).map(s => (
+                      <div key={s.label}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                          <span style={{ fontSize: 11, color: '#8B7355', fontWeight: 600 }}>{s.label}</span>
+                          <span style={{ fontSize: 10, color: '#C0B5A8' }}>{s.value}%</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{ fontSize: 11, color: '#9A8070', flexShrink: 0, minWidth: 60, textAlign: 'right' }}>{s.left}</span>
+                          <input type="range" min={0} max={100} value={s.value}
+                            onChange={e => s.set(Number(e.target.value))}
+                            style={{ flex: 1, accentColor: '#6B3A4B', height: 4, cursor: 'pointer' }} />
+                          <span style={{ fontSize: 11, color: '#9A8070', flexShrink: 0, minWidth: 60 }}>{s.right}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Inspirationen als Tags */}
+                <div>
+                  <label style={labelStyle}>Inspirationen</label>
+                  {inspirTags.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                      {inspirTags.map(tag => (
+                        <span key={tag} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '4px 10px', borderRadius: 999, fontSize: 12,
+                          background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.18)', color: '#6B3A4B',
+                        }}>
+                          {tag}
+                          <button onClick={() => setInspirTags(p => p.filter(t => t !== tag))}
+                            style={{ color: '#6B3A4B', opacity: 0.5, fontSize: 15, lineHeight: 1 }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input type="text" value={inspirInput} onChange={e => setInspirInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const t = inspirInput.trim();
+                          if (t && !inspirTags.includes(t)) setInspirTags(p => [...p, t]);
+                          setInspirInput('');
+                        }
+                      }}
+                      placeholder="René Redzepi, Noma… + Enter"
+                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                      style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+                    <button onClick={() => {
+                      const t = inspirInput.trim();
+                      if (t && !inspirTags.includes(t)) setInspirTags(p => [...p, t]);
+                      setInspirInput('');
+                    }}
+                      style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
+                        background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.18)', cursor: 'pointer' }}>
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                {meinStilError && <ErrorBanner message={meinStilError} />}
+                {meinStilSuccess && <SuccessBanner message="Stil gespeichert!" />}
+                <SaveButton onClick={saveMeinStil} loading={meinStilSaving} label="Stil speichern" />
               </div>
             </div>
           )}

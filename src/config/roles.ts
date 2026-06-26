@@ -31,7 +31,6 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/zutaten':       2,
   '/fermentation':  2,
   '/projekte':      3,
-  '/mein-stil':     3,
   '/wein-pairing':  4,
   '/kreativlabor':  4,
   '/menuegenerator':4,

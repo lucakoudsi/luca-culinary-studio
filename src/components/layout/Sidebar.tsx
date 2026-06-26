@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, FlaskConical, Utensils,
-  Leaf, Wine, Beaker, Star, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
+  Leaf, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
@@ -21,14 +21,31 @@ const navItems = [
   { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            aiLocked: false },
   { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            aiLocked: false },
   { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          aiLocked: false },
-  { href: '/mein-stil',       label: 'Mein Stil',        icon: Star,            aiLocked: false },
   { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      aiLocked: false },
   { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             aiLocked: false },
 ];
 
+type ThemeMode  = 'light' | 'dark' | 'auto';
+type FontSize   = 'klein' | 'normal' | 'gross';
+
 interface SidebarProps {
   mobileOpen?: boolean;
   onClose?: () => void;
+}
+
+function applyTheme(mode: ThemeMode) {
+  const actual =
+    mode === 'dark'  ? 'dark'
+    : mode === 'light' ? 'light'
+    : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', actual);
+  localStorage.setItem('theme', mode);
+}
+
+function applyFontSize(size: FontSize) {
+  document.documentElement.style.fontSize =
+    size === 'klein' ? '14px' : size === 'gross' ? '18px' : '16px';
+  localStorage.setItem('fontSize', size);
 }
 
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
@@ -37,7 +54,16 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
-  const [userTier, setUserTier]     = useState<number>(99); // optimistic: show all until loaded
+  const [userTier, setUserTier]     = useState<number>(99);
+
+  // Settings panel
+  const [settingsOpen, setSettingsOpen]         = useState(false);
+  const [theme, setTheme]                       = useState<ThemeMode>('auto');
+  const [fontSize, setFontSize]                 = useState<FontSize>('normal');
+  const [emailUpdates, setEmailUpdates]         = useState(true);
+  const [profilOeffentlich, setProfilOeffentlich] = useState(true);
+  const [settingsSaving, setSettingsSaving]     = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -48,10 +74,29 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         fetch('/api/profil').then(r => r.json()).then(d => {
           setAvatarUrl(d.profile?.avatar_url ?? null);
           setUserTier(getUserTier(u.email, d.profile?.stufe));
+          setEmailUpdates(d.profile?.email_updates ?? true);
+          setProfilOeffentlich(d.profile?.profil_oeffentlich ?? true);
         }).catch(() => setUserTier(1));
       }
     });
+    // Read theme + font from localStorage
+    const t = localStorage.getItem('theme') as ThemeMode | null;
+    if (t === 'light' || t === 'dark' || t === 'auto') setTheme(t);
+    const f = localStorage.getItem('fontSize') as FontSize | null;
+    if (f === 'klein' || f === 'normal' || f === 'gross') setFontSize(f);
   }, []);
+
+  // Click-outside closes settings panel
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [settingsOpen]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -59,6 +104,18 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
+  };
+
+  const saveDbSettings = async (patch: Record<string, unknown>) => {
+    setSettingsSaving(true);
+    try {
+      await fetch('/api/profil', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+    } catch {}
+    setSettingsSaving(false);
   };
 
   const displayName = user?.user_metadata?.full_name
@@ -77,7 +134,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         'transition-transform duration-300 ease-in-out',
         'border-r border-border',
         mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      )} style={{ background: '#F0EBE3' }}>
+      )} style={{ background: 'var(--bg-sidebar, #F0EBE3)' }}>
 
         {/* Logo */}
         <div className="px-5 pt-6 pb-5 border-b border-border">
@@ -89,9 +146,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             </div>
             <div className="min-w-0">
               <div className="font-heading font-bold leading-none tracking-[3px]"
-                style={{ fontSize: 14, color: '#2C2420', textTransform: 'uppercase' }}>LUCA</div>
+                style={{ fontSize: 14, color: 'var(--text-primary, #2C2420)', textTransform: 'uppercase' }}>LUCA</div>
               <div className="tracking-[2px] uppercase mt-0.5"
-                style={{ fontSize: 8, color: '#B09880' }}>Culinary Creator</div>
+                style={{ fontSize: 8, color: 'var(--text-muted, #B09880)' }}>Culinary Creator</div>
             </div>
             {mobileOpen && (
               <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: '#8B7355' }}>
@@ -111,16 +168,16 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             const isLocked    = aiBlocked || tierBlocked;
 
             if (isLocked) {
-              const reason = aiBlocked
-                ? 'KI-Feature nicht aktiviert'
-                : `Rang ${minTier} erforderlich`;
+              const lockColor   = aiBlocked ? '#C9A84C' : '#6B3A4B';
+              const textColor   = aiBlocked ? 'rgba(201,168,76,0.7)' : 'rgba(107,58,75,0.6)';
+              const tooltipText = aiBlocked ? 'KI-Funktion — coming soon' : 'Benötigt höheren Rang';
               return (
-                <div key={href} title={reason}
+                <div key={href} title={tooltipText}
                   className="flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg select-none"
-                  style={{ color: '#B0A090', opacity: 0.5, cursor: 'not-allowed' }}>
+                  style={{ color: textColor, opacity: 0.6, cursor: 'not-allowed' }}>
                   <Icon size={14} strokeWidth={1.6} />
                   <span>{label}</span>
-                  <Lock size={11} className="ml-auto flex-shrink-0" style={{ color: '#B0A090' }} />
+                  <Lock size={16} className="ml-auto flex-shrink-0" style={{ color: lockColor }} />
                 </div>
               );
             }
@@ -135,7 +192,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   background: '#6B3A4B',
                   color: '#FFFFFF',
                 } : {
-                  color: '#8B7355',
+                  color: 'var(--text-secondary, #8B7355)',
                 }}
                 onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
                 onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
@@ -150,35 +207,172 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-border space-y-2">
-          {user && (
-            <Link href="/profil"
-              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all group"
-              style={{ color: 'inherit' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,58,75,0.07)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
-                  {initials}
+        <div className="p-4 border-t border-border space-y-2" ref={settingsRef} style={{ position: 'relative' }}>
+
+          {/* Settings Panel */}
+          {settingsOpen && (
+            <div style={{
+              position: 'absolute', bottom: 'calc(100% + 6px)', left: 12, right: 12,
+              background: 'var(--bg-surface, #FFFFFF)',
+              border: '1px solid var(--border-base, #E8E0D8)',
+              borderRadius: 14,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+              padding: 16,
+              zIndex: 100,
+            }}>
+
+              {/* Theme */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--text-muted, #B09880)', marginBottom: 8 }}>
+                  Erscheinungsbild
                 </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-semibold truncate" style={{ color: '#2C2420' }}>{displayName}</div>
-                <div className="text-[10px] truncate" style={{ color: '#B09880' }}>{user.email}</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {([
+                    { id: 'light' as ThemeMode, label: '☀️ Hell' },
+                    { id: 'dark'  as ThemeMode, label: '🌙 Dunkel' },
+                    { id: 'auto'  as ThemeMode, label: '⚡ Auto' },
+                  ]).map(opt => (
+                    <button key={opt.id} onClick={() => { setTheme(opt.id); applyTheme(opt.id); }}
+                      style={{
+                        flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        background: theme === opt.id ? '#6B3A4B' : 'rgba(107,58,75,0.06)',
+                        color: theme === opt.id ? '#FFFFFF' : 'var(--text-secondary, #8B7355)',
+                        border: theme === opt.id ? '1px solid #6B3A4B' : '1px solid var(--border-base, #E8E0D8)',
+                      }}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <Settings size={13} style={{ color: '#B09880', flexShrink: 0 }} className="group-hover:text-[#6B3A4B] transition-colors" />
-            </Link>
+
+              {/* Font size */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--text-muted, #B09880)', marginBottom: 8 }}>
+                  Schriftgröße
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {([
+                    { id: 'klein'  as FontSize, label: 'Klein' },
+                    { id: 'normal' as FontSize, label: 'Normal' },
+                    { id: 'gross'  as FontSize, label: 'Groß' },
+                  ]).map(opt => (
+                    <button key={opt.id} onClick={() => { setFontSize(opt.id); applyFontSize(opt.id); }}
+                      style={{
+                        flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, fontWeight: 600,
+                        cursor: 'pointer', transition: 'all 0.15s',
+                        background: fontSize === opt.id ? '#6B3A4B' : 'rgba(107,58,75,0.06)',
+                        color: fontSize === opt.id ? '#FFFFFF' : 'var(--text-secondary, #8B7355)',
+                        border: fontSize === opt.id ? '1px solid #6B3A4B' : '1px solid var(--border-base, #E8E0D8)',
+                      }}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div style={{ borderTop: '1px solid var(--border-base, #E8E0D8)', marginBottom: 12 }} />
+
+              {/* Benachrichtigungen Toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary, #2C2420)' }}>Email-Updates</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted, #B09880)' }}>Neue Features & Tipps</div>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = !emailUpdates;
+                    setEmailUpdates(next);
+                    saveDbSettings({ email_updates: next });
+                  }}
+                  style={{
+                    width: 38, height: 22, borderRadius: 11, border: 'none',
+                    background: emailUpdates ? '#6B3A4B' : 'rgba(107,58,75,0.15)',
+                    cursor: settingsSaving ? 'wait' : 'pointer',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                  }}>
+                  <span style={{
+                    position: 'absolute', top: 3, left: emailUpdates ? 19 : 3,
+                    width: 16, height: 16, borderRadius: '50%', background: '#FFFFFF',
+                    transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </button>
+              </div>
+
+              {/* Profil öffentlich Toggle */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary, #2C2420)' }}>Profil öffentlich</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted, #B09880)' }}>Für andere sichtbar</div>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = !profilOeffentlich;
+                    setProfilOeffentlich(next);
+                    saveDbSettings({ profil_oeffentlich: next });
+                  }}
+                  style={{
+                    width: 38, height: 22, borderRadius: 11, border: 'none',
+                    background: profilOeffentlich ? '#6B3A4B' : 'rgba(107,58,75,0.15)',
+                    cursor: settingsSaving ? 'wait' : 'pointer',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                  }}>
+                  <span style={{
+                    position: 'absolute', top: 3, left: profilOeffentlich ? 19 : 3,
+                    width: 16, height: 16, borderRadius: '50%', background: '#FFFFFF',
+                    transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }} />
+                </button>
+              </div>
+
+            </div>
           )}
+
+          {/* User row */}
+          {user && (
+            <div className="flex items-center gap-2">
+              <Link href="/profil"
+                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all group flex-1 min-w-0"
+                style={{ color: 'inherit' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,58,75,0.07)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
+                    {initials}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12px] font-semibold truncate" style={{ color: 'var(--text-primary, #2C2420)' }}>{displayName}</div>
+                  <div className="text-[10px] truncate" style={{ color: 'var(--text-muted, #B09880)' }}>{user.email}</div>
+                </div>
+              </Link>
+              {/* Gear button — separate from the profile link */}
+              <button
+                onClick={() => setSettingsOpen(p => !p)}
+                title="Einstellungen"
+                className="p-2 rounded-lg transition-all flex-shrink-0"
+                style={{
+                  color: settingsOpen ? '#6B3A4B' : 'var(--text-muted, #B09880)',
+                  background: settingsOpen ? 'rgba(107,58,75,0.08)' : 'transparent',
+                }}
+                onMouseEnter={e => { if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,58,75,0.07)'; }}
+                onMouseLeave={e => { if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+                <Settings size={14} />
+              </button>
+            </div>
+          )}
+
           <button
             onClick={handleLogout}
             disabled={loggingOut}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all disabled:opacity-50"
-            style={{ color: '#8B7355' }}
+            style={{ color: 'var(--text-secondary, #8B7355)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#C05050'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,80,80,0.06)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#8B7355'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary, #8B7355)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
             <LogOut size={14} />
             {loggingOut ? 'Abmelden…' : 'Abmelden'}
           </button>

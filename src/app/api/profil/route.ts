@@ -60,6 +60,8 @@ export async function PATCH(req: NextRequest) {
     const allowed = [
       'full_name', 'kuechenstil', 'spezialitaeten', 'bio', 'lieblingszutaten', 'inspirationen',
       'instagram', 'tiktok', 'youtube', 'website', 'linkedin', 'titel',
+      'kuechenstil_tags', 'techniken', 'geschmack_umami', 'geschmack_stil', 'geschmack_region',
+      'email_updates', 'profil_oeffentlich',
     ];
     const update: Record<string, unknown> = { id: user.id, updated_at: new Date().toISOString() };
     for (const key of allowed) {
