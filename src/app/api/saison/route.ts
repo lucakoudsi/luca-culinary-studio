@@ -11,36 +11,32 @@ function getCurrentSeason(): string {
   return 'Winter';
 }
 
+const COLS = 'id, name, kategorie, saison, image_url, beschreibung';
+
 export async function GET(req: NextRequest) {
   try {
     const db = createAdminClient();
     const { searchParams } = new URL(req.url);
     const season = searchParams.get('season') || getCurrentSeason();
 
-    // PostgreSQL array contains: saison @> '{Sommer}' OR saison @> '{Ganzjährig}'
-    const { data, error } = await db
-      .from('zutaten')
-      .select('id, name, kategorie, saison, image_url, beschreibung')
-      .or(`saison.cs.{${season}},saison.cs.{Ganzjährig}`)
-      .order('name');
+    console.log('[saison] season:', season);
 
-    if (error) {
-      console.error('[saison API]', error);
-      return NextResponse.json([], { status: 200 });
-    }
+    // Two separate contains() calls — more reliable than .or() with cs operator
+    const [r1, r2] = await Promise.all([
+      db.from('zutaten').select(COLS).contains('saison', [season]).order('name'),
+      db.from('zutaten').select(COLS).contains('saison', ['Ganzjährig']).order('name'),
+    ]);
 
-    // Sort: season-specific first, Ganzjährig last
-    const sorted = (data ?? []).sort((a, b) => {
-      const aMain = Array.isArray(a.saison) && a.saison.includes(season);
-      const bMain = Array.isArray(b.saison) && b.saison.includes(season);
-      if (aMain && !bMain) return -1;
-      if (!aMain && bMain) return 1;
-      return (a.name ?? '').localeCompare(b.name ?? '', 'de');
-    });
+    console.log('[saison] season count:', r1.data?.length, 'error:', r1.error?.message);
+    console.log('[saison] ganzjaehrig count:', r2.data?.length, 'error:', r2.error?.message);
 
-    return NextResponse.json(sorted);
+    const seasonItems    = r1.data ?? [];
+    const ganzjaehrig    = (r2.data ?? []).filter(z => !seasonItems.some(s => s.id === z.id));
+    const merged         = [...seasonItems, ...ganzjaehrig];
+
+    return NextResponse.json(merged);
   } catch (e) {
-    console.error('[saison API]', e);
+    console.error('[saison API catch]', e);
     return NextResponse.json([]);
   }
 }
