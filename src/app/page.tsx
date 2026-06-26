@@ -176,13 +176,13 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="text-base leading-none">{icon}</span>
                       <span className="text-[13px] font-semibold" style={{ color }}>{weather.temp}°</span>
-                      <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{weather.city}</span>
                     </div>
                   );
                 })()}
               </div>
               <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                 {new Date().toLocaleDateString('de-DE', { weekday: 'long' })}
+                {weather?.city ? ` · ${weather.city}` : ''}
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle, MessageSquare } from 'lucide-react';
@@ -51,6 +51,15 @@ export default function RegisterPage() {
   const [name, setName]         = useState('');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    const prev = document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', 'light');
+    return () => {
+      if (prev) document.documentElement.setAttribute('data-theme', prev);
+      else document.documentElement.removeAttribute('data-theme');
+    };
+  }, []);
   const [confirm, setConfirm]   = useState('');
   const [grund, setGrund]       = useState('');
   const [showPw, setShowPw]     = useState(false);
