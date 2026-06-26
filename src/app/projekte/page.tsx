@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Project } from '@/types';
@@ -275,6 +276,7 @@ export default function ProjektePage() {
   };
 
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div>
@@ -340,5 +342,6 @@ export default function ProjektePage() {
       {showNew && <NewProjectModal onClose={() => setShowNew(false)} onSave={(data) => { addProject(data); setShowNew(false); }} />}
     </div>
     </div>
+    </PageTransition>
   );
 }

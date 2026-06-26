@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useRef, useEffect } from 'react';
 import { ChefHat, Send, Loader2, User } from 'lucide-react';
 import { FEATURES } from '@/config/features';
@@ -94,6 +95,7 @@ export default function KiSousChefPage() {
   };
 
   return (
+    <PageTransition>
     <div className="flex flex-col" style={{ background: 'var(--bg)', height: '100vh' }}>
       <div className="px-8 pt-8 pb-6 flex-shrink-0"
         style={{ borderBottom: '1px solid var(--border)' }}>
@@ -192,5 +194,6 @@ export default function KiSousChefPage() {
       )}
     </div>
     </div>
+    </PageTransition>
   );
 }

@@ -96,6 +96,9 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+  .slim-scroll::-webkit-scrollbar { width: 3px; }
+  .slim-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
   select {
     background-color: var(--surface);
     color: var(--text);
@@ -110,4 +113,17 @@
   :root[data-theme="dark"] textarea {
     color-scheme: dark;
   }
+}
+
+/* ── Card Hover Glow ─────────────────────────────────────────────────────── */
+.card-hover {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 16px rgba(107,58,75,0.12);
+  border-color: var(--accent) !important;
+  transform: translateY(-1px);
+}
+[data-theme="dark"] .card-hover:hover {
+  box-shadow: 0 0 0 1.5px var(--accent), 0 0 20px rgba(201,168,76,0.15);
 }

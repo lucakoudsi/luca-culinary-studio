@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Ingredient } from '@/types';
@@ -50,7 +51,7 @@ function IngredientCard({ ingredient, onClick }: { ingredient: Ingredient; onCli
 
   return (
     <div onClick={onClick}
-      className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-gold/30 transition-all">
+      className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer card-hover">
       <div style={{
         width: '100%', height: '160px', overflow: 'hidden',
         background: 'linear-gradient(135deg, #6B3A4B 0%, #2C2420 100%)',
@@ -187,6 +188,7 @@ export default function ZutatenPage() {
   useEffect(() => { fetchIngredients(); }, []);
 
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Botanik & Aromen</div>
@@ -248,5 +250,6 @@ export default function ZutatenPage() {
         {selected && <IngredientDetail ingredient={selected} onClose={() => setSelected(null)} />}
       </div>
     </div>
+    </PageTransition>
   );
 }

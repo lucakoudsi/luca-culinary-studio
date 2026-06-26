@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState } from 'react';
 import { Wine, Search, MapPin, Calendar, Loader2 } from 'lucide-react';
 
@@ -111,6 +112,7 @@ export default function WeinPairingPage() {
   const filtered = results.filter(w => filter === 'Alle' || w.type === filter);
 
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Sommellerie</div>
@@ -181,5 +183,6 @@ export default function WeinPairingPage() {
       )}
     </div>
     </div>
+    </PageTransition>
   );
 }

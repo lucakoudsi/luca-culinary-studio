@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -621,6 +622,7 @@ export default function ProfilPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg, #FAF8F5)', minHeight: '100vh' }}>
 
       {/* Breadcrumb + Header area */}
@@ -1614,5 +1616,6 @@ export default function ProfilPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

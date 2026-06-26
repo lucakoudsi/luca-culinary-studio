@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, FlaskConical, Utensils,
-  Leaf, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
+  Leaf, Sun, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
@@ -19,6 +19,7 @@ const navItems = [
   { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: true  },
   { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: true  },
   { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            aiLocked: false },
+  { href: '/saison',          label: 'Saisonkalender',   icon: Sun,             aiLocked: false },
   { href: '/wein-pairing',    label: 'Wein & Pairing',   icon: Wine,            aiLocked: false },
   { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          aiLocked: false },
   { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      aiLocked: false },
@@ -54,6 +55,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('');
   const [userTier, setUserTier]     = useState<number>(99);
 
   // Settings panel
@@ -74,6 +76,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
       if (u) {
         fetch('/api/profil').then(r => r.json()).then(d => {
           setAvatarUrl(d.profile?.avatar_url ?? null);
+          setProfileName(d.profile?.full_name?.split(' ')[0] ?? '');
           setUserTier(getUserTier(u.email, d.profile?.stufe));
           setEmailUpdates(d.profile?.email_updates ?? true);
           setProfilOeffentlich(d.profile?.profil_oeffentlich ?? true);
@@ -148,7 +151,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             </div>
             <div className="min-w-0">
               <div className="font-heading font-bold leading-none tracking-[3px]"
-                style={{ fontSize: 14, color: 'var(--text, #2C2420)', textTransform: 'uppercase' }}>LUCA</div>
+                style={{ fontSize: 14, color: 'var(--text, #2C2420)', textTransform: 'uppercase' }}>
+                {profileName || 'CULINARY'}
+              </div>
               <div className="tracking-[2px] uppercase mt-0.5"
                 style={{ fontSize: 8, color: 'var(--text-muted, #B09880)' }}>Culinary Creator</div>
             </div>

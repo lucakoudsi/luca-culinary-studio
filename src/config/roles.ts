@@ -29,6 +29,7 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/ki-sous-chef':  1,
   '/profil':        1,
   '/zutaten':       2,
+  '/saison':        2,
   '/fermentation':  2,
   '/projekte':      3,
   '/wein-pairing':  4,

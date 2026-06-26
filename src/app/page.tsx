@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, ArrowRight, FolderOpen } from 'lucide-react';
@@ -23,12 +24,21 @@ function getWeatherInfo(code: number) {
   return                  { icon: '⛈️', color: 'var(--text-muted)' };
 }
 
-const SAISON = [
-  { emoji: '🍓', name: 'Erdbeere',  label: 'Hauptsaison' },
-  { emoji: '🌸', name: 'Holunder',  label: 'Hauptsaison' },
-  { emoji: '🌿', name: 'Spargel',   label: 'Ausklangsaison' },
-  { emoji: '🌱', name: 'Rhabarber', label: 'Hauptsaison' },
-];
+const MONTH_NAMES_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const SEASON_MONTHS: Record<string, number[]> = {
+  'Frühling': [2,3,4], 'Frühsommer': [4,5,6], 'Sommer': [5,6,7],
+  'Spätsommer': [6,7,8], 'Herbst': [8,9,10], 'Winter': [11,0,1],
+};
+function isSaisonal(saison: string | null | undefined, month: number): boolean {
+  if (!saison) return false;
+  const s = saison.toLowerCase();
+  if (s.includes(MONTH_NAMES_DE[month].toLowerCase())) return true;
+  for (const [season, months] of Object.entries(SEASON_MONTHS)) {
+    if (s.includes(season.toLowerCase()) && months.includes(month)) return true;
+  }
+  return false;
+}
+type SaisonItem = { id: number; name: string; kategorie: string; saison: string; image_url: string | null };
 
 const INSPIRATION = [
   { title: 'Yuzu Kosho – Japanische Würzpaste', sub: 'Fermentation · Japanisch', img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=120' },
@@ -81,6 +91,7 @@ export default function DashboardPage() {
   const [ideas, setIdeas]               = useState<Idea[]>([]);
   const [meinStil, setMeinStil]         = useState<MeinStil>({ kuechenstil: '', spezialitaeten: '', lieblingszutaten: '' });
   const [dataLoaded, setDataLoaded]     = useState(false);
+  const [seasonalItems, setSeasonalItems] = useState<SaisonItem[]>([]);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
@@ -119,6 +130,20 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
+  // Saisonale Zutaten
+  useEffect(() => {
+    const month = new Date().getMonth();
+    fetch('/api/zutaten')
+      .then(r => r.json())
+      .then((items: SaisonItem[]) => {
+        const filtered = items
+          .filter(z => isSaisonal(z.saison, month))
+          .slice(0, 8);
+        setSeasonalItems(filtered);
+      })
+      .catch(() => {});
+  }, []);
+
   // Dashboard-Daten: Stats, Projekte, Ideen, Mein Stil
   useEffect(() => {
     fetch('/api/dashboard/stats')
@@ -136,6 +161,7 @@ export default function DashboardPage() {
   const hasMeinStil = meinStil.kuechenstil || meinStil.spezialitaeten || meinStil.lieblingszutaten;
 
   return (
+    <PageTransition>
     <div className="flex" style={{ minHeight: '100vh', background: 'var(--bg, #FAF8F5)' }}>
 
       {/* ── Main content ────────────────────────────────────────────── */}
@@ -338,7 +364,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ideas.map(idea => (
                   <div key={idea.id}
-                    className="rounded-xl p-4 cursor-pointer transition-all bg-card border border-border"
+                    className="rounded-xl p-4 cursor-pointer bg-card border border-border card-hover"
                     onClick={() => router.push('/ki-sous-chef')}
                     onMouseEnter={e => {
                       (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)';
@@ -402,7 +428,7 @@ export default function DashboardPage() {
                   { label: 'Spezialitäten',      value: meinStil.spezialitaeten },
                   { label: 'Lieblingszutaten',   value: meinStil.lieblingszutaten },
                 ].filter(col => col.value).map(col => (
-                  <div key={col.label} className="rounded-xl p-4 bg-card border border-border">
+                  <div key={col.label} className="rounded-xl p-4 bg-card border border-border card-hover">
                     <div className="text-[10px] tracking-[3px] uppercase mb-3"
                       style={{ color: 'var(--text-muted)' }}>{col.label}</div>
                     {splitTags(col.value).slice(0, 5).map(item => (
@@ -433,7 +459,7 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-2">
               {INSPIRATION.map(item => (
-                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all bg-card border border-border"
+                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl cursor-pointer bg-card border border-border card-hover"
                   onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.3)'}
                   onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}>
                   <img src={item.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
@@ -451,18 +477,36 @@ export default function DashboardPage() {
 
           {/* Saison */}
           <div>
-            <div className="text-[10px] tracking-[3px] uppercase mb-4"
-              style={{ color: 'rgba(107,58,75,0.65)' }}>
-              ✦ &nbsp;Saison im {new Date().toLocaleDateString('de-DE', { month: 'long' })}
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[10px] tracking-[3px] uppercase"
+                style={{ color: 'rgba(107,58,75,0.65)' }}>
+                ✦ &nbsp;Saison im {new Date().toLocaleDateString('de-DE', { month: 'long' })}
+              </div>
+              <Link href="/saison" className="text-[10px] tracking-[1px]"
+                style={{ color: '#6B3A4B' }}>Alle →</Link>
             </div>
-            <div className="space-y-2">
-              {SAISON.map(s => (
-                <div key={s.name} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border">
-                  <span className="text-lg flex-shrink-0">{s.emoji}</span>
-                  <div>
-                    <div className="text-[13px] font-semibold" style={{ color: 'var(--text)' }}>{s.name}</div>
-                    <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>{s.label}</div>
+            <div className="space-y-2 slim-scroll" style={{ maxHeight: 320, overflowY: 'auto' }}>
+              {seasonalItems.length === 0 ? (
+                <div className="text-[12px] italic py-2" style={{ color: 'var(--text-muted)' }}>
+                  Keine saisonalen Zutaten gefunden
+                </div>
+              ) : seasonalItems.map(s => (
+                <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
+                  {s.image_url ? (
+                    <img src={s.image_url} alt="" className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
+                  ) : (
+                    <span className="text-lg flex-shrink-0">🌿</span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
+                    {s.saison && (
+                      <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>{s.saison}</div>
+                    )}
                   </div>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
+                    style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B' }}>
+                    {s.kategorie}
+                  </span>
                 </div>
               ))}
             </div>
@@ -483,7 +527,7 @@ export default function DashboardPage() {
                 { label: 'Fermente',    value: dataLoaded ? stats.fermente   : '—', icon: '🫙' },
                 { label: 'Diese Woche', value: dataLoaded ? stats.dieseWoche : '—', icon: '📅' },
               ].map(s => (
-                <div key={s.label} className="p-3 rounded-xl text-center bg-card border border-border">
+                <div key={s.label} className="p-3 rounded-xl text-center bg-card border border-border card-hover">
                   <div className="text-[15px] mb-1">{s.icon}</div>
                   <div className={`font-heading font-bold ${!dataLoaded ? 'animate-pulse' : ''}`}
                     style={{ fontSize: 20, color: '#6B3A4B' }}>{s.value}</div>
@@ -496,5 +540,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

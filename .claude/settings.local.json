@@ -47,7 +47,8 @@
       "PowerShell(Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\build-output.txt\" | Select-String \"prerendering page\" | ForEach-Object { $_.Line })",
       "PowerShell($chunk = Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\.next\\\\server\\\\chunks\\\\8948.js\" -Raw; $chunk.Length; $chunk.Substring\\(0, 500\\))",
       "PowerShell($chunk = Get-Content \"C:\\\\Users\\\\lucak\\\\luca-culinary-studio\\\\.next\\\\server\\\\chunks\\\\1025.js\" -Raw; $start = $chunk.IndexOf\\(\"AppShell\"\\); if \\($start -ge 0\\) { $chunk.Substring\\([Math]::Max\\(0, $start-100\\), 300\\) } else { Write-Host \"AppShell not found in chunk\"; $chunk.Substring\\(0, 200\\) })",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "PowerShell(New-Item *)"
     ]
   }
 }

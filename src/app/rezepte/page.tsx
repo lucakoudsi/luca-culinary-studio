@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -30,7 +31,7 @@ function StarRating({ value }: { value: number }) {
 // ─── RecipeCard ───────────────────────────────────────────────────────────────
 function RecipeCard({ recipe, onView, onDelete, onEdit }: { recipe: Recipe; onView: () => void; onDelete: () => void; onEdit: () => void }) {
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-gold/30 transition-all group" onClick={onView}>
+    <div className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer card-hover group" onClick={onView}>
       {/* Image / Placeholder */}
       <div className="h-44 relative overflow-hidden"
         style={recipe.image
@@ -250,6 +251,7 @@ export default function RezeptePage() {
   useEffect(() => { fetchRecipes(); }, []);
 
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       {/* Header */}
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6"
@@ -334,5 +336,6 @@ export default function RezeptePage() {
       )}
     </div>
     </div>
+    </PageTransition>
   );
 }

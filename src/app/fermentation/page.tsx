@@ -1,4 +1,5 @@
 ﻿'use client';
+import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, X } from 'lucide-react';
 
@@ -297,7 +298,7 @@ function ProjectCard({ project, onAddNote, onEdit, onDelete }: CardProps) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden card-hover">
       <div className="p-5">
 
         {/* Status + Tage */}
@@ -479,6 +480,7 @@ export default function FermentationPage() {
   const done   = projects.filter(p => p.status === 'Abgeschlossen' || p.status === 'Problem');
 
   return (
+    <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
 
       {/* Header */}
@@ -574,5 +576,6 @@ export default function FermentationPage() {
           onClose={() => setDeleteTarget(null)} deleting={deleting} />
       )}
     </div>
+    </PageTransition>
   );
 }
