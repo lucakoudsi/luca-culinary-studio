@@ -62,6 +62,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const [fontSize, setFontSize]                 = useState<FontSize>('normal');
   const [emailUpdates, setEmailUpdates]         = useState(true);
   const [profilOeffentlich, setProfilOeffentlich] = useState(true);
+  const [standort, setStandort]                 = useState('Mainz');
   const [settingsSaving, setSettingsSaving]     = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +77,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           setUserTier(getUserTier(u.email, d.profile?.stufe));
           setEmailUpdates(d.profile?.email_updates ?? true);
           setProfilOeffentlich(d.profile?.profil_oeffentlich ?? true);
+          setStandort(d.profile?.standort ?? 'Mainz');
         }).catch(() => setUserTier(1));
       }
     });
@@ -230,7 +232,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   {([
                     { id: 'light' as ThemeMode, label: '☀️ Hell' },
                     { id: 'dark'  as ThemeMode, label: '🌙 Dunkel' },
-                    { id: 'auto'  as ThemeMode, label: '⏰ Zeit' },
+                    { id: 'auto'  as ThemeMode, label: 'Auto' },
                   ]).map(opt => (
                     <button key={opt.id} onClick={() => { setTheme(opt.id); applyTheme(opt.id); }}
                       style={{
@@ -269,6 +271,29 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Standort */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 9, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--text-muted, #B09880)', marginBottom: 8 }}>
+                  Standort
+                </div>
+                <input
+                  type="text"
+                  value={standort}
+                  onChange={e => setStandort(e.target.value)}
+                  onBlur={() => { if (standort.trim()) saveDbSettings({ standort: standort.trim() }); }}
+                  onKeyDown={e => { if (e.key === 'Enter') { (e.target as HTMLInputElement).blur(); } }}
+                  placeholder="Deine Stadt..."
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '6px 10px', borderRadius: 8, fontSize: 12,
+                    border: '1px solid var(--border, #E8E0D8)',
+                    background: 'var(--bg, #FAF8F5)',
+                    color: 'var(--text, #2C2420)',
+                    outline: 'none',
+                  }}
+                />
               </div>
 
               {/* Divider */}

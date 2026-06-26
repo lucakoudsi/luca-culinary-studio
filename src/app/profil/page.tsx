@@ -157,6 +157,7 @@ export default function ProfilPage() {
 
   // Tab 1
   const [name, setName]               = useState('');
+  const [titel, setTitel]             = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
   const [profileError, setProfileError]   = useState('');
@@ -247,6 +248,7 @@ export default function ProfilPage() {
         if (d.profile) {
           setProfile(d.profile);
           setName(d.profile.full_name ?? '');
+          setTitel(d.profile.titel ?? '');
           setKuechenstil(d.profile.kuechenstil ?? '');
           setSpezialitaeten(d.profile.spezialitaeten ?? '');
           setBio(d.profile.bio ?? '');
@@ -302,7 +304,7 @@ export default function ProfilPage() {
     try {
       const res = await fetch('/api/profil', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name: name }),
+        body: JSON.stringify({ full_name: name, ...(user?.email === ADMIN_EMAIL && { titel }) }),
       });
       const d = await res.json();
       if (!res.ok) { setProfileError(d.error || 'Speichern fehlgeschlagen.'); return; }
@@ -748,6 +750,43 @@ export default function ProfilPage() {
                       onFocus={onFocus} onBlur={onBlur} />
                   </div>
                 </div>
+                {/* Titel */}
+                <div>
+                  <label style={labelStyle}>Titel</label>
+                  {user?.email === ADMIN_EMAIL ? (
+                    <div className="relative">
+                      <Star size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <select
+                        value={titel}
+                        onChange={e => setTitel(e.target.value)}
+                        className={fieldCls}
+                        style={{ ...fieldStyle, cursor: 'pointer' }}>
+                        <option value="">— kein Titel —</option>
+                        {ALL_TITLES.map(t => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{
+                        padding: '12px 14px', borderRadius: 12,
+                        background: 'var(--surface-2, #F4EFE9)',
+                        border: '1px solid var(--border, #E8E0D8)',
+                        fontSize: 14,
+                        color: titel ? 'var(--text-muted)' : 'var(--text-muted)',
+                        fontStyle: titel ? 'normal' : 'italic',
+                        cursor: 'default',
+                      }}>
+                        {titel || 'Noch kein Titel vergeben'}
+                      </div>
+                      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                        Wird vom Administrator vergeben
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 <div>
                   <label style={labelStyle}>E-Mail</label>
                   <div className="relative">

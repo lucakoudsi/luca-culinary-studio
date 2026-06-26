@@ -73,7 +73,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [greeting, setGreeting]         = useState('GUTEN MORGEN');
   const [search, setSearch]             = useState('');
-  const [weather, setWeather]           = useState<{ temp: number; code: number } | null>(null);
+  const [weather, setWeather]           = useState<{ temp: number; code: number; city: string } | null>(null);
   const [displayName, setDisplayName]   = useState('Chef');
 
   const [stats, setStats]               = useState<Stats>({ rezepte: 0, projekte: 0, fermente: 0, dieseWoche: 0 });
@@ -84,21 +84,39 @@ export default function DashboardPage() {
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
-  // Profil für Displayname
+  // Profil → Displayname + Standort → Geocoding → Wetter
   useEffect(() => {
-    fetch('/api/profil')
-      .then(r => r.json())
-      .then(d => {
-        const full  = (d.profile?.full_name ?? '').trim();
-        const email = (d.user?.email ?? '').trim();
-        if (full) {
-          setDisplayName(full.split(' ')[0]);
-        } else if (email) {
+    let cancelled = false;
+    const run = async () => {
+      let lat = 49.99, lon = 8.27, city = 'Mainz';
+      try {
+        const profResp = await fetch('/api/profil');
+        const profData = await profResp.json();
+        if (cancelled) return;
+        const full = (profData.profile?.full_name ?? '').trim();
+        const email = (profData.user?.email ?? '').trim();
+        if (full) setDisplayName(full.split(' ')[0]);
+        else if (email) {
           const prefix = email.split('@')[0];
           setDisplayName(prefix.charAt(0).toUpperCase() + prefix.slice(1));
         }
-      })
-      .catch(() => {});
+        city = (profData.profile?.standort ?? '').trim() || 'Mainz';
+        try {
+          const geoResp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=de`);
+          const geoData = await geoResp.json();
+          const loc = geoData.results?.[0];
+          if (loc) { lat = loc.latitude; lon = loc.longitude; city = loc.name || city; }
+        } catch {}
+      } catch {}
+      if (cancelled) return;
+      try {
+        const wResp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+        const wData = await wResp.json();
+        if (!cancelled) setWeather({ temp: Math.round(wData.current.temperature_2m), code: wData.current.weather_code, city });
+      } catch {}
+    };
+    run();
+    return () => { cancelled = true; };
   }, []);
 
   // Dashboard-Daten: Stats, Projekte, Ideen, Mein Stil
@@ -113,14 +131,6 @@ export default function DashboardPage() {
         setDataLoaded(true);
       })
       .catch(() => setDataLoaded(true));
-  }, []);
-
-  // Wetter
-  useEffect(() => {
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=49.99&longitude=8.27&current=temperature_2m,weather_code')
-      .then(r => r.json())
-      .then(d => setWeather({ temp: Math.round(d.current.temperature_2m), code: d.current.weather_code }))
-      .catch(() => {});
   }, []);
 
   const hasMeinStil = meinStil.kuechenstil || meinStil.spezialitaeten || meinStil.lieblingszutaten;
@@ -163,9 +173,10 @@ export default function DashboardPage() {
                 {weather && (() => {
                   const { icon, color } = getWeatherInfo(weather.code);
                   return (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       <span className="text-base leading-none">{icon}</span>
                       <span className="text-[13px] font-semibold" style={{ color }}>{weather.temp}°</span>
+                      <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{weather.city}</span>
                     </div>
                   );
                 })()}
