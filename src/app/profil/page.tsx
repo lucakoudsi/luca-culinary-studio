@@ -91,8 +91,8 @@ const PERM_TIERS = [
 
 // ─── Shared form styles ───────────────────────────────────────────────────────
 
-const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]';
-const fieldStyle = { background: '#F9F7F4', border: '1px solid #E8E0D8' };
+const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] outline-none transition-all placeholder:text-[#C0B5A8]';
+const fieldStyle = { background: 'var(--bg, #F9F7F4)', border: '1px solid var(--border, #E8E0D8)', color: 'var(--text, #2C2420)' };
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 10, color: '#8B7355',
   marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase',
@@ -619,7 +619,7 @@ export default function ProfilPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div style={{ background: '#FAF8F5', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg, #FAF8F5)', minHeight: '100vh' }}>
 
       {/* Breadcrumb + Header area */}
       <div className="px-4 sm:px-8 pt-6 sm:pt-8">
@@ -672,7 +672,7 @@ export default function ProfilPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
           {/* Nav card — horizontal scroll on mobile, vertical on md+ */}
-          <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', boxShadow: '0 2px 12px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--surface, #FFFFFF)', borderRadius: 16, border: '1px solid var(--border, #E8E0D8)', boxShadow: '0 2px 12px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
             <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible gap-1 p-2" style={{ scrollbarWidth: 'none' }}>
             {NAV.map(({ id, label, sublabel, Icon, badge }) => (
               <button key={id} onClick={() => setActiveTab(id)}
@@ -730,7 +730,7 @@ export default function ProfilPage() {
         </div>
 
         {/* ── Right content card ───────────────────────────────────────────── */}
-        <div style={{ background: '#FFFFFF', borderRadius: 16, border: '1px solid #E8E0D8', padding: '1.75rem', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: 'var(--surface, #FFFFFF)', borderRadius: 16, border: '1px solid var(--border, #E8E0D8)', padding: '1.75rem', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
 
           {/* ── Tab 1: Profil ───────────────────────────────────────────── */}
           {activeTab === 'profil' && (

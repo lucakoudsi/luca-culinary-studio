@@ -10,72 +10,64 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light (default) ─────────────────────────────────────────────── */
   :root {
-    --background: #FAF8F5;
-    --foreground: #2C2420;
-    --card: #FFFFFF;
-    --card-foreground: #2C2420;
-    --popover: #FFFFFF;
-    --popover-foreground: #2C2420;
-    --primary: #6B3A4B;
-    --primary-foreground: #FFFFFF;
-    --secondary: #F0EBE3;
-    --secondary-foreground: #2C2420;
-    --muted: #F5F2EE;
-    --muted-foreground: #8B7355;
-    --accent: #F0EBE3;
-    --accent-foreground: #2C2420;
-    --destructive: #C05050;
-    --border: #E8E0D8;
-    --input: #E8E0D8;
-    --ring: #6B3A4B;
-    --radius: 0.625rem;
-    --font-playfair: 'Playfair Display';
-    --font-inter: 'Inter';
+    --bg:           #FAF8F5;
+    --surface:      #ffffff;
+    --surface-2:    #F4EFE9;
+    --text:         #2C2420;
+    --text-muted:   #9A8070;
+    --border:       #E8E0D8;
+    --accent:       #6B3A4B;
+    --accent-light: #F4EFE9;
 
-    /* Semantic theme tokens */
-    --bg-app: #FAF8F5;
-    --bg-surface: #FFFFFF;
-    --bg-sidebar: #F0EBE3;
-    --bg-elevated: #FAFAF9;
-    --text-primary: #2C2420;
-    --text-secondary: #8B7355;
-    --text-muted: #B09880;
-    --border-base: #E8E0D8;
-    --accent-main: #6B3A4B;
-    --accent-gold: #C9A84C;
+    /* Tailwind compat aliases */
+    --background:   #FAF8F5;
+    --foreground:   #2C2420;
+    --card:         #ffffff;
+    --card-foreground: #2C2420;
+    --primary:      #6B3A4B;
+    --primary-foreground: #FFFFFF;
+    --secondary:    #F4EFE9;
+    --secondary-foreground: #2C2420;
+    --muted:        #F5F2EE;
+    --muted-foreground: #9A8070;
+    --destructive:  #C05050;
+    --input:        #E8E0D8;
+    --ring:         #6B3A4B;
+    --radius:       0.625rem;
+    --font-playfair: 'Playfair Display';
+    --font-inter:   'Inter';
+    --accent-gold:  #C9A84C;
+    --sidebar-bg:   #F0EBE3;
   }
 
+  /* ── Dark ────────────────────────────────────────────────────────── */
   :root[data-theme="dark"] {
-    --background: #0A0A0A;
-    --foreground: #F5F0E8;
-    --card: #1A1A1A;
-    --card-foreground: #F5F0E8;
-    --popover: #1A1A1A;
-    --popover-foreground: #F5F0E8;
-    --primary: #C9A84C;
-    --primary-foreground: #0A0A0A;
-    --secondary: #1E1E1E;
-    --secondary-foreground: #F5F0E8;
-    --muted: #141414;
-    --muted-foreground: #8B7B6B;
-    --accent: #1E1E1E;
-    --accent-foreground: #F5F0E8;
-    --destructive: #C05050;
-    --border: #2A2A2A;
-    --input: #2A2A2A;
-    --ring: #C9A84C;
+    --bg:           #0A0A0A;
+    --surface:      #1A1A1A;
+    --surface-2:    #2A2420;
+    --text:         #F5F0E8;
+    --text-muted:   #A89880;
+    --border:       #2A2A2A;
+    --accent:       #C9A84C;
+    --accent-light: #2A1F10;
 
-    --bg-app: #0A0A0A;
-    --bg-surface: #1A1A1A;
-    --bg-sidebar: #0F0F0F;
-    --bg-elevated: #141414;
-    --text-primary: #F5F0E8;
-    --text-secondary: #9A8B7B;
-    --text-muted: #5A4E45;
-    --border-base: #2A2A2A;
-    --accent-main: #C9A84C;
-    --accent-gold: #E8C67A;
+    --background:   #0A0A0A;
+    --foreground:   #F5F0E8;
+    --card:         #1A1A1A;
+    --card-foreground: #F5F0E8;
+    --primary:      #C9A84C;
+    --primary-foreground: #0A0A0A;
+    --secondary:    #1E1E1E;
+    --secondary-foreground: #F5F0E8;
+    --muted:        #141414;
+    --muted-foreground: #8B7B6B;
+    --destructive:  #C05050;
+    --input:        #2A2A2A;
+    --ring:         #C9A84C;
+    --accent-gold:  #E8C67A;
+    --sidebar-bg:   #111111;
   }
 
   * {
@@ -88,7 +80,8 @@
   }
 
   body {
-    @apply bg-background text-text-primary;
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -100,11 +93,21 @@
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #D4C9BC; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #B09880; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
   select {
-    background-color: #FFFFFF;
-    color: #2C2420;
+    background-color: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  input, textarea {
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"] input,
+  :root[data-theme="dark"] textarea {
+    color-scheme: dark;
   }
 }

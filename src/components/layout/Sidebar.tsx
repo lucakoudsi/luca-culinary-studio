@@ -134,7 +134,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         'transition-transform duration-300 ease-in-out',
         'border-r border-border',
         mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      )} style={{ background: 'var(--bg-sidebar, #F0EBE3)' }}>
+      )} style={{ background: 'var(--sidebar-bg, #F0EBE3)' }}>
 
         {/* Logo */}
         <div className="px-5 pt-6 pb-5 border-b border-border">
@@ -212,11 +212,11 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           {/* Settings Panel */}
           {settingsOpen && (
             <div style={{
-              position: 'absolute', bottom: 'calc(100% + 6px)', left: 12, right: 12,
-              background: 'var(--bg-surface, #FFFFFF)',
-              border: '1px solid var(--border-base, #E8E0D8)',
+              position: 'absolute', bottom: 'calc(100% + 8px)', left: 8, right: 8,
+              background: 'var(--surface, #FFFFFF)',
+              border: '1px solid var(--border, #E8E0D8)',
               borderRadius: 14,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
               padding: 16,
               zIndex: 100,
             }}>
@@ -230,15 +230,15 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                   {([
                     { id: 'light' as ThemeMode, label: '☀️ Hell' },
                     { id: 'dark'  as ThemeMode, label: '🌙 Dunkel' },
-                    { id: 'auto'  as ThemeMode, label: '⚡ Auto' },
+                    { id: 'auto'  as ThemeMode, label: '⏰ Zeit' },
                   ]).map(opt => (
                     <button key={opt.id} onClick={() => { setTheme(opt.id); applyTheme(opt.id); }}
                       style={{
                         flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', transition: 'all 0.15s',
-                        background: theme === opt.id ? '#6B3A4B' : 'rgba(107,58,75,0.06)',
-                        color: theme === opt.id ? '#FFFFFF' : 'var(--text-secondary, #8B7355)',
-                        border: theme === opt.id ? '1px solid #6B3A4B' : '1px solid var(--border-base, #E8E0D8)',
+                        background: theme === opt.id ? 'var(--accent, #6B3A4B)' : 'var(--accent-light, rgba(107,58,75,0.06))',
+                        color: theme === opt.id ? '#FFFFFF' : 'var(--text-muted, #8B7355)',
+                        border: theme === opt.id ? '1px solid var(--accent, #6B3A4B)' : '1px solid var(--border, #E8E0D8)',
                       }}>
                       {opt.label}
                     </button>
@@ -261,9 +261,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                       style={{
                         flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', transition: 'all 0.15s',
-                        background: fontSize === opt.id ? '#6B3A4B' : 'rgba(107,58,75,0.06)',
-                        color: fontSize === opt.id ? '#FFFFFF' : 'var(--text-secondary, #8B7355)',
-                        border: fontSize === opt.id ? '1px solid #6B3A4B' : '1px solid var(--border-base, #E8E0D8)',
+                        background: fontSize === opt.id ? 'var(--accent, #6B3A4B)' : 'var(--accent-light, rgba(107,58,75,0.06))',
+                        color: fontSize === opt.id ? '#FFFFFF' : 'var(--text-muted, #8B7355)',
+                        border: fontSize === opt.id ? '1px solid var(--accent, #6B3A4B)' : '1px solid var(--border, #E8E0D8)',
                       }}>
                       {opt.label}
                     </button>
@@ -272,12 +272,12 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               </div>
 
               {/* Divider */}
-              <div style={{ borderTop: '1px solid var(--border-base, #E8E0D8)', marginBottom: 12 }} />
+              <div style={{ borderTop: '1px solid var(--border, #E8E0D8)', marginBottom: 12 }} />
 
               {/* Benachrichtigungen Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary, #2C2420)' }}>Email-Updates</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text, #2C2420)' }}>Email-Updates</div>
                   <div style={{ fontSize: 10, color: 'var(--text-muted, #B09880)' }}>Neue Features & Tipps</div>
                 </div>
                 <button
@@ -303,7 +303,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               {/* Profil öffentlich Toggle */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary, #2C2420)' }}>Profil öffentlich</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text, #2C2420)' }}>Profil öffentlich</div>
                   <div style={{ fontSize: 10, color: 'var(--text-muted, #B09880)' }}>Für andere sichtbar</div>
                 </div>
                 <button
@@ -331,48 +331,62 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
           {/* User row */}
           {user && (
-            <div className="flex items-center gap-2">
-              <Link href="/profil"
-                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all group flex-1 min-w-0"
-                style={{ color: 'inherit' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,58,75,0.07)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
-                    {initials}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="text-[12px] font-semibold truncate" style={{ color: 'var(--text-primary, #2C2420)' }}>{displayName}</div>
-                  <div className="text-[10px] truncate" style={{ color: 'var(--text-muted, #B09880)' }}>{user.email}</div>
+            <Link href="/profil"
+              className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-all w-full"
+              style={{ color: 'inherit' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,58,75,0.07)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
+                  {initials}
                 </div>
-              </Link>
-              {/* Gear button — separate from the profile link */}
-              <button
-                onClick={() => setSettingsOpen(p => !p)}
-                title="Einstellungen"
-                className="p-2 rounded-lg transition-all flex-shrink-0"
-                style={{
-                  color: settingsOpen ? '#6B3A4B' : 'var(--text-muted, #B09880)',
-                  background: settingsOpen ? 'rgba(107,58,75,0.08)' : 'transparent',
-                }}
-                onMouseEnter={e => { if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(107,58,75,0.07)'; }}
-                onMouseLeave={e => { if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
-                <Settings size={14} />
-              </button>
-            </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-[12px] font-semibold truncate" style={{ color: 'var(--text, #2C2420)' }}>{displayName}</div>
+                <div className="text-[10px] truncate" style={{ color: 'var(--text-muted, #B09880)' }}>{user.email}</div>
+              </div>
+            </Link>
           )}
+
+          {/* Sichtbarer Einstellungen-Button */}
+          <button
+            onClick={() => setSettingsOpen(p => !p)}
+            className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-[10px] text-[12px] font-semibold transition-all"
+            style={{
+              background: settingsOpen
+                ? 'linear-gradient(135deg, #562E3C, #6B3A4B)'
+                : 'linear-gradient(135deg, #6B3A4B, #8B4A60)',
+              color: '#FFFFFF',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: settingsOpen
+                ? '0 2px 8px rgba(107,58,75,0.4), inset 0 1px 0 rgba(255,255,255,0.1)'
+                : '0 2px 8px rgba(107,58,75,0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+              letterSpacing: '0.3px',
+            }}
+            onMouseEnter={e => {
+              if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'linear-gradient(135deg, #562E3C, #7A3F55)';
+            }}
+            onMouseLeave={e => {
+              if (!settingsOpen) (e.currentTarget as HTMLButtonElement).style.background = 'linear-gradient(135deg, #6B3A4B, #8B4A60)';
+            }}>
+            <Settings size={15} />
+            Einstellungen
+            <span style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.7 }}>
+              {settingsOpen ? '▲' : '▼'}
+            </span>
+          </button>
 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[12px] font-medium transition-all disabled:opacity-50"
-            style={{ color: 'var(--text-secondary, #8B7355)' }}
+            style={{ color: 'var(--text-muted, #8B7355)' }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#C05050'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,80,80,0.06)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary, #8B7355)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted, #8B7355)'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}>
             <LogOut size={14} />
             {loggingOut ? 'Abmelden…' : 'Abmelden'}
           </button>

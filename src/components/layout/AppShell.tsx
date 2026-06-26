@@ -43,7 +43,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom navigation — hidden on md+ */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border"
-        style={{ background: '#F0EBE3' }}>
+        style={{ background: 'var(--sidebar-bg, #F0EBE3)' }}>
         <div className="flex">
           {BOTTOM_NAV.map(({ href, icon: Icon, label }) => {
             const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);

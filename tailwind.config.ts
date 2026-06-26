@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: ["selector", '[data-theme="dark"]'],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,24 +10,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background:    "#FAF8F5",
-        surface:       "#F0EBE3",
-        card:          "#FFFFFF",
-        "card-hover":  "#F5F2EE",
-        border:        "#E8E0D8",
-        "border-strong": "#D4C9BC",
-        bordeaux:      "#6B3A4B",
+        background:    "var(--bg, #FAF8F5)",
+        surface:       "var(--surface-2, #F4EFE9)",
+        card:          "var(--surface, #FFFFFF)",
+        "card-hover":  "var(--surface-2, #F4EFE9)",
+        border:        "var(--border, #E8E0D8)",
+        "border-strong": "var(--border, #D4C9BC)",
+        bordeaux:      "var(--accent, #6B3A4B)",
         "bordeaux-dark":  "#562E3C",
         "bordeaux-light": "#7D4558",
         "bordeaux-muted": "rgba(107,58,75,0.10)",
-        // gold aliases → bordeaux so existing classes keep working
-        gold:          "#6B3A4B",
-        "gold-dark":   "#562E3C",
-        "gold-light":  "#7D4558",
-        "gold-muted":  "rgba(107,58,75,0.10)",
-        "text-primary":   "#2C2420",
-        "text-secondary": "#8B7355",
-        "text-muted":     "#B09880",
+        gold:          "var(--accent-gold, #C9A84C)",
+        "gold-dark":   "#9B7A2A",
+        "gold-light":  "#E8C67A",
+        "gold-muted":  "rgba(201,168,76,0.10)",
+        "text-primary":   "var(--text, #2C2420)",
+        "text-secondary": "var(--text-muted, #9A8070)",
+        "text-muted":     "var(--text-muted, #9A8070)",
         success:  "#5A9A58",
         warning:  "#C8882A",
         danger:   "#C05050",

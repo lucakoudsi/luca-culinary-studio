@@ -13,8 +13,9 @@ export const metadata: Metadata = {
 const themeInitScript = `
 (function(){try{
   var t=localStorage.getItem('theme');
-  var d=window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var a=t==='dark'?'dark':t==='light'?'light':d?'dark':'light';
+  var h=new Date().getHours();
+  var auto=h>=6&&h<18?'light':'dark';
+  var a=t==='dark'?'dark':t==='light'?'light':auto;
   document.documentElement.setAttribute('data-theme',a);
   var f=localStorage.getItem('fontSize');
   if(f)document.documentElement.style.fontSize=f==='klein'?'14px':f==='gross'?'18px':'16px';

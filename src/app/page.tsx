@@ -126,7 +126,7 @@ export default function DashboardPage() {
   const hasMeinStil = meinStil.kuechenstil || meinStil.spezialitaeten || meinStil.lieblingszutaten;
 
   return (
-    <div className="flex" style={{ minHeight: '100vh', background: '#FAF8F5' }}>
+    <div className="flex" style={{ minHeight: '100vh', background: 'var(--bg, #FAF8F5)' }}>
 
       {/* ── Main content ────────────────────────────────────────────── */}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                 style={{ color: '#B09880' }} />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Suchen…"
                 className="pl-9 pr-4 py-2.5 rounded-xl text-[13px] outline-none w-44 lg:w-48 transition-all border border-border"
-                style={{ background: '#FFFFFF', color: '#2C2420' }} />
+                style={{ background: 'var(--surface, #FFFFFF)', color: 'var(--text, #2C2420)' }} />
             </div>
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2.5">
@@ -182,7 +182,7 @@ export default function DashboardPage() {
 
           {/* Hero Card */}
           <div className="relative rounded-2xl overflow-hidden shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid #E8E0D8', borderTop: '2px solid #6B3A4B', minHeight: 200 }}>
+            style={{ background: 'var(--surface, #FFFFFF)', border: '1px solid var(--border, #E8E0D8)', borderTop: '2px solid var(--accent, #6B3A4B)', minHeight: 200 }}>
             <div className="absolute inset-y-0 right-0 w-[44%]">
               <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800"
                 alt="" className="w-full h-full object-cover" style={{ opacity: 0.6 }} />
@@ -243,7 +243,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="rounded-xl animate-pulse"
-                    style={{ height: 140, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                    style={{ height: 140, background: 'var(--surface-2, #EDE8E3)', border: '1px solid var(--border, #E8E0D8)' }} />
                 ))}
               </div>
             ) : projects.length === 0 ? (
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                   return (
                     <Link key={p.id} href={`/projekte/${p.id}`} className="block">
                       <div className="relative rounded-xl overflow-hidden cursor-pointer group transition-all"
-                        style={{ border: '1px solid #E8E0D8', minHeight: 130, background: '#FFFFFF' }}
+                        style={{ border: '1px solid var(--border, #E8E0D8)', minHeight: 130, background: 'var(--surface, #FFFFFF)' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.35)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)'; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
                         {/* Color accent top bar */}
@@ -313,7 +313,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="rounded-xl animate-pulse"
-                    style={{ height: 90, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                    style={{ height: 90, background: 'var(--surface-2, #EDE8E3)', border: '1px solid var(--border, #E8E0D8)' }} />
                 ))}
               </div>
             ) : ideas.length === 0 ? (
@@ -369,7 +369,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="rounded-xl animate-pulse"
-                    style={{ height: 100, background: '#EDE8E3', border: '1px solid #E8E0D8' }} />
+                    style={{ height: 100, background: 'var(--surface-2, #EDE8E3)', border: '1px solid var(--border, #E8E0D8)' }} />
                 ))}
               </div>
             ) : !hasMeinStil ? (
@@ -411,7 +411,7 @@ export default function DashboardPage() {
 
       {/* ── Right Panel ─────────────────────────────────────────────── */}
       <div className="hidden xl:flex flex-col w-[272px] flex-shrink-0 overflow-y-auto border-l border-border"
-        style={{ background: '#F0EBE3', minHeight: '100vh' }}>
+        style={{ background: 'var(--surface-2, #F0EBE3)', minHeight: '100vh' }}>
         <div className="p-5 space-y-6">
 
           {/* Inspiration */}
