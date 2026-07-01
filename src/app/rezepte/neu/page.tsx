@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import PhotoZone from '@/components/ui/PhotoZone';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
@@ -381,7 +381,8 @@ export default function NewRezeptPage() {
         return null;
       }
       const path = `${crypto.randomUUID()}.jpg`;
-      const { error } = await supabase.storage.from('rezept-bilder').upload(path, blob, {
+      const sb = createClient();
+      const { error } = await sb.storage.from('rezept-bilder').upload(path, blob, {
         contentType: 'image/jpeg',
         cacheControl: '31536000',
         upsert: false,
@@ -390,7 +391,7 @@ export default function NewRezeptPage() {
         setImageError(`Upload fehlgeschlagen: ${error.message}`);
         return null;
       }
-      const { data } = supabase.storage.from('rezept-bilder').getPublicUrl(path);
+      const { data } = sb.storage.from('rezept-bilder').getPublicUrl(path);
       return data.publicUrl;
     } finally {
       setUploadingImg(false);
@@ -443,7 +444,10 @@ export default function NewRezeptPage() {
     setSaving(true);
     try {
       let finalImage: string | null = null;
-      if (imageFile) finalImage = await uploadPhoto(imageFile);
+      if (imageFile) {
+        finalImage = await uploadPhoto(imageFile);
+        if (!finalImage) return; // upload failed; error is shown in PhotoZone
+      }
 
       await addRecipe({
         title:       base.title,

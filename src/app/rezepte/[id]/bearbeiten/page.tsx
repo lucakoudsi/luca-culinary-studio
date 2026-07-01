@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { ArrowLeft, Save, Loader2, ImagePlus } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus } from '@/types';
 import PhotoZone from '@/components/ui/PhotoZone';
@@ -103,7 +103,8 @@ export default function RezeptBearbeitenPage() {
         return null;
       }
       const path = `${crypto.randomUUID()}.jpg`;
-      const { error } = await supabase.storage.from('rezept-bilder').upload(path, blob, {
+      const sb = createClient();
+      const { error } = await sb.storage.from('rezept-bilder').upload(path, blob, {
         contentType: 'image/jpeg',
         cacheControl: '31536000',
         upsert: false,
@@ -112,7 +113,7 @@ export default function RezeptBearbeitenPage() {
         setImageError(`Upload fehlgeschlagen: ${error.message}`);
         return null;
       }
-      const { data } = supabase.storage.from('rezept-bilder').getPublicUrl(path);
+      const { data } = sb.storage.from('rezept-bilder').getPublicUrl(path);
       return data.publicUrl;
     } finally {
       setUploadingImg(false);
@@ -125,7 +126,8 @@ export default function RezeptBearbeitenPage() {
     let finalImage: string | null = image || null;
     if (imageFile) {
       const uploaded = await uploadPhoto(imageFile);
-      if (uploaded) finalImage = uploaded;
+      if (!uploaded) { setSaving(false); return; } // upload failed; error shown in PhotoZone
+      finalImage = uploaded;
     }
     await updateRecipe(Number(id), { title, category, difficulty, season, status, time, description, tags, image: finalImage });
     setSaving(false);
