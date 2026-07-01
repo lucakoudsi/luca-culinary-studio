@@ -1,3 +1,5 @@
+'use client';
+
 const SUPPORTED_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 
 export function validateImageFile(file: File): string | null {

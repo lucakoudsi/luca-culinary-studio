@@ -119,11 +119,13 @@ export const useStore = create<StoreState>((set, get) => ({
 
   addRecipe: async recipe => {
     const created = await api.post('/api/rezepte', recipe);
+    if (!created?.id) throw new Error(created?.error ?? 'Rezept konnte nicht gespeichert werden');
     set(s => ({ recipes: [...s.recipes, created] }));
   },
 
   updateRecipe: async (id, updates) => {
     const updated = await api.put(`/api/rezepte/${id}`, updates);
+    if (!updated?.id) throw new Error(updated?.error ?? 'Rezept konnte nicht aktualisiert werden');
     set(s => ({ recipes: s.recipes.map(r => r.id === id ? { ...r, ...updated } : r) }));
   },
 

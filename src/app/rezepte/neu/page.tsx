@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
-import PhotoZone from '@/components/ui/PhotoZone';
+import dynamic from 'next/dynamic';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
+
+const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
@@ -351,6 +353,7 @@ export default function NewRezeptPage() {
   // UI state
   const [saving, setSaving]           = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [saveError, setSaveError]     = useState<string | null>(null);
 
   const upd = (k: string, v: string | number) => setBase(p => ({ ...p, [k]: v }));
 
@@ -442,6 +445,7 @@ export default function NewRezeptPage() {
   const handleSave = async () => {
     if (!base.title.trim()) return;
     setSaving(true);
+    setSaveError(null);
     try {
       let finalImage: string | null = null;
       if (imageFile) {
@@ -467,6 +471,8 @@ export default function NewRezeptPage() {
         chefTipps,
       });
       router.push('/rezepte');
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Rezept konnte nicht gespeichert werden');
     } finally {
       setSaving(false);
     }
@@ -526,6 +532,14 @@ export default function NewRezeptPage() {
           </button>
         </div>
       </div>
+
+      {saveError && (
+        <div className="mx-8 mt-3 flex items-start gap-2 px-4 py-3 rounded-xl text-[13px]"
+          style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+          <span className="flex-shrink-0 mt-0.5">⚠</span>
+          <span>{saveError}</span>
+        </div>
+      )}
 
       {/* ── Form ──────────────────────────────────────────────────────────── */}
       <div className="max-w-[820px] mx-auto px-8 py-8 pb-24 space-y-5">

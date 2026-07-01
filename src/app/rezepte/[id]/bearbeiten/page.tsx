@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
+import dynamic from 'next/dynamic';
 import { ArrowLeft, Save, Loader2, ImagePlus } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus } from '@/types';
-import PhotoZone from '@/components/ui/PhotoZone';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
+
+const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 
 const categories:  RecipeCategory[]   = ['Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'];
 const difficulties: RecipeDifficulty[] = ['Leicht', 'Mittel', 'Schwer'];
@@ -40,6 +42,7 @@ export default function RezeptBearbeitenPage() {
   const [imagePreview,  setImagePreview]  = useState<string | null>(null);
   const [uploadingImg,  setUploadingImg]  = useState(false);
   const [imageError,    setImageError]    = useState<string | null>(null);
+  const [saveError,     setSaveError]     = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -122,17 +125,23 @@ export default function RezeptBearbeitenPage() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
     let finalImage: string | null = image || null;
-    if (imageFile) {
-      const uploaded = await uploadPhoto(imageFile);
-      if (!uploaded) { setSaving(false); return; } // upload failed; error shown in PhotoZone
-      finalImage = uploaded;
+    try {
+      if (imageFile) {
+        const uploaded = await uploadPhoto(imageFile);
+        if (!uploaded) { setSaving(false); return; } // upload failed; error shown in PhotoZone
+        finalImage = uploaded;
+      }
+      await updateRecipe(Number(id), { title, category, difficulty, season, status, time, description, tags, image: finalImage });
+      setSaved(true);
+      setTimeout(() => router.push('/rezepte'), 900);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Rezept konnte nicht gespeichert werden');
+    } finally {
+      setSaving(false);
     }
-    await updateRecipe(Number(id), { title, category, difficulty, season, status, time, description, tags, image: finalImage });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => router.push('/rezepte'), 900);
   };
 
   if (loading) {
@@ -190,6 +199,14 @@ export default function RezeptBearbeitenPage() {
           </button>
         </div>
       </div>
+
+      {saveError && (
+        <div className="mx-8 mt-4 flex items-start gap-2 px-4 py-3 rounded-xl text-[13px]"
+          style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+          <span className="flex-shrink-0 mt-0.5">⚠</span>
+          <span>{saveError}</span>
+        </div>
+      )}
 
       {/* Form */}
       <div className="p-8 max-w-[800px] grid gap-6">
