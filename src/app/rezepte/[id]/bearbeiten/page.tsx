@@ -2,8 +2,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
-import { ArrowLeft, Save, Loader2, Image as ImageIcon } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { ArrowLeft, Save, Loader2, ImagePlus } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus } from '@/types';
+import PhotoZone from '@/components/ui/PhotoZone';
+import { compressImage, validateImageFile } from '@/lib/imageUtils';
 
 const categories:  RecipeCategory[]   = ['Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'];
 const difficulties: RecipeDifficulty[] = ['Leicht', 'Mittel', 'Schwer'];
@@ -33,6 +36,10 @@ export default function RezeptBearbeitenPage() {
   const [description, setDescription] = useState('');
   const [tagsInput,   setTagsInput]   = useState('');
   const [image,       setImage]       = useState('');
+  const [imageFile,     setImageFile]     = useState<File | null>(null);
+  const [imagePreview,  setImagePreview]  = useState<string | null>(null);
+  const [uploadingImg,  setUploadingImg]  = useState(false);
+  const [imageError,    setImageError]    = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -66,12 +73,61 @@ export default function RezeptBearbeitenPage() {
     setDescription(r.description || '');
     setTagsInput((r.tags || []).join(', '));
     setImage(r.image || '');
+    setImagePreview(r.image || null);
   }
+
+  const handlePhoto = (file: File) => {
+    const err = validateImageFile(file);
+    if (err) { setImageError(err); return; }
+    setImageError(null);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleClearPhoto = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImage('');
+    setImageError(null);
+  };
+
+  const uploadPhoto = async (file: File): Promise<string | null> => {
+    setUploadingImg(true);
+    setImageError(null);
+    try {
+      let blob: Blob;
+      try {
+        blob = await compressImage(file);
+      } catch {
+        setImageError('Bild konnte nicht komprimiert werden. Bitte ein anderes Format versuchen.');
+        return null;
+      }
+      const path = `${crypto.randomUUID()}.jpg`;
+      const { error } = await supabase.storage.from('rezept-bilder').upload(path, blob, {
+        contentType: 'image/jpeg',
+        cacheControl: '31536000',
+        upsert: false,
+      });
+      if (error) {
+        setImageError(`Upload fehlgeschlagen: ${error.message}`);
+        return null;
+      }
+      const { data } = supabase.storage.from('rezept-bilder').getPublicUrl(path);
+      return data.publicUrl;
+    } finally {
+      setUploadingImg(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
     const tags = tagsInput.split(',').map(t => t.trim()).filter(Boolean);
-    await updateRecipe(Number(id), { title, category, difficulty, season, status, time, description, tags, image: image || null });
+    let finalImage: string | null = image || null;
+    if (imageFile) {
+      const uploaded = await uploadPhoto(imageFile);
+      if (uploaded) finalImage = uploaded;
+    }
+    await updateRecipe(Number(id), { title, category, difficulty, season, status, time, description, tags, image: finalImage });
     setSaving(false);
     setSaved(true);
     setTimeout(() => router.push('/rezepte'), 900);
@@ -124,11 +180,11 @@ export default function RezeptBearbeitenPage() {
         </div>
 
         <div className="mt-auto">
-          <button onClick={handleSave} disabled={saving || !title.trim()}
+          <button onClick={handleSave} disabled={saving || uploadingImg || !title.trim()}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
             style={{ background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF' }}>
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            {saving ? 'Speichern…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
+            {(saving || uploadingImg) ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
           </button>
         </div>
       </div>
@@ -230,29 +286,24 @@ export default function RezeptBearbeitenPage() {
         {/* Image */}
         <div>
           <label className={label} style={{ color: 'var(--text-muted)' }}>
-            <span className="flex items-center gap-1.5"><ImageIcon size={10} /> Foto-URL</span>
+            <span className="flex items-center gap-1.5"><ImagePlus size={10} /> Rezeptfoto</span>
           </label>
-          <input value={image} onChange={e => setImage(e.target.value)} className={input}
-            style={inputStyle} placeholder="https://… (Unsplash, eigene URL, etc.)" />
-          {image && (
-            <div className="mt-3 relative rounded-xl overflow-hidden h-36">
-              <img src={image} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => setImage('')}
-                className="absolute top-2 right-2 rounded-full p-1 text-[11px]"
-                style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                ✕
-              </button>
-            </div>
-          )}
+          <PhotoZone
+            preview={imagePreview}
+            onFile={handlePhoto}
+            onClear={handleClearPhoto}
+            uploading={uploadingImg}
+            error={imageError}
+          />
         </div>
 
         {/* Save */}
         <div className="pt-2 flex gap-3">
-          <button onClick={handleSave} disabled={saving || !title.trim()}
+          <button onClick={handleSave} disabled={saving || uploadingImg || !title.trim()}
             className="flex items-center gap-2 px-7 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
             style={{ background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF' }}>
-            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
-            {saving ? 'Speichern…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
+            {(saving || uploadingImg) ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
           </button>
           <button onClick={() => router.back()}
             className="px-5 py-3 rounded-xl text-[13px] font-medium transition-all"

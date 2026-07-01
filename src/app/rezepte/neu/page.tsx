@@ -1,8 +1,10 @@
 ﻿'use client';
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
+import PhotoZone from '@/components/ui/PhotoZone';
+import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
@@ -34,60 +36,6 @@ function StarRating({ value, onChange }: { value: number; onChange?: (v: number)
           <Star size={onChange ? 22 : 14} fill={i <= value ? '#6B3A4B' : 'none'} color={i <= value ? '#6B3A4B' : '#D4C9BC'} />
         </button>
       ))}
-    </div>
-  );
-}
-
-// ─── PhotoZone ───────────────────────────────────────────────────────────────
-function PhotoZone({ preview, onFile }: { preview: string | null; onFile: (f: File) => void }) {
-  const [dragging, setDragging] = useState(false);
-  const ref = useRef<HTMLInputElement>(null);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) onFile(file);
-  }, [onFile]);
-
-  return (
-    <div
-      onDragOver={e => { e.preventDefault(); setDragging(true); }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-      onClick={() => ref.current?.click()}
-      className="relative w-full h-[220px] rounded-2xl overflow-hidden cursor-pointer transition-all"
-      style={{
-        border: dragging
-          ? '2px dashed rgba(107,58,75,0.6)'
-          : preview ? 'none' : '2px dashed rgba(0,0,0,0.12)',
-        background: preview
-          ? undefined
-          : dragging ? 'rgba(107,58,75,0.04)' : '#F5F2EE',
-      }}>
-      {preview ? (
-        <>
-          <img src={preview} alt="Vorschau" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-            <div className="flex items-center gap-2 bg-black/70 px-4 py-2 rounded-lg text-white text-sm">
-              <ImagePlus size={16} /> Foto ändern
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-full gap-3 text-text-muted">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(107,58,75,0.07)', border: '1px solid rgba(107,58,75,0.2)' }}>
-            <ImagePlus size={24} color="#6B3A4B" />
-          </div>
-          <div className="text-center">
-            <p className="text-[14px] text-[#2C2420] font-medium">Foto hochladen</p>
-            <p className="text-[12px] text-[#8B7355] mt-0.5">Hierher ziehen oder klicken · JPG, PNG, WebP</p>
-          </div>
-        </div>
-      )}
-      <input ref={ref} type="file" accept="image/*" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
     </div>
   );
 }
@@ -398,6 +346,7 @@ export default function NewRezeptPage() {
   const [imageFile, setImageFile]     = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [imageError, setImageError]   = useState<string | null>(null);
 
   // UI state
   const [saving, setSaving]           = useState(false);
@@ -407,20 +356,41 @@ export default function NewRezeptPage() {
 
   // ── Photo handler ──────────────────────────────────────────────────────────
   const handlePhoto = (file: File) => {
+    const err = validateImageFile(file);
+    if (err) { setImageError(err); return; }
+    setImageError(null);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
   };
 
+  const handleClearPhoto = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+  };
+
   const uploadPhoto = async (file: File): Promise<string | null> => {
     setUploadingImg(true);
+    setImageError(null);
     try {
-      const ext  = file.name.split('.').pop() ?? 'jpg';
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('recipe-images').upload(path, file, {
-        cacheControl: '3600', upsert: false,
+      let blob: Blob;
+      try {
+        blob = await compressImage(file);
+      } catch {
+        setImageError('Bild konnte nicht komprimiert werden. Bitte ein anderes Format versuchen.');
+        return null;
+      }
+      const path = `${crypto.randomUUID()}.jpg`;
+      const { error } = await supabase.storage.from('rezept-bilder').upload(path, blob, {
+        contentType: 'image/jpeg',
+        cacheControl: '31536000',
+        upsert: false,
       });
-      if (error) { console.error('Upload error:', error.message); return null; }
-      const { data } = supabase.storage.from('recipe-images').getPublicUrl(path);
+      if (error) {
+        setImageError(`Upload fehlgeschlagen: ${error.message}`);
+        return null;
+      }
+      const { data } = supabase.storage.from('rezept-bilder').getPublicUrl(path);
       return data.publicUrl;
     } finally {
       setUploadingImg(false);
@@ -559,13 +529,13 @@ export default function NewRezeptPage() {
         {/* ── Foto Upload ─────────────────────────────────────────────────── */}
         <div className={SEC}>
           <h2 className={STL}><ImagePlus size={16} color="#6B3A4B" /> Rezeptfoto</h2>
-          <PhotoZone preview={imagePreview} onFile={handlePhoto} />
-          {imagePreview && (
-            <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-              className="mt-2 text-[12px] text-[#8B7355] hover:text-red-400 transition-colors flex items-center gap-1">
-              <X size={12} /> Foto entfernen
-            </button>
-          )}
+          <PhotoZone
+            preview={imagePreview}
+            onFile={handlePhoto}
+            onClear={handleClearPhoto}
+            uploading={uploadingImg}
+            error={imageError}
+          />
         </div>
 
         {/* ── Grundinformationen ───────────────────────────────────────────── */}
