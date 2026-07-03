@@ -1,5 +1,6 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
+import EmptyState from '@/components/ui/EmptyState';
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, X } from 'lucide-react';
 
@@ -509,14 +510,21 @@ export default function FermentationPage() {
         {loading && <p className="text-[13px] text-text-muted">Lade Projekte…</p>}
 
         {!loading && projects.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-[14px] text-text-muted mb-3">Noch keine Fermentationsprojekte.</p>
-            <button onClick={() => setCreateOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold"
-              style={{ background: '#6B3A4B', color: '#FAF8F5' }}>
-              <Plus size={15} /> Erstes Projekt anlegen
-            </button>
-          </div>
+          <EmptyState
+            icon={
+              <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+                <rect x="16" y="9" width="16" height="4" rx="2" fill="rgba(201,168,76,0.18)" stroke="#C9A84C" strokeWidth="1.5"/>
+                <rect x="15" y="13" width="18" height="4" rx="1" fill="rgba(201,168,76,0.1)" stroke="#C9A84C" strokeWidth="1.3"/>
+                <path d="M13 17 C11 17 9 19 9 21 L9 39 C9 41 11 43 13 43 L35 43 C37 43 39 41 39 39 L39 21 C39 19 37 17 35 17Z" fill="rgba(201,168,76,0.07)" stroke="#C9A84C" strokeWidth="1.5"/>
+                <circle cx="18" cy="33" r="2" fill="rgba(201,168,76,0.25)" stroke="#C9A84C" strokeWidth="1"/>
+                <circle cx="26" cy="26" r="2.5" fill="rgba(201,168,76,0.25)" stroke="#C9A84C" strokeWidth="1"/>
+                <circle cx="32" cy="35" r="1.5" fill="rgba(201,168,76,0.25)" stroke="#C9A84C" strokeWidth="1"/>
+              </svg>
+            }
+            title="Fermentation beginnt hier"
+            subtitle="Starte dein erstes Fermentationsprojekt."
+            action={{ label: '+ Neue Fermentation', onClick: () => setCreateOpen(true) }}
+          />
         )}
 
         {!loading && active.length > 0 && (

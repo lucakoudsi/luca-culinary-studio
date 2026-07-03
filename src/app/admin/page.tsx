@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { CheckCircle, XCircle, Clock, Loader2, ShieldOff } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2, ShieldOff, Wine } from 'lucide-react';
 import { ADMIN_EMAIL } from '@/config/roles';
 
 type Request = {
@@ -103,6 +104,15 @@ export default function AdminPage() {
           <p style={{ color: 'rgba(168,152,128,0.7)', fontSize: 13, marginTop: 4 }}>
             Registrierungsanfragen verwalten
           </p>
+        </div>
+
+        {/* Admin-Schnelllinks */}
+        <div className="flex gap-3 mb-8">
+          <Link href="/admin/weine"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+            style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.25)' }}>
+            <Wine size={14} /> Wein-Datenbank
+          </Link>
         </div>
 
         {error && (

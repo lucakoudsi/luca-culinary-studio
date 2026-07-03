@@ -1,5 +1,6 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
+import EmptyState from '@/components/ui/EmptyState';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
@@ -357,11 +358,23 @@ export default function ProjektePage() {
       )}
 
       {projects.length === 0 && (
-        <div className="text-center py-20">
-          <FolderOpen size={48} strokeWidth={1} className="mx-auto mb-4 text-text-muted" />
-          <p className="font-heading text-xl text-text-secondary mb-2">Noch keine Projekte</p>
-          <p className="text-sm text-text-muted">Erstelle ein Projekt um Rezepte, Menüs und Notizen zu bündeln.</p>
-        </div>
+        <EmptyState
+          icon={
+            <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="15" fill="rgba(107,58,75,0.06)" stroke="#6B3A4B" strokeWidth="1.5"/>
+              <circle cx="24" cy="24" r="2.5" fill="#6B3A4B"/>
+              <polygon points="24,10 22.5,24 24,22 25.5,24" fill="#6B3A4B" opacity="0.85"/>
+              <polygon points="24,38 22.5,24 24,26 25.5,24" fill="rgba(107,58,75,0.35)"/>
+              <line x1="24" y1="11.5" x2="24" y2="14" stroke="#6B3A4B" strokeWidth="1.4" opacity="0.35"/>
+              <line x1="24" y1="34" x2="24" y2="36.5" stroke="#6B3A4B" strokeWidth="1.4" opacity="0.35"/>
+              <line x1="11.5" y1="24" x2="14" y2="24" stroke="#6B3A4B" strokeWidth="1.4" opacity="0.35"/>
+              <line x1="34" y1="24" x2="36.5" y2="24" stroke="#6B3A4B" strokeWidth="1.4" opacity="0.35"/>
+            </svg>
+          }
+          title="Große Ideen brauchen Struktur"
+          subtitle="Organisiere deine kulinarischen Vorhaben."
+          action={userTier >= 3 ? { label: '+ Erstes Projekt erstellen', onClick: () => setShowNew(true) } : undefined}
+        />
       )}
 
       {selected && <ProjectDetail project={selected} onClose={() => setSelectedId(null)} />}

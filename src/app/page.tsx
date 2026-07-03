@@ -1,5 +1,6 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
+import EmptyState from '@/components/ui/EmptyState';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, ArrowRight, FolderOpen } from 'lucide-react';
@@ -264,16 +265,19 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : projects.length === 0 ? (
-              <div className="rounded-xl p-8 text-center border border-dashed"
-                style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-                <FolderOpen size={28} style={{ color: '#C0B5A8', margin: '0 auto 10px' }} />
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 12 }}>Noch keine Projekte</p>
-                <Link href="/projekte"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all"
-                  style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
-                  Erstes Projekt erstellen <ArrowRight size={13} />
-                </Link>
-              </div>
+              <EmptyState
+                icon={
+                  <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                    <ellipse cx="24" cy="37" rx="15" ry="2.5" fill="rgba(107,58,75,0.15)" stroke="#6B3A4B" strokeWidth="1.5"/>
+                    <ellipse cx="24" cy="35" rx="13" ry="1.8" fill="none" stroke="#6B3A4B" strokeWidth="1.3"/>
+                    <path d="M11 35 Q11 19 24 19 Q37 19 37 35" fill="rgba(107,58,75,0.07)" stroke="#6B3A4B" strokeWidth="1.5"/>
+                    <circle cx="24" cy="17" r="2.5" fill="rgba(107,58,75,0.12)" stroke="#6B3A4B" strokeWidth="1.4"/>
+                  </svg>
+                }
+                title="Deine Küche wartet"
+                subtitle="Starte dein erstes kulinarisches Projekt."
+                action={{ label: 'Projekt starten →', onClick: () => router.push('/projekte') }}
+              />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {projects.map(p => {
@@ -334,12 +338,20 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : ideas.length === 0 ? (
-              <div className="rounded-xl p-6 text-center border border-dashed"
-                style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  Noch keine Ideen gespeichert
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+                    <path d="M24 8 C16 8 11 14 11 21 C11 27 15 31 19 33 L19 37 L29 37 L29 33 C33 31 37 27 37 21 C37 14 32 8 24 8Z" fill="rgba(201,168,76,0.12)" stroke="#C9A84C" strokeWidth="1.5"/>
+                    <line x1="19" y1="37" x2="29" y2="37" stroke="#C9A84C" strokeWidth="1.5"/>
+                    <line x1="20.5" y1="40" x2="27.5" y2="40" stroke="#C9A84C" strokeWidth="1.5"/>
+                    <line x1="22" y1="43" x2="26" y2="43" stroke="#C9A84C" strokeWidth="1.3"/>
+                    <circle cx="24" cy="18" r="2" fill="rgba(201,168,76,0.3)" stroke="#C9A84C" strokeWidth="1"/>
+                  </svg>
+                }
+                title="Inspiration kommt"
+                subtitle="Halte deine kulinarischen Ideen fest."
+                action={{ label: 'Idee notieren →', onClick: () => router.push('/ki-sous-chef') }}
+              />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {ideas.map(idea => (

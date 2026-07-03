@@ -1,5 +1,6 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
+import EmptyState from '@/components/ui/EmptyState';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -320,11 +321,23 @@ export default function RezeptePage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 text-text-muted">
-          <BookOpen size={48} strokeWidth={1} className="mx-auto mb-4" />
-          <p className="font-heading text-xl text-text-secondary mb-2">Keine Rezepte gefunden</p>
-          <p className="text-sm">Filter anpassen oder neues Rezept erstellen.</p>
-        </div>
+        <EmptyState
+          icon={
+            <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+              <path d="M24 13 C20 11 13 11 9 13 L9 37 C13 35 20 35 24 37 C28 35 35 35 39 37 L39 13 C35 11 28 11 24 13Z" fill="rgba(107,58,75,0.07)" stroke="#6B3A4B" strokeWidth="1.5"/>
+              <line x1="24" y1="13" x2="24" y2="37" stroke="#6B3A4B" strokeWidth="1.4"/>
+              <line x1="13" y1="19" x2="22" y2="19" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+              <line x1="13" y1="23" x2="22" y2="23" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+              <line x1="13" y1="27" x2="22" y2="27" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+              <line x1="26" y1="19" x2="35" y2="19" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+              <line x1="26" y1="23" x2="35" y2="23" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+              <line x1="26" y1="27" x2="35" y2="27" stroke="#6B3A4B" strokeWidth="1" strokeOpacity="0.45"/>
+            </svg>
+          }
+          title="Dein Archiv ist bereit"
+          subtitle="Dokumentiere deine ersten Kreationen."
+          action={{ label: '+ Erstes Rezept erstellen', onClick: () => router.push('/rezepte/neu') }}
+        />
       )}
 
       {selected && (
