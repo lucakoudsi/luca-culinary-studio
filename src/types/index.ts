@@ -33,6 +33,7 @@ export interface Recipe {
   schritte?: string[];
   getraenke?: string;
   chefTipps?: string;
+  geschmack?: FlavorProfile | null;
 }
 
 export interface Idea {

@@ -25,6 +25,7 @@ function toRecipe(row: Record<string, unknown>): Recipe {
     schritte:    (row.schritte as string[]) ?? [],
     getraenke:   (row.getraenke as string) ?? '',
     chefTipps:   (row.chef_tipps as string) ?? '',
+    geschmack:   (row.geschmack as Recipe['geschmack']) ?? null,
   };
 }
 
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       schritte:           body.schritte ?? [],
       getraenke:          body.getraenke ?? null,
       chef_tipps:         body.chefTipps ?? null,
+      geschmack:          body.geschmack ?? null,
     })
     .select()
     .single();

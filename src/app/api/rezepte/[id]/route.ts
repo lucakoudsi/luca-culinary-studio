@@ -25,6 +25,7 @@ function toRecipe(row: Record<string, unknown>): Recipe {
     schritte:    (row.schritte as string[]) ?? [],
     getraenke:   (row.getraenke as string) ?? '',
     chefTipps:   (row.chef_tipps as string) ?? '',
+    geschmack:   (row.geschmack as Recipe['geschmack']) ?? null,
   };
 }
 
@@ -68,6 +69,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (body.schritte    !== undefined) update.schritte         = body.schritte;
   if (body.getraenke   !== undefined) update.getraenke        = body.getraenke;
   if (body.chefTipps   !== undefined) update.chef_tipps       = body.chefTipps;
+  if (body.geschmack   !== undefined) update.geschmack        = body.geschmack;
 
   const { data, error } = await db
     .from('recipes')

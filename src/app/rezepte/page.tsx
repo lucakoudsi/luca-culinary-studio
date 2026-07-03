@@ -7,8 +7,19 @@ import { useStore } from '@/lib/store';
 import type { Recipe } from '@/types';
 import {
   BookOpen, Search, Plus, Filter, Clock, Eye, Star, X, Trash2, Edit3,
-  Tag, Wine, ChefHat,
+  Tag, Wine, ChefHat, Loader2, Grape,
 } from 'lucide-react';
+import { matchWeine } from '@/lib/weinPairing';
+import type { Wein, WeinMatch } from '@/lib/weinPairing';
+import type { FoodProfile } from '@/lib/weinPairing';
+import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
+
+const TYP_COLOR: Record<Wein['typ'], string> = {
+  weiss: '#9B6E1A', rot: '#C04040', rose: '#C06080', schaumwein: '#3A80A8', suesswein: '#8B4A9B',
+};
+const TYP_LABELS: Record<Wein['typ'], string> = {
+  weiss: 'Weißwein', rot: 'Rotwein', rose: 'Rosé', schaumwein: 'Schaumwein', suesswein: 'Süßwein',
+};
 
 const categories = ['Alle', 'Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'];
 const statuses   = ['Alle', 'Fertig', 'In Bearbeitung', 'Entwurf'];
@@ -94,6 +105,49 @@ function RecipeCard({ recipe, onView, onDelete, onEdit }: { recipe: Recipe; onVi
 
 // ─── RecipeDetail ─────────────────────────────────────────────────────────────
 function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: () => void; onDelete: () => void }) {
+  const { ingredients, fetchIngredients } = useStore();
+
+  const [pairingLoading, setPairingLoading] = useState(false);
+  const [pairingResults, setPairingResults] = useState<WeinMatch[]>([]);
+  const [pairingError,   setPairingError]   = useState('');
+  const [pairingDone,    setPairingDone]    = useState(false);
+
+  useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
+
+  const runPairing = async (profile: FoodProfile) => {
+    setPairingLoading(true);
+    setPairingError('');
+    setPairingResults([]);
+    try {
+      const res = await fetch('/api/weine');
+      if (!res.ok) throw new Error('Weine konnten nicht geladen werden.');
+      const wines: Wein[] = await res.json();
+      if (wines.length === 0) {
+        setPairingError('Keine Weine in der Datenbank — bitte Seed ausführen.');
+        return;
+      }
+      setPairingResults(matchWeine(profile, wines).slice(0, 3));
+      setPairingDone(true);
+    } catch (e) {
+      setPairingError(e instanceof Error ? e.message : 'Fehler beim Laden der Weine.');
+    } finally {
+      setPairingLoading(false);
+    }
+  };
+
+  const handlePairingFromProfile = () => runPairing(recipe.geschmack as FoodProfile);
+
+  const handlePairingFromZutaten = () => {
+    const { profile, matched } = computeRecipeFlavorProfile(
+      recipe.zutaten ?? [], recipe.komponenten ?? [], ingredients,
+    );
+    if (matched.length === 0) {
+      setPairingError('Keine Zutaten aus der Bibliothek erkannt — Profil kann nicht berechnet werden.');
+      return;
+    }
+    runPairing(profile as FoodProfile);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-2xl max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -222,6 +276,86 @@ function RecipeDetail({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: 
               </div>
             </div>
           )}
+
+          {/* ── Wein-Pairing ─────────────────────────────────────────────── */}
+          <div className="mb-5 rounded-xl p-4" style={{ background: 'rgba(107,58,75,0.04)', border: '1px solid rgba(107,58,75,0.15)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Grape size={14} color="#6B3A4B" />
+              <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: '#6B3A4B' }}>Wein-Pairing</span>
+            </div>
+
+            {!pairingDone && !pairingLoading && (
+              recipe.geschmack ? (
+                <button onClick={handlePairingFromProfile}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold w-full justify-center transition-all hover:opacity-90"
+                  style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
+                  <Wine size={14} /> Passenden Wein finden
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <button onClick={handlePairingFromZutaten}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold w-full justify-center transition-all hover:opacity-90"
+                    style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
+                    <Wine size={14} /> Direkt aus Zutaten berechnen
+                  </button>
+                  <p className="text-center text-[11px]" style={{ color: 'rgba(107,58,75,0.5)' }}>
+                    Kein gespeichertes Profil · Für dauerhaftes Profil → Rezept bearbeiten
+                  </p>
+                </div>
+              )
+            )}
+
+            {pairingLoading && (
+              <div className="flex items-center justify-center gap-2 py-4 text-[13px]" style={{ color: '#8B7355' }}>
+                <Loader2 size={14} className="animate-spin" /> Weine werden geladen…
+              </div>
+            )}
+
+            {pairingError && (
+              <p className="text-[12px] px-3 py-2 rounded-lg" style={{ background: 'rgba(224,107,107,0.08)', color: '#E06B6B', border: '1px solid rgba(224,107,107,0.2)' }}>
+                {pairingError}
+              </p>
+            )}
+
+            {pairingResults.length > 0 && (
+              <div className="space-y-2">
+                {pairingResults.map(({ wein, score, gründe }) => (
+                  <div key={wein.id} className="rounded-xl p-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <p className="text-[13px] font-semibold text-text-primary">{wein.name}</p>
+                        <p className="text-[11px] text-text-muted">{wein.region} · {wein.land}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ background: `${TYP_COLOR[wein.typ]}18`, color: TYP_COLOR[wein.typ], border: `1px solid ${TYP_COLOR[wein.typ]}33` }}>
+                          {TYP_LABELS[wein.typ]}
+                        </span>
+                        <span className="text-[13px] font-bold" style={{ color: TYP_COLOR[wein.typ] }}>{score}%</span>
+                      </div>
+                    </div>
+                    <div className="mb-2 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, background: TYP_COLOR[wein.typ] }} />
+                    </div>
+                    {gründe.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {gründe.map(g => (
+                          <span key={g} className="text-[10px] px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button onClick={() => { setPairingResults([]); setPairingDone(false); setPairingError(''); }}
+                  className="text-[11px] text-center w-full pt-1" style={{ color: 'rgba(107,58,75,0.5)' }}>
+                  Neu berechnen
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-4 pt-5 border-t border-border">
             <div className="flex gap-1">

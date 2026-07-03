@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
@@ -10,8 +10,11 @@ const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: fals
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, ChevronRight, Trash2,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, ChevronRight, Trash2, Calculator,
 } from 'lucide-react';
+import { FlavorSliders } from '@/components/ui/FlavorSliders';
+import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
+import type { FlavorProfile } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CATEGORIES  = ['Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'] as const;
@@ -327,7 +330,9 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function NewRezeptPage() {
   const router = useRouter();
-  const { addRecipe } = useStore();
+  const { addRecipe, ingredients, fetchIngredients } = useStore();
+
+  useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
 
   // Form base fields
   const [base, setBase] = useState({
@@ -350,12 +355,24 @@ export default function NewRezeptPage() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [imageError, setImageError]   = useState<string | null>(null);
 
+  // Geschmacksprofil
+  const [geschmack, setGeschmackRaw]  = useState<FlavorProfile>(EMPTY_FLAVOR);
+  const [geschmackSet, setGeschmackSet] = useState(false);
+  const [matchInfo, setMatchInfo]     = useState<{ matched: string[]; unmatched: string[] } | null>(null);
+  const setGeschmack = (p: FlavorProfile) => { setGeschmackRaw(p); setGeschmackSet(true); };
+
   // UI state
   const [saving, setSaving]           = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [saveError, setSaveError]     = useState<string | null>(null);
 
   const upd = (k: string, v: string | number) => setBase(p => ({ ...p, [k]: v }));
+
+  const handleCompute = () => {
+    const result = computeRecipeFlavorProfile(zutaten, komponenten, ingredients);
+    setGeschmack(result.profile);
+    setMatchInfo({ matched: result.matched, unmatched: result.unmatched });
+  };
 
   // ── Photo handler ──────────────────────────────────────────────────────────
   const handlePhoto = (file: File) => {
@@ -469,6 +486,7 @@ export default function NewRezeptPage() {
         schritte,
         getraenke,
         chefTipps,
+        geschmack:   geschmackSet ? geschmack : null,
       });
       router.push('/rezepte');
     } catch (err) {
@@ -719,6 +737,52 @@ export default function NewRezeptPage() {
           <textarea value={getraenke} onChange={e => setGetraenke(e.target.value)}
             placeholder="Weinempfehlung, Cocktail oder alkoholfreie Alternative…" rows={3}
             className={IC + ' resize-none leading-relaxed'} />
+        </div>
+
+        {/* ── Geschmacksprofil ─────────────────────────────────────────────── */}
+        <div className={SEC}>
+          <h2 className={STL}>
+            <Wine size={16} color="#6B3A4B" />
+            Geschmacksprofil
+            <span className="ml-2 text-[12px] font-normal text-[#8B7355]">· Wein-Pairing</span>
+          </h2>
+          <p className="text-[13px] text-[#8B7355] mb-4 leading-relaxed">
+            Beschreibt den Geschmack des Gerichts auf 6 Achsen (0 = nicht vorhanden, 5 = intensiv).
+            Wird verwendet, um passende Weine zu empfehlen.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleCompute}
+            disabled={zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0)}
+            className="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+            <Calculator size={14} /> Aus Zutaten berechnen
+          </button>
+
+          {matchInfo && (
+            <div className="mb-5 px-3 py-2.5 rounded-lg text-[12px]"
+              style={{ background: 'rgba(107,58,75,0.05)', border: '1px solid rgba(107,58,75,0.15)' }}>
+              {matchInfo.matched.length > 0 ? (
+                <>
+                  <span style={{ color: '#6B3A4B', fontWeight: 600 }}>
+                    {matchInfo.matched.length} Zutat{matchInfo.matched.length !== 1 ? 'en' : ''} aus Bibliothek
+                  </span>
+                  {matchInfo.unmatched.length > 0 && (
+                    <span style={{ color: '#B09880' }}>
+                      {' '}· {matchInfo.unmatched.length} ohne Treffer (ignoriert)
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span style={{ color: '#B09880' }}>
+                  Keine Zutaten in der Bibliothek gefunden — Profil bitte manuell einstellen.
+                </span>
+              )}
+            </div>
+          )}
+
+          <FlavorSliders profile={geschmack} onChange={setGeschmack} />
         </div>
 
         {/* ── Chef-Tipps ────────────────────────────────────────────────────── */}
