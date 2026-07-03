@@ -366,8 +366,8 @@ export default function AdminWeinePage() {
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="z.B. Riesling trocken Mosel"
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none focus:ring-1"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', ringColor: '#C9A84C' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none focus:ring-1 focus:ring-[#C9A84C]"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
                 />
               </div>
 
