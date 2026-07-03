@@ -118,6 +118,9 @@ export default function WeinPairingPage() {
   const [results, setResults]       = useState<WeinMatch[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [typeFilter, setTypeFilter] = useState<WeinTyp>('Alle');
+  const [showAll, setShowAll]       = useState(false);
+
+  const TOP_N = 12;
 
   // ── Load wines + ingredients + recipes on mount ────────────────────────────
   useEffect(() => {
@@ -155,6 +158,7 @@ export default function WeinPairingPage() {
     setResults(matchWeine(profile, weine));
     setHasSearched(true);
     setTypeFilter('Alle');
+    setShowAll(false);
   };
 
   // ── Mode A handler ─────────────────────────────────────────────────────────
@@ -235,10 +239,12 @@ export default function WeinPairingPage() {
     .filter(i => i.name.toLowerCase().includes(zutatenSearch.toLowerCase()))
     .slice(0, 25);
 
-  // ── Filtered wine results ──────────────────────────────────────────────────
-  const displayedResults = typeFilter === 'Alle'
+  // ── Filtered + paginated wine results ────────────────────────────────────
+  const filteredResults = typeFilter === 'Alle'
     ? results
     : results.filter(r => r.wein.typ === typeFilter);
+  const displayedResults = showAll ? filteredResults : filteredResults.slice(0, TOP_N);
+  const hasMore = filteredResults.length > TOP_N && !showAll;
 
   const switchModus = (m: Modus) => {
     setModus(m);
@@ -521,7 +527,7 @@ export default function WeinPairingPage() {
                   const count = t === 'Alle' ? results.length : results.filter(r => r.wein.typ === t).length;
                   if (count === 0 && t !== 'Alle') return null;
                   return (
-                    <button key={t} onClick={() => setTypeFilter(t)}
+                    <button key={t} onClick={() => { setTypeFilter(t); setShowAll(false); }}
                       className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all"
                       style={{
                         background: typeFilter === t ? `${meta.color}15` : 'rgba(0,0,0,0.04)',
@@ -533,13 +539,33 @@ export default function WeinPairingPage() {
                   );
                 })}
                 <span className="ml-auto text-[12px] text-[#B09880]">
-                  {displayedResults.length} Empfehlung{displayedResults.length !== 1 ? 'en' : ''}
+                  {showAll || filteredResults.length <= TOP_N
+                    ? `${filteredResults.length} Empfehlung${filteredResults.length !== 1 ? 'en' : ''}`
+                    : `${TOP_N} von ${filteredResults.length} Empfehlungen`}
                 </span>
               </div>
 
               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
                 {displayedResults.map(m => <WeinCard key={m.wein.id} match={m} />)}
               </div>
+
+              {hasMore && (
+                <button
+                  onClick={() => setShowAll(true)}
+                  className="mt-5 w-full py-3 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                  style={{ background: 'rgba(107,58,75,0.06)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                  Mehr anzeigen ({filteredResults.length - TOP_N} weitere)
+                </button>
+              )}
+
+              {showAll && filteredResults.length > TOP_N && (
+                <button
+                  onClick={() => setShowAll(false)}
+                  className="mt-5 w-full py-3 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                  style={{ background: 'rgba(0,0,0,0.03)', color: '#8B7355', border: '1px solid rgba(0,0,0,0.08)' }}>
+                  Weniger anzeigen
+                </button>
+              )}
             </>
           )}
 
