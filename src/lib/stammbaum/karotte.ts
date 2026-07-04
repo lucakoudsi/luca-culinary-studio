@@ -73,5 +73,14 @@ export const KAROTTE: TreeNodeData = {
         { id: 't-pulver', label: 'Pulver',  level: 2, dishes: ['Karottenmehl', 'Karottenpulver für Suppen', 'Naturfarbe für Pasta'] },
       ],
     },
+    {
+      id: 'grillen', label: 'GRILLEN', icon: '♨️', level: 1,
+      description: 'Direkte Glut karamellisiert die natürliche Süße und gibt Rauchnoten.',
+      inspiration: 'Ganze Baby-Karotten, Glasur aus Honig oder Miso',
+      children: [
+        { id: 'gr-ganz',   label: 'Ganz',   level: 2, dishes: ['BBQ-Karotten mit Miso-Glasur', 'Gegrillte Babykarotten'] },
+        { id: 'gr-spiess', label: 'Spieße', level: 2, dishes: ['Gemüsespieße', 'Karotten-Satay'] },
+      ],
+    },
   ],
 };

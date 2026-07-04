@@ -63,5 +63,23 @@ export const PILZ: TreeNodeData = {
         { id: 'fe-miso',   label: 'Fermentiert',      level: 2, dishes: ['Pilz-Garum', 'Shiitake-Miso', 'Pilz-Kombucha'] },
       ],
     },
+    {
+      id: 'grillen', label: 'GRILLEN', icon: '♨️', level: 1,
+      description: 'Direkte Hitze konzentriert das Umami und gibt Röst- und Rauchnoten.',
+      inspiration: 'Große Hüte ganz lassen, marinieren vor dem Grillen',
+      children: [
+        { id: 'gr-portobello', label: 'Ganze Hüte', level: 2, dishes: ['Gegrillter Portobello (Burger-Patty)', 'Gegrillte Steinpilze'] },
+        { id: 'gr-spiess',     label: 'Spieße',      level: 2, dishes: ['Pilz-Gemüse-Spieße', 'Yakitori-Pilze'] },
+      ],
+    },
+    {
+      id: 'frittieren', label: 'FRITTIEREN', icon: '✨', level: 1,
+      description: 'Ein knuspriger Teigmantel kontrastiert mit dem saftig-fleischigen Pilzkern.',
+      inspiration: 'Tempura-Teig, sehr heißes Öl, sofort servieren',
+      children: [
+        { id: 'fr-tempura', label: 'Tempura', level: 2, dishes: ['Shiitake-Tempura', 'Austernpilz-Tempura'] },
+        { id: 'fr-paniert', label: 'Paniert',  level: 2, dishes: ['Frittierte Champignons', 'Pilz-Nuggets'] },
+      ],
+    },
   ],
 };

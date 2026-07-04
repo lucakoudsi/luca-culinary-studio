@@ -72,5 +72,14 @@ export const ZWIEBEL: TreeNodeData = {
         { id: 't-roest',  label: 'Röstzwiebeln',level: 2, dishes: ['Fertig-Rösti-Topping', 'Linsengericht', 'Döner-Belag'] },
       ],
     },
+    {
+      id: 'grillen', label: 'GRILLEN', icon: '♨️', level: 1,
+      description: 'Direkte Glut karamellisiert die Zwiebel von außen und gibt Rauchnoten.',
+      inspiration: 'Ganze Zwiebeln in der Glut, Spieße für Kebab',
+      children: [
+        { id: 'gr-ringe', label: 'Ringe & Spieße',  level: 2, dishes: ['Grillzwiebeln zum Burger', 'Kebab-Zwiebel', 'Cebolla asada'] },
+        { id: 'gr-ganz',  label: 'Ganz in der Glut', level: 2, dishes: ['Ash-Roasted Onion', 'Bulgogi-Beilage'] },
+      ],
+    },
   ],
 };

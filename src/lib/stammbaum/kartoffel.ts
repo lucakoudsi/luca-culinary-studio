@@ -84,16 +84,6 @@ export const KARTOFFEL: TreeNodeData = {
       ],
     },
     {
-      id: 'fermentieren', label: 'FERMENTIEREN', icon: '🧪', level: 1,
-      description: 'Mikroorganismen verwandeln die Kartoffel in neue Produkte mit komplexem Charakter.',
-      inspiration: 'Probiotika, traditionelle Verfahren der Welt',
-      children: [
-        { id: 'fe-milch', label: 'Milchsauer',   level: 2, dishes: ['Kartoffel-Kimchi'] },
-        { id: 'fe-dest',  label: 'Destillieren', level: 2, dishes: ['Wodka', 'Kartoffelschnaps', 'Poitin (irisch)'] },
-        { id: 'fe-teig',  label: 'Teig-Basis',   level: 2, dishes: ['Kartoffelsauerteig'] },
-      ],
-    },
-    {
       id: 'trocknen', label: 'TROCKNEN', icon: '🌬️', level: 1,
       description: 'Feuchtigkeitsentzug konzentriert Aromen und verlängert die Haltbarkeit erheblich.',
       inspiration: 'Haltbarmachen, Geschmack konzentrieren',

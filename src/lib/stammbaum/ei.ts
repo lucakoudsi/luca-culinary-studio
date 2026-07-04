@@ -74,5 +74,14 @@ export const EI: TreeNodeData = {
         { id: 'ei-hundert',  label: 'Alkalisch',     level: 2, dishes: ['Century Egg (Pidan)', 'Laugen-Ei'] },
       ],
     },
+    {
+      id: 'frittieren', label: 'FRITTIEREN', icon: '✨', level: 1,
+      description: 'Heißes Fett umhüllt das Ei mit einer knusprigen Kruste – innen bleibt es cremig weich.',
+      inspiration: 'Panade, kurze Garzeit, hohe Temperatur',
+      children: [
+        { id: 'fr-scotch',  label: 'Paniert',            level: 2, dishes: ['Scotch Egg', 'Frittiertes Wachtelei'] },
+        { id: 'fr-spiegel', label: 'Frittiertes Spiegelei', level: 2, dishes: ['Huevo frito (spanisch)', 'Crispy Fried Egg (asiatisch)'] },
+      ],
+    },
   ],
 };

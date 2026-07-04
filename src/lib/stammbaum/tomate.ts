@@ -73,5 +73,14 @@ export const TOMATE: TreeNodeData = {
         { id: 'fe-verarbeitet',label: 'Verarbeitet',  level: 2, dishes: ['Fermentierter Tomatensaft', 'Tomaten-Garum'] },
       ],
     },
+    {
+      id: 'frittieren', label: 'FRITTIEREN', icon: '✨', level: 1,
+      description: 'Ein Mantel aus Mehl oder Teig schützt die Tomate im heißen Fett und erzeugt knusprigen Kontrast.',
+      inspiration: 'Grüne, unreife Tomaten eignen sich am besten',
+      children: [
+        { id: 'fr-gruen',   label: 'Grün paniert',   level: 2, dishes: ['Fried Green Tomatoes (Südstaaten-Klassiker)'] },
+        { id: 'fr-tempura', label: 'Im Teigmantel', level: 2, dishes: ['Tomaten-Tempura', 'Beignets de tomate'] },
+      ],
+    },
   ],
 };
