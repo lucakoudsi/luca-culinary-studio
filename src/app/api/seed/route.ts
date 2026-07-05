@@ -24,9 +24,9 @@ const ideen = [
 ];
 
 const projekte = [
-  { name: 'Frühlingsmenü 2026', description: 'Siebengängiges Menü für das Pop-up-Dinner im April.', color: '#7CB87A', status: 'Aktiv', recipe_ids: [], menu_ids: [], notes: [], created_at: '2026-03-01' },
-  { name: 'Fermentations-Kollektion', description: 'Entwicklung einer Serie von 5 Gerichten basierend auf hausgemachten Fermenten.', color: '#C9A84C', status: 'Aktiv', recipe_ids: [], menu_ids: [], notes: [], created_at: '2026-04-10' },
-  { name: 'Kochbuch Kapitel 3', description: 'Rezepte und Konzepte für das Kapitel „Sommer am Meer".', color: '#7BB8D4', status: 'Pausiert', recipe_ids: [], menu_ids: [], notes: [], created_at: '2026-02-01' },
+  { name: 'Frühlingsmenü 2026', beschreibung: 'Siebengängiges Menü für das Pop-up-Dinner im April.', farbe: '#7CB87A', status: 'Aktiv', recipe_ids: [], menu_ids: [], notizen: [], created_at: '2026-03-01' },
+  { name: 'Fermentations-Kollektion', beschreibung: 'Entwicklung einer Serie von 5 Gerichten basierend auf hausgemachten Fermenten.', farbe: '#C9A84C', status: 'Aktiv', recipe_ids: [], menu_ids: [], notizen: [], created_at: '2026-04-10' },
+  { name: 'Kochbuch Kapitel 3', beschreibung: 'Rezepte und Konzepte für das Kapitel „Sommer am Meer".', farbe: '#7BB8D4', status: 'Pausiert', recipe_ids: [], menu_ids: [], notizen: [], created_at: '2026-02-01' },
 ];
 
 export async function POST() {

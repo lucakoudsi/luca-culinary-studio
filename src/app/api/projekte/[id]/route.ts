@@ -8,12 +8,12 @@ function toProject(row: Record<string, unknown>) {
   return {
     id:          row.id,
     name:        row.name,
-    description: row.description ?? '',
-    color:       row.color ?? '#C9A84C',
+    description: row.beschreibung ?? '',
+    color:       row.farbe ?? '#C9A84C',
     status:      row.status ?? 'Aktiv',
     recipeIds:   (row.recipe_ids as number[]) ?? [],
     menuIds:     (row.menu_ids  as number[]) ?? [],
-    notes:       (row.notes     as object[]) ?? [],
+    notes:       (row.notizen   as object[]) ?? [],
     createdAt:   row.created_at ?? row.createdAt ?? '',
   };
 }
@@ -24,13 +24,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const body = await req.json();
   const update: Record<string, unknown> = {};
-  if (body.name        !== undefined) update.name        = body.name;
-  if (body.description !== undefined) update.description = body.description;
-  if (body.color       !== undefined) update.color       = body.color;
-  if (body.status      !== undefined) update.status      = body.status;
-  if (body.recipeIds   !== undefined) update.recipe_ids  = body.recipeIds;
-  if (body.menuIds     !== undefined) update.menu_ids    = body.menuIds;
-  if (body.notes       !== undefined) update.notes       = body.notes;
+  if (body.name        !== undefined) update.name         = body.name;
+  if (body.description !== undefined) update.beschreibung = body.description;
+  if (body.color       !== undefined) update.farbe        = body.color;
+  if (body.status      !== undefined) update.status       = body.status;
+  if (body.recipeIds   !== undefined) update.recipe_ids   = body.recipeIds;
+  if (body.menuIds     !== undefined) update.menu_ids     = body.menuIds;
+  if (body.notes       !== undefined) update.notizen      = body.notes;
 
   const { data, error } = await db
     .from('projekte')

@@ -8,12 +8,12 @@ function toProject(row: Record<string, unknown>) {
   return {
     id:          row.id,
     name:        row.name,
-    description: row.description ?? '',
-    color:       row.color ?? '#C9A84C',
+    description: row.beschreibung ?? '',
+    color:       row.farbe ?? '#C9A84C',
     status:      row.status ?? 'Aktiv',
     recipeIds:   (row.recipe_ids as number[]) ?? [],
     menuIds:     (row.menu_ids  as number[]) ?? [],
-    notes:       (row.notes     as object[]) ?? [],
+    notes:       (row.notizen   as object[]) ?? [],
     createdAt:   row.created_at ?? row.createdAt ?? '',
   };
 }
@@ -39,15 +39,15 @@ export async function POST(req: NextRequest) {
   const { data, error } = await db
     .from('projekte')
     .insert({
-      user_id:     user.id,
-      name:        body.name,
-      description: body.description ?? null,
-      color:       body.color ?? '#C9A84C',
-      status:      body.status ?? 'Aktiv',
-      recipe_ids:  body.recipeIds ?? [],
-      menu_ids:    body.menuIds   ?? [],
-      notes:       body.notes     ?? [],
-      created_at:  new Date().toISOString().slice(0, 10),
+      user_id:      user.id,
+      name:         body.name,
+      beschreibung: body.description ?? null,
+      farbe:        body.color ?? '#C9A84C',
+      status:       body.status ?? 'Aktiv',
+      recipe_ids:   body.recipeIds ?? [],
+      menu_ids:     body.menuIds   ?? [],
+      notizen:      body.notes     ?? [],
+      created_at:   new Date().toISOString().slice(0, 10),
     })
     .select()
     .single();
