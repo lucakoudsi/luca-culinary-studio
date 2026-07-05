@@ -30,7 +30,7 @@ const STYLES = `
     animation-fill-mode: both;
   }
   .branch-overlay {
-    transition: opacity 0.35s ease, filter 0.35s ease;
+    transition: opacity 0.3s ease, filter 0.3s ease;
   }
   .method-card {
     background: #FFFFFF;
@@ -221,10 +221,10 @@ function BranchGroup({ branch, active, delay }: { branch: Branch; active: boolea
       <path d={branch.path} fill="url(#branchGrad)" />
       <path
         className="branch-overlay"
-        d={branch.pathHover}
+        d={branch.path}
         fill="#C9A84C"
-        opacity={active ? 0.85 : 0}
-        filter={active ? 'url(#branchGlow)' : undefined}
+        opacity={active ? 1 : 0}
+        style={{ filter: active ? 'url(#branchGlow)' : 'none' }}
       />
     </g>
   );

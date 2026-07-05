@@ -158,7 +158,6 @@ export interface Branch {
   side: 'left' | 'right';
   index: number;
   path: string;
-  pathHover: string;
   base: Pt;
   tip: Pt;
   twigs: string[];
@@ -173,7 +172,6 @@ function buildBranch(side: 'left' | 'right', index: number, cfg: BranchConfig): 
   const tip = cfg.tip;
 
   const dx = tip.x - base.x;
-  const dy = tip.y - base.y;
 
   const p1: Pt = { x: base.x + dx * 0.16 + cfg.jitter, y: base.y - cfg.bulge1 };
   const p2: Pt = { x: base.x + dx * 0.74 - cfg.jitter, y: tip.y + cfg.bulge2 };
@@ -182,7 +180,6 @@ function buildBranch(side: 'left' | 'right', index: number, cfg: BranchConfig): 
   const tipWidth = 3.5;
 
   const path = ribbonPath(base, p1, p2, tip, baseWidth, tipWidth);
-  const pathHover = ribbonPath(base, p1, p2, tip, baseWidth * 1.5, tipWidth * 2.4);
 
   // one or two small decorative twigs peeling off the branch
   const twigs: string[] = [];
@@ -201,7 +198,7 @@ function buildBranch(side: 'left' | 'right', index: number, cfg: BranchConfig): 
     twigs.push(`M ${f(pt.x)} ${f(pt.y)} Q ${f(ctrl.x)} ${f(ctrl.y)}, ${f(end.x)} ${f(end.y)}`);
   });
 
-  return { id: `${side}-${index}`, side, index, path, pathHover, base, tip, twigs };
+  return { id: `${side}-${index}`, side, index, path, base, tip, twigs };
 }
 
 export const LEFT_BRANCHES: Branch[]  = LEFT_CONFIG.map((cfg, i) => buildBranch('left', i, cfg));
