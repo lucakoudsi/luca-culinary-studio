@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       profile,
+      user: { email: user.email },
       stats: {
         rezepte:  r.status === 'fulfilled' ? (r.value.count ?? 0) : 0,
         projekte: p.status === 'fulfilled' ? (p.value.count ?? 0) : 0,
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (e) {
     console.error('[profil GET]', e);
-    return NextResponse.json({ profile: null, stats: { rezepte: 0, projekte: 0, fermente: 0 }, userCreatedAt: null });
+    return NextResponse.json({ profile: null, user: null, stats: { rezepte: 0, projekte: 0, fermente: 0 }, userCreatedAt: null });
   }
 }
 
