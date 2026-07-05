@@ -3,21 +3,11 @@
 import React, { useState } from 'react';
 import { TREE_REGISTRY, TREE_ORDER, TREE_EMOJI } from '@/lib/stammbaum';
 import type { TreeNodeData } from '@/lib/stammbaum/types';
-
-/* ─── stage geometry (desktop, fixed) ────────────────────────────────── */
-const STAGE_W  = 1196;
-const STAGE_H  = 720;
-const IMG_SIZE = 680;
-const COL_W    = 230;
-const IMG_LEFT  = (STAGE_W - IMG_SIZE) / 2;
-const IMG_RIGHT = IMG_LEFT + IMG_SIZE;
-const ANCHOR_Y  = 30;
-
-// Vertical position (top %) of each card slot, tuned roughly to the branch
-// heights of stammbaum-tree.png. Deliberately uneven left vs. right so the
-// layout reads as organic rather than mirrored.
-const LEFT_TOPS  = [8, 30, 52, 76];
-const RIGHT_TOPS = [14, 36, 60, 80];
+import {
+  STAGE_W, STAGE_H, COL_W, LEFT_TOPS, RIGHT_TOPS,
+  TRUNK_PATH, TRUNK_BASE_PT, BARK_LINES, CROWN_TWIGS, ROOT_PATHS,
+  LEFT_BRANCHES, RIGHT_BRANCHES, ALL_BRANCHES, type Branch,
+} from '@/lib/stammbaum/tree-geometry';
 
 /* ─── static CSS ─────────────────────────────────────────────────────── */
 const STYLES = `
@@ -25,13 +15,22 @@ const STYLES = `
     from { transform: scale(0.88); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
   }
-  @keyframes lineDraw {
-    from { stroke-dashoffset: 400; }
-    to   { stroke-dashoffset: 0; }
-  }
-  @keyframes treeIn {
-    from { transform: scale(0.96); opacity: 0; }
+  @keyframes growFromBase {
+    from { transform: scale(0.05); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes twigFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .tree-part {
+    transform-box: view-box;
+    animation-name: growFromBase;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+  }
+  .branch-overlay {
+    transition: opacity 0.35s ease, filter 0.35s ease;
   }
   .method-card {
     background: #FFFFFF;
@@ -87,13 +86,19 @@ const STYLES = `
 function MethodCard({
   method,
   isExpanded,
+  isActive,
   onToggle,
+  onHoverStart,
+  onHoverEnd,
   top,
   animDelay,
 }: {
   method: TreeNodeData;
   isExpanded: boolean;
+  isActive: boolean;
   onToggle: () => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
   top: number;
   animDelay: number;
 }) {
@@ -101,12 +106,18 @@ function MethodCard({
     <div
       className={`method-card${isExpanded ? ' expanded' : ''}`}
       onClick={onToggle}
-      style={{ top: `${top}%`, animation: `nodeIn 0.35s ease-out ${animDelay}s both` }}
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+      style={{
+        top: `${top}%`,
+        animation: `nodeIn 0.4s ease-out ${animDelay}s both`,
+        borderColor: isActive && !isExpanded ? '#C9A84C' : undefined,
+      }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div
           className="method-icon-wrap"
-          style={{ background: isExpanded ? '#6B3A4B' : 'rgba(107,58,75,0.07)' }}
+          style={{ background: isExpanded || isActive ? '#6B3A4B' : 'rgba(107,58,75,0.07)' }}
         >
           <span style={{ lineHeight: 1 }}>{method.icon}</span>
         </div>
@@ -197,10 +208,104 @@ function IngredientRail({
   );
 }
 
+/* ─── SVG tree ───────────────────────────────────────────────────────── */
+function BranchGroup({ branch, active, delay }: { branch: Branch; active: boolean; delay: number }) {
+  return (
+    <g
+      className="tree-part"
+      style={{ transformOrigin: `${branch.base.x}px ${branch.base.y}px`, animationDuration: '0.6s', animationDelay: `${delay}s` }}
+    >
+      {branch.twigs.map((d, i) => (
+        <path key={i} d={d} fill="none" stroke="#8B6444" strokeWidth={1.8} strokeLinecap="round" opacity={0.5} />
+      ))}
+      <path d={branch.path} fill="url(#branchGrad)" />
+      <path
+        className="branch-overlay"
+        d={branch.pathHover}
+        fill="#C9A84C"
+        opacity={active ? 0.85 : 0}
+        filter={active ? 'url(#branchGlow)' : undefined}
+      />
+    </g>
+  );
+}
+
+function TreeSvg({ activeBranchIds }: { activeBranchIds: Set<string> }) {
+  return (
+    <svg
+      width={STAGE_W}
+      height={STAGE_H}
+      viewBox={`0 0 ${STAGE_W} ${STAGE_H}`}
+      style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', pointerEvents: 'none' }}
+    >
+      <defs>
+        <linearGradient id="trunkGrad" gradientUnits="userSpaceOnUse" x1={STAGE_W / 2} y1={STAGE_H} x2={STAGE_W / 2} y2={0}>
+          <stop offset="0%" stopColor="#4E3020" />
+          <stop offset="55%" stopColor="#7A5537" />
+          <stop offset="100%" stopColor="#9C7A54" />
+        </linearGradient>
+        <linearGradient id="branchGrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stopColor="#6B4A30" />
+          <stop offset="100%" stopColor="#8F6B47" />
+        </linearGradient>
+        <filter id="branchGlow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="4.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* roots */}
+      {ROOT_PATHS.map((d, i) => (
+        <path
+          key={i}
+          className="tree-part"
+          d={d}
+          fill="url(#trunkGrad)"
+          opacity={0.82}
+          style={{ transformOrigin: `${TRUNK_BASE_PT.x}px ${TRUNK_BASE_PT.y}px`, animationDuration: '0.55s', animationDelay: `${0.05 + i * 0.03}s` }}
+        />
+      ))}
+
+      {/* trunk + bark texture */}
+      <g
+        className="tree-part"
+        style={{ transformOrigin: `${TRUNK_BASE_PT.x}px ${TRUNK_BASE_PT.y}px`, animationDuration: '0.6s', animationDelay: '0s' }}
+      >
+        <path d={TRUNK_PATH} fill="url(#trunkGrad)" />
+        {BARK_LINES.map((d, i) => (
+          <path key={i} d={d} fill="none" stroke="#3E2A1C" strokeWidth={1.2} opacity={0.16} />
+        ))}
+      </g>
+
+      {/* crown tuft */}
+      <g style={{ animation: 'twigFade 0.5s ease-out 0.55s both' }}>
+        {CROWN_TWIGS.map((t, i) => (
+          <g key={i}>
+            <path d={t.path} fill="none" stroke="#8B6444" strokeWidth={2} strokeLinecap="round" opacity={0.6} />
+            <circle cx={t.bud.x} cy={t.bud.y} r={3.2} fill="#C9A84C" opacity={0.8} />
+          </g>
+        ))}
+      </g>
+
+      {/* 8 main branches */}
+      {LEFT_BRANCHES.map((b, i) => (
+        <BranchGroup key={b.id} branch={b} active={activeBranchIds.has(b.id)} delay={0.38 + i * 0.07} />
+      ))}
+      {RIGHT_BRANCHES.map((b, i) => (
+        <BranchGroup key={b.id} branch={b} active={activeBranchIds.has(b.id)} delay={0.42 + i * 0.07} />
+      ))}
+    </svg>
+  );
+}
+
 /* ─── page ───────────────────────────────────────────────────────────── */
 export default function ZutatenStammbaumPage() {
   const [activeKey, setActiveKey] = useState('kartoffel');
   const [expanded, setExpanded]   = useState<Set<string>>(new Set());
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const activeTree   = TREE_REGISTRY[activeKey];
   const methods      = activeTree.children ?? [];
@@ -220,7 +325,17 @@ export default function ZutatenStammbaumPage() {
     if (key === activeKey) return;
     setActiveKey(key);
     setExpanded(new Set());
+    setHoveredId(null);
   };
+
+  // which branch ids should glow: the hovered card and any expanded cards
+  const activeBranchIds = new Set<string>();
+  ALL_BRANCHES.forEach(b => {
+    const method = b.side === 'left' ? leftMethods[b.index] : rightMethods[b.index];
+    if (method && (method.id === hoveredId || expanded.has(method.id))) {
+      activeBranchIds.add(b.id);
+    }
+  });
 
   return (
     <div style={{ background: '#FAF3E7', minHeight: '100vh' }}>
@@ -262,53 +377,7 @@ export default function ZutatenStammbaumPage() {
             key={activeKey}
             style={{ position: 'relative', width: STAGE_W, height: STAGE_H }}
           >
-            {/* connecting lines */}
-            <svg
-              width={STAGE_W}
-              height={STAGE_H}
-              style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', pointerEvents: 'none' }}
-            >
-              {leftMethods.map((m, i) => {
-                const y = (LEFT_TOPS[i] / 100) * STAGE_H + ANCHOR_Y;
-                return (
-                  <path
-                    key={m.id}
-                    d={`M ${COL_W} ${y} C ${COL_W + 12} ${y}, ${IMG_LEFT - 12} ${y}, ${IMG_LEFT} ${y}`}
-                    fill="none" stroke="#C9A84C" strokeWidth={1.5} strokeLinecap="round"
-                    opacity={0.55} strokeDasharray={400}
-                    style={{ animation: `lineDraw 0.6s ease-out ${0.25 + i * 0.08}s both` }}
-                  />
-                );
-              })}
-              {rightMethods.map((m, i) => {
-                const y = (RIGHT_TOPS[i] / 100) * STAGE_H + ANCHOR_Y;
-                return (
-                  <path
-                    key={m.id}
-                    d={`M ${STAGE_W - COL_W} ${y} C ${STAGE_W - COL_W - 12} ${y}, ${IMG_RIGHT + 12} ${y}, ${IMG_RIGHT} ${y}`}
-                    fill="none" stroke="#C9A84C" strokeWidth={1.5} strokeLinecap="round"
-                    opacity={0.55} strokeDasharray={400}
-                    style={{ animation: `lineDraw 0.6s ease-out ${0.3 + i * 0.08}s both` }}
-                  />
-                );
-              })}
-            </svg>
-
-            {/* tree image, centered, same for every ingredient */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/stammbaum-tree.png"
-              alt=""
-              width={IMG_SIZE}
-              height={IMG_SIZE}
-              style={{
-                position: 'absolute', top: 0, left: IMG_LEFT,
-                width: IMG_SIZE, height: IMG_SIZE,
-                mixBlendMode: 'multiply',
-                animation: 'treeIn 0.6s cubic-bezier(0.34,1.1,0.64,1) both',
-                pointerEvents: 'none',
-              }}
-            />
+            <TreeSvg activeBranchIds={activeBranchIds} />
 
             {/* left column */}
             <div style={{ position: 'absolute', top: 0, left: 0, width: COL_W, height: '100%' }}>
@@ -317,9 +386,12 @@ export default function ZutatenStammbaumPage() {
                   key={method.id}
                   method={method}
                   isExpanded={expanded.has(method.id)}
+                  isActive={hoveredId === method.id}
                   onToggle={() => toggle(method.id)}
+                  onHoverStart={() => setHoveredId(method.id)}
+                  onHoverEnd={() => setHoveredId(null)}
                   top={LEFT_TOPS[i]}
-                  animDelay={0.25 + i * 0.08}
+                  animDelay={0.75 + i * 0.07}
                 />
               ))}
             </div>
@@ -331,9 +403,12 @@ export default function ZutatenStammbaumPage() {
                   key={method.id}
                   method={method}
                   isExpanded={expanded.has(method.id)}
+                  isActive={hoveredId === method.id}
                   onToggle={() => toggle(method.id)}
+                  onHoverStart={() => setHoveredId(method.id)}
+                  onHoverEnd={() => setHoveredId(null)}
                   top={RIGHT_TOPS[i]}
-                  animDelay={0.3 + i * 0.08}
+                  animDelay={0.8 + i * 0.07}
                 />
               ))}
             </div>
@@ -382,7 +457,7 @@ export default function ZutatenStammbaumPage() {
               { node: <div style={{ width: 12, height: 12, borderRadius: 3, background: '#6B3A4B' }} />, label: 'Methoden-Chip' },
               { node: <div style={{ width: 12, height: 12, borderRadius: 3, background: '#FFFEF9', border: '1.5px solid #6B3A4B' }} />, label: 'Technik / Verfahren' },
               { node: <span style={{ color: '#C9A84C', fontSize: 9 }}>◆</span>, label: 'Gericht' },
-              { node: <div style={{ width: 22, height: 1.5, background: '#C9A84C', opacity: 0.7 }} />, label: 'Verbindung' },
+              { node: <div style={{ width: 22, height: 1.5, background: '#C9A84C', opacity: 0.7 }} />, label: 'Ast' },
             ] as { node: React.ReactNode; label: string }[]
           ).map(({ node, label }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
