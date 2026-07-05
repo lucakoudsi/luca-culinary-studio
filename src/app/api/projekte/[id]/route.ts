@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (body.notes       !== undefined) update.notes       = body.notes;
 
   const { data, error } = await db
-    .from('projects')
+    .from('projekte')
     .update(update)
     .eq('id', params.id)
     .eq('user_id', user.id)
@@ -48,7 +48,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
 
   const { error } = await db
-    .from('projects')
+    .from('projekte')
     .delete()
     .eq('id', params.id)
     .eq('user_id', user.id);

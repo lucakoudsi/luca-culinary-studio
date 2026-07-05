@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     // Stats — resilient: 0 if table doesn't exist or query fails
     const [r, p, f] = await Promise.allSettled([
-      db.from('rezepte').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+      db.from('recipes').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       db.from('projekte').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       db.from('fermentation').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
     ]);

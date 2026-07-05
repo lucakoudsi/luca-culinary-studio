@@ -4,7 +4,7 @@ const supabase = createAdminClient();
 
 export async function GET() {
   const { data, error } = await supabase
-    .from('ideas')
+    .from('ideen')
     .select('*')
     .order('id', { ascending: false });
   if (error) return NextResponse.json([]);
@@ -14,7 +14,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { data, error } = await supabase
-    .from('ideas')
+    .from('ideen')
     .insert({
       text: body.text,
       tag:  body.tag ?? '',

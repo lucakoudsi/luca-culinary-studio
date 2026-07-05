@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json([]);
 
   const { data, error } = await db
-    .from('projects')
+    .from('projekte')
     .select('*')
     .eq('user_id', user.id)
     .order('id');
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { data, error } = await db
-    .from('projects')
+    .from('projekte')
     .insert({
       user_id:     user.id,
       name:        body.name,

@@ -14,16 +14,16 @@ export async function GET(req: NextRequest) {
 
     const [rezepteRes, projekteRes, fermenteRes, wocheRes, projekteDisplay, ideenRes, profilRes] =
       await Promise.allSettled([
-        db.from('rezepte').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        db.from('projects').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        db.from('recipes').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        db.from('projekte').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         db.from('fermentation').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        db.from('rezepte').select('id', { count: 'exact', head: true })
+        db.from('recipes').select('id', { count: 'exact', head: true })
           .eq('user_id', user.id).gte('created_at', sevenDaysAgo),
         // Last 3 projects for dashboard display
-        db.from('projects').select('id, name, description, color, status, recipe_ids, menu_ids, created_at')
+        db.from('projekte').select('id, name, description, color, status, recipe_ids, menu_ids, created_at')
           .eq('user_id', user.id).order('id', { ascending: false }).limit(3),
         // Last 3 ideas
-        db.from('ideas').select('id, text, tag, date').order('id', { ascending: false }).limit(3),
+        db.from('ideen').select('id, text, tag, date').order('id', { ascending: false }).limit(3),
         // Profile for Mein Stil
         db.from('profiles').select('kuechenstil, spezialitaeten, lieblingszutaten').eq('id', user.id).maybeSingle(),
       ]);

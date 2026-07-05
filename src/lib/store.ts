@@ -175,11 +175,13 @@ export const useStore = create<StoreState>((set, get) => ({
   // ── Projekte ──────────────────────────────────────────────────────────────
   addProject: async p => {
     const created = await api.post('/api/projekte', p);
+    if (!created?.id) throw new Error(created?.error ?? 'Projekt konnte nicht gespeichert werden');
     set(s => ({ projects: [...s.projects, created] }));
   },
 
   updateProject: async (id, updates) => {
     const updated = await api.put(`/api/projekte/${id}`, updates);
+    if (!updated?.id) throw new Error(updated?.error ?? 'Projekt konnte nicht aktualisiert werden');
     set(s => ({ projects: s.projects.map(p => p.id === id ? { ...p, ...updated } : p) }));
   },
 

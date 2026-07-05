@@ -32,20 +32,20 @@ const projekte = [
 export async function POST() {
   try {
     await supabase.from('recipes').delete().neq('id', 0);
-    await supabase.from('ingredients').delete().neq('id', 0);
-    await supabase.from('ideas').delete().neq('id', 0);
-    await supabase.from('projects').delete().neq('id', 0);
+    await supabase.from('zutaten').delete().neq('id', 0);
+    await supabase.from('ideen').delete().neq('id', 0);
+    await supabase.from('projekte').delete().neq('id', 0);
 
     const { error: e1 } = await supabase.from('recipes').insert(rezepte);
     if (e1) return NextResponse.json({ error: e1.message }, { status: 500 });
 
-    const { error: e2 } = await supabase.from('ingredients').insert(zutaten);
+    const { error: e2 } = await supabase.from('zutaten').insert(zutaten);
     if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
 
-    const { error: e3 } = await supabase.from('ideas').insert(ideen);
+    const { error: e3 } = await supabase.from('ideen').insert(ideen);
     if (e3) return NextResponse.json({ error: e3.message }, { status: 500 });
 
-    const { error: e4 } = await supabase.from('projects').insert(projekte);
+    const { error: e4 } = await supabase.from('projekte').insert(projekte);
     if (e4) return NextResponse.json({ error: e4.message }, { status: 500 });
 
     return NextResponse.json({ ok: true, rezepte: rezepte.length, zutaten: zutaten.length, ideen: ideen.length, projekte: projekte.length });

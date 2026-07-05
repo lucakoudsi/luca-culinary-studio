@@ -18,8 +18,24 @@ const statusLabels: Record<string, { color: string; bg: string }> = {
   Pausiert: { color: '#E8A838', bg: 'rgba(232,168,56,0.15)' },
 };
 
-function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (data: Omit<Project, 'id' | 'createdAt' | 'notes' | 'recipeIds' | 'menuIds'>) => void }) {
+function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (data: Omit<Project, 'id' | 'createdAt' | 'notes' | 'recipeIds' | 'menuIds'>) => Promise<void> }) {
   const [form, setForm] = useState({ name: '', description: '', color: '#C9A84C', status: 'Aktiv' as Project['status'] });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreate = async () => {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave(form);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Projekt konnte nicht gespeichert werden');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const inputCls = "w-full bg-card border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-sm outline-none focus:border-gold/40";
   const labelCls = "block text-[11px] text-text-secondary font-semibold mb-1.5 uppercase tracking-wider";
@@ -72,13 +88,21 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
             </div>
           </div>
         </div>
+        {error && (
+          <div className="mx-7 mb-2 flex items-start gap-2 px-4 py-3 rounded-xl text-[13px]"
+            style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+            <span className="flex-shrink-0 mt-0.5">⚠</span>
+            <span>{error}</span>
+          </div>
+        )}
         <div className="px-7 py-4 border-t border-border flex justify-end gap-2.5">
           <button onClick={onClose} className="border border-border rounded-lg px-5 py-2.5 text-text-secondary text-sm">Abbrechen</button>
           <button
-            onClick={() => { if (form.name.trim()) { onSave(form); onClose(); } }}
-            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold"
+            onClick={handleCreate}
+            disabled={saving}
+            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold disabled:opacity-50"
             style={{ background: '#6B3A4B' }}>
-            Erstellen
+            {saving ? 'Speichern…' : 'Erstellen'}
           </button>
         </div>
       </div>
@@ -378,7 +402,7 @@ export default function ProjektePage() {
       )}
 
       {selected && <ProjectDetail project={selected} onClose={() => setSelectedId(null)} />}
-      {showNew && <NewProjectModal onClose={() => setShowNew(false)} onSave={(data) => { addProject(data); setShowNew(false); }} />}
+      {showNew && <NewProjectModal onClose={() => setShowNew(false)} onSave={(data) => addProject(data)} />}
     </div>
     </div>
     </PageTransition>
