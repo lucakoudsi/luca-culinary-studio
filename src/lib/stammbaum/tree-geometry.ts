@@ -87,7 +87,26 @@ function buildBarkLine(frac: number, jitter: number): string {
   return d;
 }
 
-export const BARK_LINES = [-0.55, -0.18, 0.22, 0.58].map((frac, i) => buildBarkLine(frac, i * 1.3));
+export const BARK_LINES = [-0.74, -0.58, -0.42, -0.26, -0.1, 0.08, 0.24, 0.4, 0.56, 0.72]
+  .map((frac, i) => buildBarkLine(frac, i * 1.3));
+
+/* ─── knots / astloecher ─────────────────────────────────────────────────── */
+export interface Knot { cx: number; cy: number; rx: number; ry: number; }
+
+function buildKnots(): Knot[] {
+  const specs = [
+    { t: 0.22, xFrac: -0.34, rx: 8, ry: 11 },
+    { t: 0.47, xFrac: 0.4, rx: 7.5, ry: 10.5 },
+    { t: 0.7, xFrac: -0.22, rx: 9, ry: 12.5 },
+  ];
+  return specs.map(({ t, xFrac, rx, ry }) => {
+    const y = TRUNK_TOP_Y + (TRUNK_BASE_Y - TRUNK_TOP_Y) * t;
+    const cx = trunkCenterX(y) + xFrac * trunkHalfWidth(y);
+    return { cx, cy: y, rx, ry };
+  });
+}
+
+export const KNOTS = buildKnots();
 
 /* ─── bezier + tapered ribbon helpers ────────────────────────────────────── */
 function bezierPoint(t: number, p0: Pt, p1: Pt, p2: Pt, p3: Pt): Pt {
@@ -168,7 +187,10 @@ function buildBranch(side: 'left' | 'right', index: number, cfg: BranchConfig): 
   const baseY = clamp(cfg.tip.y + cfg.baseYOffset, TRUNK_TOP_Y + 20, TRUNK_BASE_Y - 10);
   const cx = trunkCenterX(baseY);
   const hw = trunkHalfWidth(baseY);
-  const base: Pt = { x: cx + sign * hw * 0.82, y: baseY };
+  // sits deep inside the trunk silhouette (not at its edge) so the wide base
+  // of the branch ribbon overlaps and fuses with the trunk fill instead of
+  // butting against it as a hard, flat-cut corner
+  const base: Pt = { x: cx + sign * hw * 0.45, y: baseY };
   const tip = cfg.tip;
 
   const dx = tip.x - base.x;
@@ -176,7 +198,7 @@ function buildBranch(side: 'left' | 'right', index: number, cfg: BranchConfig): 
   const p1: Pt = { x: base.x + dx * 0.16 + cfg.jitter, y: base.y - cfg.bulge1 };
   const p2: Pt = { x: base.x + dx * 0.74 - cfg.jitter, y: tip.y + cfg.bulge2 };
 
-  const baseWidth = clamp(hw * 2 * 0.5, 11, 28);
+  const baseWidth = clamp(hw * 2 * 0.62, 15, 34);
   const tipWidth = 3.5;
 
   const path = ribbonPath(base, p1, p2, tip, baseWidth, tipWidth);

@@ -5,7 +5,7 @@ import { TREE_REGISTRY, TREE_ORDER, TREE_EMOJI } from '@/lib/stammbaum';
 import type { TreeNodeData } from '@/lib/stammbaum/types';
 import {
   STAGE_W, STAGE_H, COL_W, LEFT_TOPS, RIGHT_TOPS,
-  TRUNK_PATH, TRUNK_BASE_PT, BARK_LINES, CROWN_TWIGS, ROOT_PATHS,
+  TRUNK_PATH, TRUNK_BASE_PT, BARK_LINES, KNOTS, CROWN_TWIGS, ROOT_PATHS,
   LEFT_BRANCHES, RIGHT_BRANCHES, ALL_BRANCHES, type Branch,
 } from '@/lib/stammbaum/tree-geometry';
 
@@ -239,10 +239,10 @@ function TreeSvg({ activeBranchIds }: { activeBranchIds: Set<string> }) {
       style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', pointerEvents: 'none' }}
     >
       <defs>
-        <linearGradient id="trunkGrad" gradientUnits="userSpaceOnUse" x1={STAGE_W / 2} y1={STAGE_H} x2={STAGE_W / 2} y2={0}>
-          <stop offset="0%" stopColor="#4E3020" />
-          <stop offset="55%" stopColor="#7A5537" />
-          <stop offset="100%" stopColor="#9C7A54" />
+        <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#3D2817" />
+          <stop offset="50%" stopColor="#6B4A2F" />
+          <stop offset="100%" stopColor="#3D2817" />
         </linearGradient>
         <linearGradient id="branchGrad" x1="0" y1="1" x2="0" y2="0">
           <stop offset="0%" stopColor="#6B4A30" />
@@ -276,7 +276,10 @@ function TreeSvg({ activeBranchIds }: { activeBranchIds: Set<string> }) {
       >
         <path d={TRUNK_PATH} fill="url(#trunkGrad)" />
         {BARK_LINES.map((d, i) => (
-          <path key={i} d={d} fill="none" stroke="#3E2A1C" strokeWidth={1.2} opacity={0.16} />
+          <path key={i} d={d} fill="none" stroke="#2D1C10" strokeWidth={1.1} opacity={0.4} />
+        ))}
+        {KNOTS.map((k, i) => (
+          <ellipse key={i} cx={k.cx} cy={k.cy} rx={k.rx} ry={k.ry} fill="#241708" stroke="#B08F63" strokeWidth={1.4} opacity={0.85} />
         ))}
       </g>
 
