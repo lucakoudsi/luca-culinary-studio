@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import RecipeDetail from '@/components/recipes/RecipeDetailModal';
 import MenuEditorModal from '@/components/projects/MenuEditorModal';
+import MenuCardView from '@/components/projects/MenuCardView';
 import type { Recipe, ProjectNote } from '@/types';
 import {
   ArrowLeft, Plus, X, Search, BookOpen, Trash2, StickyNote, Calendar,
-  ChefHat, Check, ChevronRight,
+  ChefHat, Check, ChevronRight, Eye,
 } from 'lucide-react';
 
 const statusLabels: Record<string, { color: string; bg: string }> = {
@@ -167,6 +168,7 @@ export default function ProjectDetailPage() {
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
+  const [viewingMenuId, setViewingMenuId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState('');
 
   useEffect(() => {
@@ -202,6 +204,7 @@ export default function ProjectDetailPage() {
   const availableRecipes = recipes.filter(r => !project.recipeIds.includes(r.id));
   const st = statusLabels[project.status];
   const editingMenu = project.menus.find(m => m.id === editingMenuId) ?? null;
+  const viewingMenu = project.menus.find(m => m.id === viewingMenuId) ?? null;
 
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
@@ -349,6 +352,11 @@ export default function ProjectDetailPage() {
                     <p className="text-[11px] text-text-muted mt-1">{m.gaenge.length} {m.gaenge.length === 1 ? 'Gang' : 'Gänge'}</p>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
+                    <button onClick={e => { e.stopPropagation(); setViewingMenuId(m.id); }}
+                      title="Menü ansehen"
+                      className="text-text-muted hover:text-gold transition-colors">
+                      <Eye size={14} />
+                    </button>
                     <button onClick={e => { e.stopPropagation(); deleteMenu(project.id, m.id); }}
                       className="text-text-muted hover:text-red-400 transition-colors">
                       <Trash2 size={14} />
@@ -382,7 +390,11 @@ export default function ProjectDetailPage() {
         />
       )}
       {editingMenu && (
-        <MenuEditorModal project={project} menu={editingMenu} onClose={() => setEditingMenuId(null)} />
+        <MenuEditorModal project={project} menu={editingMenu} onClose={() => setEditingMenuId(null)}
+          onView={() => { setViewingMenuId(editingMenu.id); setEditingMenuId(null); }} />
+      )}
+      {viewingMenu && (
+        <MenuCardView menu={viewingMenu} recipes={recipes} onClose={() => setViewingMenuId(null)} />
       )}
     </div>
     </PageTransition>

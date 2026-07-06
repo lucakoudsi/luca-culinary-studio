@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Recipe, Project, ProjectMenu, MenuGang, Ingredient } from '@/types';
 import {
-  X, Plus, Trash2, ChevronUp, ChevronDown, BookOpen, Wine, Search, Sparkles, Loader2,
+  X, Plus, Trash2, ChevronUp, ChevronDown, BookOpen, Wine, Search, Sparkles, Loader2, Eye,
 } from 'lucide-react';
 import { matchWeine } from '@/lib/weinPairing';
 import type { Wein, WeinMatch, FoodProfile } from '@/lib/weinPairing';
@@ -293,7 +293,7 @@ function GangRow({
 }
 
 // ─── Menü-Editor ────────────────────────────────────────────────────────────────
-export default function MenuEditorModal({ project, menu, onClose }: { project: Project; menu: ProjectMenu; onClose: () => void }) {
+export default function MenuEditorModal({ project, menu, onClose, onView }: { project: Project; menu: ProjectMenu; onClose: () => void; onView?: () => void }) {
   const { recipes, ingredients, fetchIngredients, updateMenu, addGang, updateGang, removeGang, moveGang } = useStore();
   const [name, setName] = useState(menu.name);
   const [beschreibung, setBeschreibung] = useState(menu.beschreibung);
@@ -318,7 +318,16 @@ export default function MenuEditorModal({ project, menu, onClose }: { project: P
               placeholder="Beschreibung hinzufügen…"
               className="text-[13px] text-text-muted bg-transparent outline-none border-b border-transparent focus:border-gold/40 w-full mt-1.5" />
           </div>
-          <button onClick={onClose} className="text-text-secondary hover:text-text-primary p-1 flex-shrink-0"><X size={20} /></button>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {onView && (
+              <button onClick={onView}
+                className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                <Eye size={13} /> Ansehen
+              </button>
+            )}
+            <button onClick={onClose} className="text-text-secondary hover:text-text-primary p-1"><X size={20} /></button>
+          </div>
         </div>
 
         <div className="p-7 space-y-3">
