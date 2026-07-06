@@ -357,7 +357,11 @@ export default function ProjectDetailPage() {
                       className="text-text-muted hover:text-gold transition-colors">
                       <Eye size={14} />
                     </button>
-                    <button onClick={e => { e.stopPropagation(); deleteMenu(project.id, m.id); }}
+                    <button onClick={e => {
+                        e.stopPropagation();
+                        const gangHinweis = m.gaenge.length === 0 ? '' : m.gaenge.length === 1 ? 'Der Gang geht verloren.' : `Alle ${m.gaenge.length} Gänge gehen verloren.`;
+                        if (confirm(`"${m.name}" wirklich löschen? ${gangHinweis}`)) deleteMenu(project.id, m.id);
+                      }}
                       className="text-text-muted hover:text-red-400 transition-colors">
                       <Trash2 size={14} />
                     </button>
