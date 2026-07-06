@@ -8,7 +8,7 @@ import { getUserTier } from '@/config/roles';
 import type { Project } from '@/types';
 import {
   FolderOpen, Plus, Trash2, BookOpen, X,
-  StickyNote, ChevronRight, Calendar, Lock,
+  StickyNote, ChevronRight, Calendar, Lock, ChefHat,
 } from 'lucide-react';
 
 const projectColors = ['#6B3A4B', '#7CB87A', '#7BB8D4', '#C4743A', '#E06B6B', '#8B7355', '#9B7DE8'];
@@ -150,11 +150,36 @@ export default function ProjektePage() {
             <ChevronRight size={16} className="text-text-muted" />
           </div>
 
-          <p className="text-[12px] text-text-muted leading-relaxed mb-4 line-clamp-2">{project.description}</p>
+          <p className="text-[12px] text-text-muted leading-relaxed mb-3 line-clamp-2">{project.description}</p>
+
+          {projectRecipes.length > 0 && (
+            <div className="flex items-center -space-x-2.5 mb-4">
+              {projectRecipes.slice(0, 4).map((r, i) => (
+                <div key={r.id} className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative"
+                  style={{
+                    border: '2px solid var(--card, #FFFFFF)', zIndex: 4 - i,
+                    ...(r.image
+                      ? { backgroundImage: `url(${r.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                      : { background: 'linear-gradient(135deg, #1a1500 0%, #0d0d0d 100%)' }),
+                  }}>
+                  {!r.image && <BookOpen size={12} className="absolute inset-0 m-auto opacity-40" color="#C9A84C" />}
+                </div>
+              ))}
+              {projectRecipes.length > 4 && (
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
+                  style={{ border: '2px solid var(--card, #FFFFFF)', background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', zIndex: 0 }}>
+                  +{projectRecipes.length - 4}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 pt-3 border-t border-border text-[11px] text-text-muted">
             <span className="flex items-center gap-1.5">
               <BookOpen size={10} /> {project.recipeIds.length} Rezept{project.recipeIds.length !== 1 ? 'e' : ''}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ChefHat size={10} /> {project.menus.length} {project.menus.length === 1 ? 'Menü' : 'Menüs'}
             </span>
             <span className="flex items-center gap-1.5">
               <StickyNote size={10} /> {project.notes.length} Notiz{project.notes.length !== 1 ? 'en' : ''}
