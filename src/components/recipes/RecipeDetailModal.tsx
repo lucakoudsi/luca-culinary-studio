@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import type { Recipe } from '@/types';
-import { BookOpen, Eye, Star, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape } from 'lucide-react';
+import type { Recipe, Project } from '@/types';
+import { BookOpen, Eye, Star, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Search } from 'lucide-react';
 import { matchWeine } from '@/lib/weinPairing';
 import type { Wein, WeinMatch, FoodProfile } from '@/lib/weinPairing';
 import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
@@ -29,15 +29,63 @@ export function StarRating({ value }: { value: number }) {
   );
 }
 
+// ─── Projekt-Auswahl (Mehrfachzuordnung) ──────────────────────────────────────
+function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
+  projects: Project[]; recipeId: number; onClose: () => void; onToggle: (projectId: number, add: boolean) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const filtered = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 border-b border-border flex items-center justify-between flex-shrink-0">
+          <h3 className="font-heading text-[17px] font-bold text-text-primary">Zu Projekt hinzufügen</h3>
+          <button onClick={onClose} className="text-text-secondary hover:text-text-primary"><X size={18} /></button>
+        </div>
+        <div className="px-6 pt-3 flex-shrink-0">
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Projekte durchsuchen…" autoFocus
+              className="w-full bg-card border border-border-strong rounded-lg pl-8 pr-3 py-2 text-text-primary text-[13px] outline-none focus:border-gold/40" />
+          </div>
+        </div>
+        <div className="px-6 py-3 overflow-y-auto flex-1 space-y-1">
+          {filtered.length === 0 ? (
+            <p className="text-center text-[13px] text-text-muted py-6">
+              {projects.length === 0 ? 'Noch keine Projekte vorhanden.' : 'Keine Treffer.'}
+            </p>
+          ) : filtered.map(p => {
+            const inProject = p.recipeIds.includes(recipeId);
+            return (
+              <label key={p.id}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-card-hover transition-colors"
+                style={{ background: inProject ? 'rgba(107,58,75,0.08)' : 'transparent' }}>
+                <input type="checkbox" checked={inProject} onChange={() => onToggle(p.id, !inProject)} className="accent-[#6B3A4B]" />
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                <span className="text-[13px] text-text-primary font-medium truncate">{p.name}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: () => void; onDelete: () => void }) {
-  const { ingredients, fetchIngredients } = useStore();
+  const { ingredients, fetchIngredients, projects, fetchProjects, addRecipeToProject, removeRecipeFromProject } = useStore();
 
   const [pairingLoading, setPairingLoading] = useState(false);
   const [pairingResults, setPairingResults] = useState<WeinMatch[]>([]);
   const [pairingError,   setPairingError]   = useState('');
   const [pairingDone,    setPairingDone]    = useState(false);
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
 
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
+  useEffect(() => { if (projects.length === 0) fetchProjects(); }, []);
+
+  const recipeProjects = projects.filter(p => p.recipeIds.includes(recipe.id));
 
   const runPairing = async (profile: FoodProfile) => {
     setPairingLoading(true);
@@ -74,6 +122,7 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-2xl max-h-[88vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Hero */}
@@ -202,6 +251,29 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
             </div>
           )}
 
+          {/* Projekte */}
+          <div className="mb-5">
+            <div className={labelCls + ' flex items-center justify-between'}>
+              <span className="flex items-center gap-1.5"><FolderOpen size={10} /> Projekte</span>
+              <button onClick={() => setShowProjectPicker(true)}
+                className="normal-case text-gold flex items-center gap-1 hover:text-gold-light transition-colors">
+                <Plus size={11} /> Zu Projekt hinzufügen
+              </button>
+            </div>
+            {recipeProjects.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {recipeProjects.map(p => (
+                  <span key={p.id} className="text-[12px] px-3 py-1 rounded-full flex items-center gap-1.5"
+                    style={{ background: `${p.color}18`, color: p.color, border: `1px solid ${p.color}40` }}>
+                    <FolderOpen size={10} /> {p.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[13px] text-text-muted">Noch in keinem Projekt.</p>
+            )}
+          </div>
+
           {/* ── Wein-Pairing ─────────────────────────────────────────────── */}
           <div className="mb-5 rounded-xl p-4" style={{ background: 'rgba(107,58,75,0.04)', border: '1px solid rgba(107,58,75,0.15)' }}>
             <div className="flex items-center gap-2 mb-3">
@@ -297,5 +369,10 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
         </div>
       </div>
     </div>
+    {showProjectPicker && (
+      <ProjectPickerModal projects={projects} recipeId={recipe.id} onClose={() => setShowProjectPicker(false)}
+        onToggle={(pid, add) => add ? addRecipeToProject(pid, recipe.id) : removeRecipeFromProject(pid, recipe.id)} />
+    )}
+    </>
   );
 }
