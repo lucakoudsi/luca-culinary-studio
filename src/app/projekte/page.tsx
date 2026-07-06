@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import PageTransition from '@/components/ui/PageTransition';
 import EmptyState from '@/components/ui/EmptyState';
 import { useState, useEffect } from 'react';
@@ -7,7 +7,7 @@ import { useStore } from '@/lib/store';
 import { getUserTier } from '@/config/roles';
 import type { Project } from '@/types';
 import {
-  FolderOpen, Plus, Trash2, BookOpen, X,
+  Plus, BookOpen, X,
   StickyNote, ChevronRight, Calendar, Lock, ChefHat,
 } from 'lucide-react';
 
@@ -17,14 +17,22 @@ const statusLabels: Record<string, { color: string; bg: string }> = {
   Abgeschlossen: { color: '#7BB8D4', bg: 'rgba(123,184,212,0.15)' },
   Pausiert: { color: '#E8A838', bg: 'rgba(232,168,56,0.15)' },
 };
+const STATUS_ORDER: Project['status'][] = ['Aktiv', 'Pausiert', 'Abgeschlossen'];
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (data: Omit<Project, 'id' | 'createdAt' | 'notes' | 'recipeIds' | 'menus'>) => Promise<void> }) {
   const [form, setForm] = useState({ name: '', description: '', color: '#C9A84C', status: 'Aktiv' as Project['status'] });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const canSubmit = form.name.trim().length > 0 && !saving;
 
   const handleCreate = async () => {
-    if (!form.name.trim()) return;
+    if (!canSubmit) return;
     setSaving(true);
     setError(null);
     try {
@@ -50,7 +58,7 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
         <div className="px-7 py-5 space-y-4">
           <div>
             <label className={labelCls}>Name *</label>
-            <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Projektname…" className={inputCls} />
+            <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Projektname…" autoFocus className={inputCls} />
           </div>
           <div>
             <label className={labelCls}>Beschreibung</label>
@@ -99,12 +107,42 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
           <button onClick={onClose} className="border border-border rounded-lg px-5 py-2.5 text-text-secondary text-sm">Abbrechen</button>
           <button
             onClick={handleCreate}
-            disabled={saving}
-            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold disabled:opacity-50"
-            style={{ background: '#6B3A4B' }}>
+            disabled={!canSubmit}
+            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold transition-all disabled:opacity-40"
+            style={{
+              background: '#6B3A4B',
+              boxShadow: canSubmit ? '0 0 0 1px rgba(107,58,75,0.35), 0 4px 18px rgba(107,58,75,0.35)' : 'none',
+            }}>
             {saving ? 'Speichern…' : 'Erstellen'}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── "Mehr aus Projekten holen"-Karte für duenne Zustaende ────────────────────
+function ProjectIdeasCard() {
+  const items = [
+    { icon: BookOpen, text: 'Rezepte aus dem Archiv sammeln' },
+    { icon: ChefHat, text: 'Ganze Menüs mit Wein-Pairing komponieren' },
+    { icon: StickyNote, text: 'Notizen und Ideen festhalten' },
+  ];
+  return (
+    <div className="w-full sm:w-[380px] rounded-2xl p-6 border border-dashed flex-shrink-0"
+      style={{ borderColor: 'rgba(107,58,75,0.25)', background: 'rgba(107,58,75,0.03)' }}>
+      <div className="text-[10px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'rgba(107,58,75,0.55)' }}>
+        ✦ Mehr aus Projekten holen
+      </div>
+      <div className="space-y-4">
+        {items.map(({ icon: Icon, text }, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(107,58,75,0.08)' }}>
+              <Icon size={14} color="#6B3A4B" />
+            </div>
+            <p className="text-[13px] leading-relaxed pt-1.5" style={{ color: 'var(--text-muted)' }}>{text}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -123,54 +161,75 @@ export default function ProjektePage() {
     }).catch(() => setUserTier(1));
   }, []);
 
-  const activeProjects = projects.filter(p => p.status === 'Aktiv');
-  const otherProjects = projects.filter(p => p.status !== 'Aktiv');
+  const activeCount = projects.filter(p => p.status === 'Aktiv').length;
+  const totalMenus = projects.reduce((s, p) => s + p.menus.length, 0);
+  const projectRecipeIds = new Set(projects.flatMap(p => p.recipeIds));
+  const projectRecipesAll = recipes.filter(r => projectRecipeIds.has(r.id));
+  const lastEditedRecipe = projectRecipesAll.length > 0
+    ? [...projectRecipesAll].sort((a, b) => (b.lastEdited || '').localeCompare(a.lastEdited || ''))[0]
+    : null;
+
+  const summary = [
+    activeCount === 1 ? '1 aktives Projekt' : `${activeCount} aktive Projekte`,
+    totalMenus > 0 ? `${totalMenus} Menü${totalMenus === 1 ? '' : 's'}` : null,
+    lastEditedRecipe ? `zuletzt bearbeitet: ${lastEditedRecipe.title}` : null,
+  ].filter(Boolean).join(' · ');
 
   const ProjectCard = ({ project }: { project: Project }) => {
     const st = statusLabels[project.status];
     const projectRecipes = recipes.filter(r => project.recipeIds.includes(r.id));
+    const firstMenu = project.menus[0];
 
     return (
       <Link href={`/projekte/${project.id}`}
-        className="block bg-card border border-border rounded-xl overflow-hidden cursor-pointer hover:border-opacity-70 transition-all"
-        style={{ borderLeftWidth: 3, borderLeftColor: project.color, borderLeftStyle: 'solid' }}>
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: `${project.color}20` }}>
-                <FolderOpen size={16} style={{ color: project.color }} strokeWidth={1.5} />
-              </div>
-              <div>
-                <h3 className="font-heading text-[16px] font-bold text-text-primary leading-tight">{project.name}</h3>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: st.bg, color: st.color }}>{project.status}</span>
-              </div>
+        className="card-hover block w-full sm:w-[380px] flex-shrink-0 bg-card border border-border rounded-2xl overflow-hidden cursor-pointer">
+        <div style={{ height: 4, background: project.color }} />
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div className="min-w-0">
+              <h3 className="font-heading text-[19px] font-bold text-text-primary leading-tight truncate">{project.name}</h3>
+              <span className="inline-block mt-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full"
+                style={{ background: st.bg, color: st.color }}>{project.status}</span>
             </div>
-            <ChevronRight size={16} className="text-text-muted" />
+            <ChevronRight size={18} className="text-text-muted flex-shrink-0 mt-1" />
           </div>
 
-          <p className="text-[12px] text-text-muted leading-relaxed mb-3 line-clamp-2">{project.description}</p>
+          {project.description && (
+            <p className="text-[12.5px] text-text-muted leading-relaxed mb-4 line-clamp-2">{project.description}</p>
+          )}
 
-          {projectRecipes.length > 0 && (
-            <div className="flex items-center -space-x-2.5 mb-4">
-              {projectRecipes.slice(0, 4).map((r, i) => (
-                <div key={r.id} className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative"
-                  style={{
-                    border: '2px solid var(--card, #FFFFFF)', zIndex: 4 - i,
-                    ...(r.image
-                      ? { backgroundImage: `url(${r.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                      : { background: 'linear-gradient(135deg, #1a1500 0%, #0d0d0d 100%)' }),
-                  }}>
-                  {!r.image && <BookOpen size={12} className="absolute inset-0 m-auto opacity-40" color="#C9A84C" />}
-                </div>
-              ))}
-              {projectRecipes.length > 4 && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
-                  style={{ border: '2px solid var(--card, #FFFFFF)', background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', zIndex: 0 }}>
-                  +{projectRecipes.length - 4}
-                </div>
-              )}
+          {/* Rezept-Thumbnails als visuelles Zentrum */}
+          <div className="flex items-center justify-center py-3 mb-1" style={{ minHeight: 64 }}>
+            {projectRecipes.length > 0 ? (
+              <div className="flex items-center -space-x-4">
+                {projectRecipes.slice(0, 4).map((r, i) => (
+                  <div key={r.id} className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 relative"
+                    style={{
+                      border: '3px solid var(--card, #FFFFFF)', zIndex: 4 - i,
+                      boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
+                      ...(r.image
+                        ? { backgroundImage: `url(${r.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                        : { background: 'linear-gradient(135deg, #1a1500 0%, #0d0d0d 100%)' }),
+                    }}>
+                    {!r.image && <BookOpen size={18} className="absolute inset-0 m-auto opacity-40" color="#C9A84C" />}
+                  </div>
+                ))}
+                {projectRecipes.length > 4 && (
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-[12px] font-semibold flex-shrink-0"
+                    style={{ border: '3px solid var(--card, #FFFFFF)', background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', zIndex: 0, boxShadow: '0 3px 10px rgba(0,0,0,0.12)' }}>
+                    +{projectRecipes.length - 4}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-[12px] text-text-muted italic">Noch keine Rezepte</p>
+            )}
+          </div>
+
+          {firstMenu && (
+            <div className="flex items-center gap-1.5 justify-center mb-4 text-[12px]" style={{ color: '#6B3A4B' }}>
+              <ChefHat size={12} />
+              {project.menus.length} {project.menus.length === 1 ? 'Menü' : 'Menüs'} · {firstMenu.name}
             </div>
           )}
 
@@ -179,13 +238,10 @@ export default function ProjektePage() {
               <BookOpen size={10} /> {project.recipeIds.length} Rezept{project.recipeIds.length !== 1 ? 'e' : ''}
             </span>
             <span className="flex items-center gap-1.5">
-              <ChefHat size={10} /> {project.menus.length} {project.menus.length === 1 ? 'Menü' : 'Menüs'}
-            </span>
-            <span className="flex items-center gap-1.5">
               <StickyNote size={10} /> {project.notes.length} Notiz{project.notes.length !== 1 ? 'en' : ''}
             </span>
-            <span className="flex items-center gap-1.5">
-              <Calendar size={10} /> {project.createdAt}
+            <span className="flex items-center gap-1.5 ml-auto">
+              <Calendar size={10} /> {formatDate(project.createdAt)}
             </span>
           </div>
         </div>
@@ -193,20 +249,27 @@ export default function ProjektePage() {
     );
   };
 
+  const groups = STATUS_ORDER
+    .map(status => ({ status, list: projects.filter(p => p.status === status) }))
+    .filter(g => g.list.length > 0);
+  const showIdeasCard = projects.length > 0 && projects.length <= 2;
+
   return (
     <PageTransition>
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <div className="px-8 pt-8 pb-6 flex items-start justify-between gap-6" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div>
+        <div className="min-w-0">
           <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Meine Arbeit</div>
           <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Projekte</h1>
-          <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{projects.length} Projekte · Organisiere Menüs, Rezepte und Notizen</p>
+          <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            {projects.length > 0 ? summary : 'Organisiere Menüs, Rezepte und Notizen'}
+          </p>
         </div>
         {userTier >= 3 && (
-          <div className="mt-1">
+          <div className="mt-1 flex-shrink-0">
             <button onClick={() => setShowNew(true)}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
+              style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF', boxShadow: '0 4px 18px rgba(107,58,75,0.3)' }}>
               <Plus size={15} /> Neues Projekt
             </button>
           </div>
@@ -227,43 +290,19 @@ export default function ProjektePage() {
         </div>
       )}
 
-      <div className="p-8 max-w-[1200px]">
+      <div className="p-8 max-w-[1280px] mx-auto">
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: 'Aktive Projekte', value: projects.filter(p => p.status === 'Aktiv').length, color: '#7CB87A' },
-          { label: 'Gesamte Rezepte', value: projects.reduce((s, p) => s + p.recipeIds.length, 0), color: '#C9A84C' },
-          { label: 'Notizen gesamt', value: projects.reduce((s, p) => s + p.notes.length, 0), color: '#7BB8D4' },
-        ].map(s => (
-          <div key={s.label} className="bg-card border border-border rounded-lg p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${s.color}18` }}>
-              <span className="text-[18px] font-bold font-heading" style={{ color: s.color }}>{s.value}</span>
-            </div>
-            <span className="text-[13px] text-text-secondary">{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Active projects */}
-      {activeProjects.length > 0 && (
-        <div className="mb-8">
-          <h2 className="font-heading text-lg font-bold text-text-primary mb-4">Aktive Projekte</h2>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
-            {activeProjects.map(p => <ProjectCard key={p.id} project={p} />)}
+      {groups.map((g, gi) => (
+        <div key={g.status} className={gi < groups.length - 1 ? 'mb-10' : ''}>
+          <h2 className="font-heading text-lg font-bold text-text-primary mb-4">
+            {g.status === 'Aktiv' ? 'Aktive Projekte' : g.status}
+          </h2>
+          <div className="flex flex-wrap justify-center gap-6">
+            {g.list.map(p => <ProjectCard key={p.id} project={p} />)}
+            {showIdeasCard && gi === groups.length - 1 && <ProjectIdeasCard />}
           </div>
         </div>
-      )}
-
-      {/* Other projects */}
-      {otherProjects.length > 0 && (
-        <div>
-          <h2 className="font-heading text-lg font-bold text-text-primary mb-4">Weitere Projekte</h2>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
-            {otherProjects.map(p => <ProjectCard key={p.id} project={p} />)}
-          </div>
-        </div>
-      )}
+      ))}
 
       {projects.length === 0 && (
         <EmptyState
