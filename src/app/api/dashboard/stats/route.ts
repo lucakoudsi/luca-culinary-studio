@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
         db.from('recipes').select('id', { count: 'exact', head: true })
           .eq('user_id', user.id).gte('created_at', sevenDaysAgo),
         // Last 3 projects for dashboard display
-        db.from('projekte').select('id, name, description:beschreibung, color:farbe, status, recipe_ids, menu_ids, created_at')
+        db.from('projekte').select('id, name, description:beschreibung, color:farbe, status, recipe_ids, menus, created_at')
           .eq('user_id', user.id).order('id', { ascending: false }).limit(3),
         // Last 3 ideas
         db.from('ideen').select('id, text, tag, date').order('id', { ascending: false }).limit(3),

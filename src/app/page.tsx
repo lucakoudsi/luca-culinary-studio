@@ -40,7 +40,7 @@ type Project = {
   color: string;
   status: string;
   recipe_ids: number[];
-  menu_ids: number[];
+  menus: unknown[];
 };
 
 type Idea = {
@@ -281,7 +281,7 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {projects.map(p => {
-                  const komponenten = (p.recipe_ids?.length ?? 0) + (p.menu_ids?.length ?? 0);
+                  const komponenten = (p.recipe_ids?.length ?? 0) + (p.menus?.length ?? 0);
                   return (
                     <Link key={p.id} href={`/projekte/${p.id}`} className="block">
                       <div className="relative rounded-xl overflow-hidden cursor-pointer group transition-all"

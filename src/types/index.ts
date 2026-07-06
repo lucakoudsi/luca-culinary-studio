@@ -116,6 +116,25 @@ export interface ProjectNote {
   date: string;
 }
 
+// Ein Gang innerhalb eines Projekt-Menüs. rezeptId/weinId sind lose
+// Referenzen (kein DB-FK, wie recipeIds); weinName ist ein Snapshot,
+// damit die Menükarte auch nach einem geloeschten Wein noch etwas anzeigt.
+export interface MenuGang {
+  id: string;
+  bezeichnung: string;
+  rezeptId: number | null;
+  weinId: number | null;
+  weinName: string | null;
+}
+
+export interface ProjectMenu {
+  id: string;
+  name: string;
+  beschreibung: string;
+  gaenge: MenuGang[];
+  createdAt: string;
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -123,7 +142,7 @@ export interface Project {
   color: string;
   createdAt: string;
   recipeIds: number[];
-  menuIds: number[];
+  menus: ProjectMenu[];
   notes: ProjectNote[];
   status: 'Aktiv' | 'Abgeschlossen' | 'Pausiert';
 }

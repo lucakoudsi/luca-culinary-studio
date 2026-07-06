@@ -12,7 +12,7 @@ function toProject(row: Record<string, unknown>) {
     color:       row.farbe ?? '#C9A84C',
     status:      row.status ?? 'Aktiv',
     recipeIds:   (row.recipe_ids as number[]) ?? [],
-    menuIds:     (row.menu_ids  as number[]) ?? [],
+    menus:       (row.menus     as object[]) ?? [],
     notes:       (row.notizen   as object[]) ?? [],
     createdAt:   row.created_at ?? row.createdAt ?? '',
   };
@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (body.color       !== undefined) update.farbe        = body.color;
   if (body.status      !== undefined) update.status       = body.status;
   if (body.recipeIds   !== undefined) update.recipe_ids   = body.recipeIds;
-  if (body.menuIds     !== undefined) update.menu_ids     = body.menuIds;
+  if (body.menus       !== undefined) update.menus        = body.menus;
   if (body.notes       !== undefined) update.notizen      = body.notes;
 
   const { data, error } = await db

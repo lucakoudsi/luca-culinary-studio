@@ -1,6 +1,6 @@
 'use client';
 import { create } from 'zustand';
-import type { Recipe, Idea, Ingredient, CreativeResult, GeneratedMenu, Project, ProjectNote } from '@/types';
+import type { Recipe, Idea, Ingredient, CreativeResult, GeneratedMenu, Project, ProjectNote, ProjectMenu, MenuGang } from '@/types';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,14 +70,23 @@ interface StoreState {
   deleteGeneratedMenu: (id: number) => void;
 
   // ── Projekte ──────────────────────────────────────────────────────────────
-  addProject:    (p: Omit<Project, 'id' | 'createdAt' | 'notes' | 'recipeIds' | 'menuIds'>) => Promise<void>;
+  addProject:    (p: Omit<Project, 'id' | 'createdAt' | 'notes' | 'recipeIds' | 'menus'>) => Promise<void>;
   updateProject: (id: number, updates: Partial<Project>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
   addProjectNote:            (projectId: number, text: string) => Promise<void>;
+  updateProjectNote:         (projectId: number, noteId: number, text: string) => Promise<void>;
   deleteProjectNote:         (projectId: number, noteId: number) => Promise<void>;
   addRecipeToProject:        (projectId: number, recipeId: number) => Promise<void>;
   removeRecipeFromProject:   (projectId: number, recipeId: number) => Promise<void>;
-  addMenuToProject:          (projectId: number, menuId: number) => Promise<void>;
+
+  // ── Projekt-Menüs ─────────────────────────────────────────────────────────
+  addMenu:    (projectId: number, name: string, beschreibung: string) => Promise<void>;
+  updateMenu: (projectId: number, menuId: string, updates: Partial<Pick<ProjectMenu, 'name' | 'beschreibung'>>) => Promise<void>;
+  deleteMenu: (projectId: number, menuId: string) => Promise<void>;
+  addGang:    (projectId: number, menuId: string, bezeichnung: string) => Promise<void>;
+  updateGang: (projectId: number, menuId: string, gangId: string, updates: Partial<MenuGang>) => Promise<void>;
+  removeGang: (projectId: number, menuId: string, gangId: string) => Promise<void>;
+  moveGang:   (projectId: number, menuId: string, gangId: string, direction: 'up' | 'down') => Promise<void>;
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -208,6 +217,14 @@ export const useStore = create<StoreState>((set, get) => ({
     await api.put(`/api/projekte/${projectId}`, { ...project, notes });
   },
 
+  updateProjectNote: async (projectId, noteId, text) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const notes = project.notes.map(n => n.id === noteId ? { ...n, text } : n);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, notes } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, notes });
+  },
+
   addRecipeToProject: async (projectId, recipeId) => {
     const project = get().projects.find(p => p.id === projectId);
     if (!project || project.recipeIds.includes(recipeId)) return;
@@ -224,11 +241,74 @@ export const useStore = create<StoreState>((set, get) => ({
     await api.put(`/api/projekte/${projectId}`, { ...project, recipeIds });
   },
 
-  addMenuToProject: async (projectId, menuId) => {
+  // ── Projekt-Menüs ─────────────────────────────────────────────────────────
+  addMenu: async (projectId, name, beschreibung) => {
     const project = get().projects.find(p => p.id === projectId);
-    if (!project || project.menuIds.includes(menuId)) return;
-    const menuIds = [...project.menuIds, menuId];
-    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menuIds } : p) }));
-    await api.put(`/api/projekte/${projectId}`, { ...project, menuIds });
+    if (!project) return;
+    const menu: ProjectMenu = { id: crypto.randomUUID(), name, beschreibung, gaenge: [], createdAt: new Date().toISOString().slice(0, 10) };
+    const menus = [...project.menus, menu];
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  updateMenu: async (projectId, menuId, updates) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const menus = project.menus.map(m => m.id === menuId ? { ...m, ...updates } : m);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  deleteMenu: async (projectId, menuId) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const menus = project.menus.filter(m => m.id !== menuId);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  addGang: async (projectId, menuId, bezeichnung) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const gang: MenuGang = { id: crypto.randomUUID(), bezeichnung, rezeptId: null, weinId: null, weinName: null };
+    const menus = project.menus.map(m => m.id === menuId ? { ...m, gaenge: [...m.gaenge, gang] } : m);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  updateGang: async (projectId, menuId, gangId, updates) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const menus = project.menus.map(m => m.id === menuId
+      ? { ...m, gaenge: m.gaenge.map(g => g.id === gangId ? { ...g, ...updates } : g) }
+      : m);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  removeGang: async (projectId, menuId, gangId) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const menus = project.menus.map(m => m.id === menuId
+      ? { ...m, gaenge: m.gaenge.filter(g => g.id !== gangId) }
+      : m);
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
+  },
+
+  moveGang: async (projectId, menuId, gangId, direction) => {
+    const project = get().projects.find(p => p.id === projectId);
+    if (!project) return;
+    const menus = project.menus.map(m => {
+      if (m.id !== menuId) return m;
+      const i = m.gaenge.findIndex(g => g.id === gangId);
+      const j = i + (direction === 'up' ? -1 : 1);
+      if (i < 0 || j < 0 || j >= m.gaenge.length) return m;
+      const gaenge = [...m.gaenge];
+      [gaenge[i], gaenge[j]] = [gaenge[j], gaenge[i]];
+      return { ...m, gaenge };
+    });
+    set(s => ({ projects: s.projects.map(p => p.id === projectId ? { ...p, menus } : p) }));
+    await api.put(`/api/projekte/${projectId}`, { ...project, menus });
   },
 }));

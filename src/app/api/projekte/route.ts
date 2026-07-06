@@ -12,7 +12,7 @@ function toProject(row: Record<string, unknown>) {
     color:       row.farbe ?? '#C9A84C',
     status:      row.status ?? 'Aktiv',
     recipeIds:   (row.recipe_ids as number[]) ?? [],
-    menuIds:     (row.menu_ids  as number[]) ?? [],
+    menus:       (row.menus     as object[]) ?? [],
     notes:       (row.notizen   as object[]) ?? [],
     createdAt:   row.created_at ?? row.createdAt ?? '',
   };
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       farbe:        body.color ?? '#C9A84C',
       status:       body.status ?? 'Aktiv',
       recipe_ids:   body.recipeIds ?? [],
-      menu_ids:     body.menuIds   ?? [],
+      menus:        body.menus     ?? [],
       notizen:      body.notes     ?? [],
       created_at:   new Date().toISOString().slice(0, 10),
     })
