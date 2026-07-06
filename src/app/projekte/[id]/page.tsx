@@ -5,10 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import RecipeDetail from '@/components/recipes/RecipeDetailModal';
+import MenuEditorModal from '@/components/projects/MenuEditorModal';
 import type { Recipe, ProjectNote } from '@/types';
 import {
   ArrowLeft, Plus, X, Search, BookOpen, Trash2, StickyNote, Calendar,
-  ChefHat, Check,
+  ChefHat, Check, ChevronRight,
 } from 'lucide-react';
 
 const statusLabels: Record<string, { color: string; bg: string }> = {
@@ -165,6 +166,7 @@ export default function ProjectDetailPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
+  const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState('');
 
   useEffect(() => {
@@ -199,6 +201,7 @@ export default function ProjectDetailPage() {
   const projectRecipes = recipes.filter(r => project.recipeIds.includes(r.id));
   const availableRecipes = recipes.filter(r => !project.recipeIds.includes(r.id));
   const st = statusLabels[project.status];
+  const editingMenu = project.menus.find(m => m.id === editingMenuId) ?? null;
 
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
@@ -337,16 +340,21 @@ export default function ProjectDetailPage() {
           {project.menus.length > 0 ? (
             <div className="space-y-2.5">
               {project.menus.map(m => (
-                <div key={m.id} className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-4">
+                <div key={m.id}
+                  onClick={() => setEditingMenuId(m.id)}
+                  className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-4 cursor-pointer card-hover">
                   <div className="min-w-0">
                     <h3 className="font-heading text-[15px] font-bold text-text-primary">{m.name}</h3>
                     {m.beschreibung && <p className="text-[12px] text-text-muted mt-0.5 truncate">{m.beschreibung}</p>}
                     <p className="text-[11px] text-text-muted mt-1">{m.gaenge.length} {m.gaenge.length === 1 ? 'Gang' : 'Gänge'}</p>
                   </div>
-                  <button onClick={() => deleteMenu(project.id, m.id)}
-                    className="text-text-muted hover:text-red-400 transition-colors flex-shrink-0">
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <button onClick={e => { e.stopPropagation(); deleteMenu(project.id, m.id); }}
+                      className="text-text-muted hover:text-red-400 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                    <ChevronRight size={16} className="text-text-muted" />
+                  </div>
                 </div>
               ))}
             </div>
@@ -372,6 +380,9 @@ export default function ProjectDetailPage() {
           onClose={() => setViewingRecipe(null)}
           onDelete={() => { deleteRecipe(viewingRecipe.id); setViewingRecipe(null); }}
         />
+      )}
+      {editingMenu && (
+        <MenuEditorModal project={project} menu={editingMenu} onClose={() => setEditingMenuId(null)} />
       )}
     </div>
     </PageTransition>
