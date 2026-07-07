@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import { submitGlow } from '@/lib/utils';
 import RecipeDetail from '@/components/recipes/RecipeDetailModal';
 import MenuEditorModal from '@/components/projects/MenuEditorModal';
 import MenuCardView from '@/components/projects/MenuCardView';
@@ -66,8 +67,8 @@ function RecipePickerModal({ available, onClose, onAdd }: { available: Recipe[];
         <div className="px-7 py-4 border-t border-border flex justify-end gap-2.5 flex-shrink-0">
           <button onClick={onClose} className="border border-border rounded-lg px-5 py-2.5 text-text-secondary text-sm">Abbrechen</button>
           <button onClick={() => { onAdd(selected); onClose(); }} disabled={selected.length === 0}
-            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold disabled:opacity-40"
-            style={{ background: '#6B3A4B' }}>
+            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold transition-all disabled:opacity-40"
+            style={{ background: '#6B3A4B', boxShadow: submitGlow(selected.length > 0) }}>
             {selected.length > 0 ? `${selected.length} hinzufügen` : 'Hinzufügen'}
           </button>
         </div>
@@ -118,6 +119,7 @@ function NoteRow({ note, onSave, onDelete }: { note: ProjectNote; onSave: (text:
 function NewMenuModal({ onClose, onCreate }: { onClose: () => void; onCreate: (name: string, beschreibung: string) => void }) {
   const [name, setName] = useState('');
   const [beschreibung, setBeschreibung] = useState('');
+  const canSubmit = name.trim().length > 0;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
@@ -141,9 +143,10 @@ function NewMenuModal({ onClose, onCreate }: { onClose: () => void; onCreate: (n
         <div className="px-7 py-4 border-t border-border flex justify-end gap-2.5">
           <button onClick={onClose} className="border border-border rounded-lg px-5 py-2.5 text-text-secondary text-sm">Abbrechen</button>
           <button
-            onClick={() => { if (name.trim()) { onCreate(name, beschreibung); onClose(); } }}
-            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold"
-            style={{ background: '#6B3A4B' }}>
+            onClick={() => { if (canSubmit) { onCreate(name, beschreibung); onClose(); } }}
+            disabled={!canSubmit}
+            className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold transition-all disabled:opacity-40"
+            style={{ background: '#6B3A4B', boxShadow: submitGlow(canSubmit) }}>
             Anlegen
           </button>
         </div>
@@ -305,8 +308,9 @@ export default function ProjectDetailPage() {
               placeholder="Notiz hinzufügen…"
               className="flex-1 bg-card border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40" />
             <button onClick={handleAddNote}
-              className="px-4 rounded-lg text-white text-[13px] font-semibold transition-opacity hover:opacity-90"
-              style={{ background: '#6B3A4B' }}>
+              disabled={!noteInput.trim()}
+              className="px-4 rounded-lg text-white text-[13px] font-semibold transition-all disabled:opacity-40"
+              style={{ background: '#6B3A4B', boxShadow: submitGlow(!!noteInput.trim()) }}>
               Hinzufügen
             </button>
           </div>

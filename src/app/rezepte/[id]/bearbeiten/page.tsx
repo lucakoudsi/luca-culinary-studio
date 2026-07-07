@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile } from '@/types';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
+import { submitGlow } from '@/lib/utils';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 
@@ -222,8 +223,11 @@ export default function RezeptBearbeitenPage() {
 
         <div className="mt-auto">
           <button onClick={handleSave} disabled={saving || uploadingImg || !title.trim()}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
-            style={{ background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF' }}>
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{
+              background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF',
+              boxShadow: saved ? 'none' : submitGlow(!saving && !uploadingImg && !!title.trim()),
+            }}>
             {(saving || uploadingImg) ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
             {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
           </button>
@@ -394,8 +398,11 @@ export default function RezeptBearbeitenPage() {
         {/* Save */}
         <div className="pt-2 flex gap-3">
           <button onClick={handleSave} disabled={saving || uploadingImg || !title.trim()}
-            className="flex items-center gap-2 px-7 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50"
-            style={{ background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF' }}>
+            className="flex items-center gap-2 px-7 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{
+              background: saved ? 'rgba(124,184,122,0.15)' : 'linear-gradient(135deg, #562E3C, #7D4558)', color: saved ? '#7CB87A' : '#FFFFFF',
+              boxShadow: saved ? 'none' : submitGlow(!saving && !uploadingImg && !!title.trim()),
+            }}>
             {(saving || uploadingImg) ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
             {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : saved ? '✓ Gespeichert' : 'Änderungen speichern'}
           </button>

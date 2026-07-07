@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
+import { submitGlow } from '@/lib/utils';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
@@ -543,8 +544,8 @@ export default function NewRezeptPage() {
             Abbrechen
           </button>
           <button onClick={handleSave} disabled={saving || uploadingImg || !base.title.trim()}
-            className="flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50 transition-opacity"
-            style={{ background: '#6B3A4B' }}>
+            className="flex items-center gap-2 rounded-lg px-5 py-2 text-[13px] font-semibold text-white transition-all disabled:opacity-40"
+            style={{ background: '#6B3A4B', boxShadow: submitGlow(!saving && !uploadingImg && !!base.title.trim()) }}>
             {(saving || uploadingImg) && <Loader2 size={14} className="animate-spin" />}
             {saving ? 'Speichern…' : uploadingImg ? 'Foto hochladen…' : 'Speichern'}
           </button>

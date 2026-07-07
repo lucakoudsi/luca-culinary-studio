@@ -3,6 +3,7 @@ import PageTransition from '@/components/ui/PageTransition';
 import EmptyState from '@/components/ui/EmptyState';
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, Pencil, Trash2, X } from 'lucide-react';
+import { submitGlow } from '@/lib/utils';
 
 type FermentStatus = 'Aktiv' | 'Bereit' | 'Abgeschlossen' | 'Problem';
 interface Note { id: number; text: string; date: string }
@@ -231,9 +232,9 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
             style={{ background: '#EDE8E3', color: 'var(--text-muted)' }}>
             Abbrechen
           </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2 rounded-lg text-[13px] font-semibold transition-opacity"
-            style={{ background: '#6B3A4B', color: '#FAF8F5', opacity: saving ? 0.7 : 1 }}>
+          <button onClick={handleSave} disabled={saving || !form.name.trim()}
+            className="px-5 py-2 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{ background: '#6B3A4B', color: '#FAF8F5', boxShadow: submitGlow(!saving && !!form.name.trim()) }}>
             {saving ? 'Speichern…' : 'Speichern'}
           </button>
         </div>

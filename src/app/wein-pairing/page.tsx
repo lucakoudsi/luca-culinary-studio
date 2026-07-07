@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/lib/store';
 import { matchWeine, RULE_LABELS, type Wein, type FoodProfile, type WeinMatch } from '@/lib/weinPairing';
 import { Wine, Search, Leaf, MapPin, Loader2, AlertCircle, ChevronDown, X, BookOpen, Calculator } from 'lucide-react';
+import { submitGlow } from '@/lib/utils';
 import type { Ingredient, Recipe } from '@/types';
 import PageTransition from '@/components/ui/PageTransition';
 import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
@@ -315,7 +316,7 @@ export default function WeinPairingPage() {
                   onClick={handleFreitextSearch}
                   disabled={!freitext.trim() || weinLoading}
                   className="px-5 py-2.5 rounded-lg font-semibold text-[13px] text-white disabled:opacity-40 transition-all flex-shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)' }}>
+                  style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', boxShadow: submitGlow(!!freitext.trim() && !weinLoading) }}>
                   Pairing finden
                 </button>
               </div>

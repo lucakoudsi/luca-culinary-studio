@@ -210,7 +210,9 @@ export default function LoginPage() {
               style={{
                 background: 'linear-gradient(135deg, #562E3C 0%, #6B3A4B 40%, #7D4558 70%, #6B3A4B 100%)',
                 color: '#FFFFFF',
-                boxShadow: '0 4px 24px rgba(107,58,75,0.25), 0 1px 0 rgba(255,255,255,0.15) inset',
+                boxShadow: (!loading && email && password)
+                  ? '0 0 0 1px rgba(107,58,75,0.35), 0 4px 24px rgba(107,58,75,0.4), 0 1px 0 rgba(255,255,255,0.15) inset'
+                  : '0 1px 0 rgba(255,255,255,0.15) inset',
                 letterSpacing: '0.5px',
               }}>
               {loading ? <><Loader2 size={15} className="animate-spin" /> Anmelden…</> : 'Anmelden'}

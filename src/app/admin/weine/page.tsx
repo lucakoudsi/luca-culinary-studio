@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { ADMIN_EMAIL } from '@/config/roles';
+import { submitGlow } from '@/lib/utils';
 import { Plus, Pencil, Trash2, X, Save, Loader2, ShieldOff, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { Wein, WeinProfil } from '@/lib/weinPairing';
@@ -173,8 +174,10 @@ export default function AdminWeinePage() {
 
   const closeForm = () => { setFormOpen(false); setEditId(null); };
 
+  const weinFormValid = !!(form.name.trim() && form.rebsorte.trim() && form.region.trim() && form.land.trim());
+
   const handleSave = async () => {
-    if (!form.name.trim() || !form.rebsorte.trim() || !form.region.trim() || !form.land.trim()) {
+    if (!weinFormValid) {
       setFormError('Name, Rebsorte, Region und Land sind Pflichtfelder.');
       return;
     }
@@ -456,9 +459,9 @@ export default function AdminWeinePage() {
                 style={{ color: 'rgba(168,152,128,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
                 Abbrechen
               </button>
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: 'rgba(201,168,76,0.2)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.35)' }}>
+              <button onClick={handleSave} disabled={saving || !weinFormValid}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: 'rgba(201,168,76,0.2)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.35)', boxShadow: submitGlow(weinFormValid && !saving, '201,168,76') }}>
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                 {editId ? 'Speichern' : 'Anlegen'}
               </button>

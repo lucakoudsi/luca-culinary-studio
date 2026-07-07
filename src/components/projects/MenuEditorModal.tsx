@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import { submitGlow } from '@/lib/utils';
 import type { Recipe, Project, ProjectMenu, MenuGang, Ingredient } from '@/types';
 import {
   X, Plus, Trash2, ChevronUp, ChevronDown, BookOpen, Wine, Search, Sparkles, Loader2, Eye,
@@ -299,9 +300,11 @@ export default function MenuEditorModal({ project, menu, onClose, onView }: { pr
   const [beschreibung, setBeschreibung] = useState(menu.beschreibung);
   const [newGangName, setNewGangName] = useState('');
 
+  const canAddGang = newGangName.trim().length > 0;
+
   const handleAddGang = () => {
-    const label = newGangName.trim() || 'Neuer Gang';
-    addGang(project.id, menu.id, label);
+    if (!canAddGang) return;
+    addGang(project.id, menu.id, newGangName.trim());
     setNewGangName('');
   };
 
@@ -350,9 +353,9 @@ export default function MenuEditorModal({ project, menu, onClose, onView }: { pr
               onKeyDown={e => e.key === 'Enter' && handleAddGang()}
               placeholder="Gang-Bezeichnung (z.B. Amuse-Bouche)…"
               className="flex-1 bg-card border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40" />
-            <button onClick={handleAddGang}
-              className="flex items-center gap-1.5 px-4 rounded-lg text-white text-[13px] font-semibold transition-opacity hover:opacity-90"
-              style={{ background: '#6B3A4B' }}>
+            <button onClick={handleAddGang} disabled={!canAddGang}
+              className="flex items-center gap-1.5 px-4 rounded-lg text-white text-[13px] font-semibold transition-all disabled:opacity-40"
+              style={{ background: '#6B3A4B', boxShadow: submitGlow(canAddGang) }}>
               <Plus size={14} /> Gang hinzufügen
             </button>
           </div>

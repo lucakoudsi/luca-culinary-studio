@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { getUserTier } from '@/config/roles';
+import { submitGlow } from '@/lib/utils';
 import type { Project } from '@/types';
 import {
   Plus, BookOpen, X,
@@ -111,7 +112,7 @@ function NewProjectModal({ onClose, onSave }: { onClose: () => void; onSave: (da
             className="rounded-lg px-6 py-2.5 text-background text-sm font-semibold transition-all disabled:opacity-40"
             style={{
               background: '#6B3A4B',
-              boxShadow: canSubmit ? '0 0 0 1px rgba(107,58,75,0.35), 0 4px 18px rgba(107,58,75,0.35)' : 'none',
+              boxShadow: submitGlow(canSubmit),
             }}>
             {saving ? 'Speichern…' : 'Erstellen'}
           </button>
