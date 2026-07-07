@@ -9,6 +9,8 @@ import {
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
 import { cn } from '@/lib/utils';
+import { applyTheme } from '@/lib/theme';
+import type { ThemeMode } from '@/lib/theme';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
@@ -27,21 +29,11 @@ const navItems = [
   { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             aiLocked: false },
 ];
 
-type ThemeMode  = 'light' | 'dark' | 'auto';
 type FontSize   = 'klein' | 'normal' | 'gross';
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onClose?: () => void;
-}
-
-function applyTheme(mode: ThemeMode) {
-  const actual =
-    mode === 'dark'  ? 'dark'
-    : mode === 'light' ? 'light'
-    : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', actual);
-  localStorage.setItem('theme', mode);
 }
 
 function applyFontSize(size: FontSize) {

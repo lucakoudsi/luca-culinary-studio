@@ -36,7 +36,7 @@ export default function BlobBackground() {
   }, [])
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0, background: '#FAF8F5' }}>
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', zIndex: 0, background: 'var(--bg)' }}>
       <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%' }}>
         <defs>
           <filter id="goo">

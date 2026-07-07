@@ -37,11 +37,11 @@ interface FormState {
 
 const STATUS_OPTIONS: FermentStatus[] = ['Aktiv', 'Bereit', 'Abgeschlossen', 'Problem'];
 
-const STATUS_META: Record<FermentStatus, { color: string; bg: string; border: string; label: string; icon: 'clock' | 'check' | 'alert' }> = {
-  Aktiv:         { color: '#4A90C4', bg: '#EBF4FB', border: '#B8D9F0', label: 'Läuft',        icon: 'clock' },
-  Bereit:        { color: '#3A8A3A', bg: '#EBF5EB', border: '#B0D9B0', label: 'Bereit',       icon: 'check' },
-  Abgeschlossen: { color: '#7A6A58', bg: '#F0EDE8', border: '#C8BFB5', label: 'Abgeschlossen',icon: 'check' },
-  Problem:       { color: '#C0392B', bg: '#FBEAEA', border: '#F0B8B8', label: 'Problem',      icon: 'alert' },
+const STATUS_META: Record<FermentStatus, { color: string; label: string; icon: 'clock' | 'check' | 'alert' }> = {
+  Aktiv:         { color: '#4A90C4', label: 'Läuft',        icon: 'clock' },
+  Bereit:        { color: '#3A8A3A', label: 'Bereit',       icon: 'check' },
+  Abgeschlossen: { color: '#8B7355', label: 'Abgeschlossen', icon: 'check' },
+  Problem:       { color: '#C0392B', label: 'Problem',      icon: 'alert' },
 };
 
 function StatusBadge({ status }: { status: FermentStatus }) {
@@ -49,7 +49,7 @@ function StatusBadge({ status }: { status: FermentStatus }) {
   const Icon = m.icon === 'check' ? CheckCircle2 : m.icon === 'alert' ? AlertCircle : Clock;
   return (
     <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full font-semibold"
-      style={{ background: m.bg, color: m.color, border: `1px solid ${m.border}` }}>
+      style={{ background: `${m.color}18`, color: m.color, border: `1px solid ${m.color}40` }}>
       <Icon size={11} /> {m.label}
     </span>
   );
@@ -93,7 +93,7 @@ function TextInput({ value, onChange, placeholder, onFocus, onBlur }: {
     <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
       style={inputBase}
       onFocus={e => { e.currentTarget.style.borderColor = '#6B3A4B'; onFocus?.(e); }}
-      onBlur={e => { e.currentTarget.style.borderColor = '#DDD5CB'; onBlur?.(e); }} />
+      onBlur={e => { e.currentTarget.style.borderColor = ''; onBlur?.(e); }} />
   );
 }
 
@@ -163,14 +163,14 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
               <input type="date" value={form.startdatum} onChange={e => set('startdatum', e.target.value)}
                 style={inputBase}
                 onFocus={e => e.currentTarget.style.borderColor = '#6B3A4B'}
-                onBlur={e => e.currentTarget.style.borderColor = '#DDD5CB'} />
+                onBlur={e => e.currentTarget.style.borderColor = ''} />
             </Field>
             <Field label="Dauer (Tage)">
               <input type="number" min={0} value={form.dauer_tage}
                 onChange={e => set('dauer_tage', Math.max(0, Number(e.target.value)))}
                 style={inputBase}
                 onFocus={e => e.currentTarget.style.borderColor = '#6B3A4B'}
-                onBlur={e => e.currentTarget.style.borderColor = '#DDD5CB'} />
+                onBlur={e => e.currentTarget.style.borderColor = ''} />
             </Field>
           </div>
 
@@ -199,7 +199,7 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
               placeholder="Kurze Beschreibung des Projekts…"
               rows={3} style={{ ...inputBase, resize: 'vertical', fontFamily: 'inherit' }}
               onFocus={e => e.currentTarget.style.borderColor = '#6B3A4B'}
-              onBlur={e => e.currentTarget.style.borderColor = '#DDD5CB'} />
+              onBlur={e => e.currentTarget.style.borderColor = ''} />
           </Field>
 
           <Field label={mode === 'create' ? 'Erste Notiz (optional)' : 'Neue Notiz hinzufügen'}>
@@ -218,7 +218,7 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
               placeholder="Beobachtung notieren…"
               rows={2} style={{ ...inputBase, resize: 'vertical', fontFamily: 'inherit' }}
               onFocus={e => e.currentTarget.style.borderColor = '#6B3A4B'}
-              onBlur={e => e.currentTarget.style.borderColor = '#DDD5CB'} />
+              onBlur={e => e.currentTarget.style.borderColor = ''} />
           </Field>
 
           {error && <p className="text-[12px]" style={{ color: '#C0392B' }}>{error}</p>}
@@ -229,7 +229,7 @@ function FermentModal({ mode, initial, existingNotizen = [], onSave, onClose }: 
           style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={onClose} disabled={saving}
             className="px-4 py-2 rounded-lg text-[13px] font-semibold"
-            style={{ background: '#EDE8E3', color: 'var(--text-muted)' }}>
+            style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
             Abbrechen
           </button>
           <button onClick={handleSave} disabled={saving || !form.name.trim()}
@@ -265,7 +265,7 @@ function DeleteModal({ name, onConfirm, onClose, deleting }: {
           style={{ borderTop: '1px solid var(--border)' }}>
           <button onClick={onClose} disabled={deleting}
             className="px-4 py-2 rounded-lg text-[13px] font-semibold"
-            style={{ background: '#EDE8E3', color: 'var(--text-muted)' }}>
+            style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
             Abbrechen
           </button>
           <button onClick={onConfirm} disabled={deleting}
@@ -357,17 +357,17 @@ function ProjectCard({ project, onAddNote, onEdit, onDelete }: CardProps) {
             <button onClick={e => { e.stopPropagation(); onEdit(project); }}
               title="Bearbeiten"
               className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#B0A090' }}
+              style={{ color: 'var(--text-muted)' }}
               onMouseEnter={e => e.currentTarget.style.color = '#6B3A4B'}
-              onMouseLeave={e => e.currentTarget.style.color = '#B0A090'}>
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
               <Pencil size={16} />
             </button>
             <button onClick={e => { e.stopPropagation(); onDelete(project); }}
               title="Löschen"
               className="p-1.5 rounded-lg transition-colors"
-              style={{ color: '#B0A090' }}
+              style={{ color: 'var(--text-muted)' }}
               onMouseEnter={e => e.currentTarget.style.color = '#C0392B'}
-              onMouseLeave={e => e.currentTarget.style.color = '#B0A090'}>
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
               <Trash2 size={16} />
             </button>
           </div>

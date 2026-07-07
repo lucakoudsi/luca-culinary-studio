@@ -40,6 +40,13 @@
     --font-inter:   'Inter';
     --accent-gold:  #C9A84C;
     --sidebar-bg:   #F0EBE3;
+
+    /* RGB-Tripel fuer rgba()-Ueberblendungen (z.B. blurred sticky Header,
+       abgestufte Textopazitaeten) */
+    --bg-rgb:          250,248,245;
+    --surface-rgb:     255,255,255;
+    --text-rgb:        44,36,32;
+    --text-muted-rgb:  154,128,112;
   }
 
   /* ── Dark ────────────────────────────────────────────────────────── */
@@ -68,6 +75,11 @@
     --ring:         #C9A84C;
     --accent-gold:  #E8C67A;
     --sidebar-bg:   #111111;
+
+    --bg-rgb:          10,10,10;
+    --surface-rgb:     26,26,26;
+    --text-rgb:        245,240,232;
+    --text-muted-rgb:  168,152,128;
   }
 
   * {

@@ -1,22 +1,15 @@
 'use client';
 import { useEffect } from 'react';
+import type { ThemeMode } from '@/lib/theme';
+import { resolveTheme } from '@/lib/theme';
 
-function getAutoTheme(): 'light' | 'dark' {
-  const hour = new Date().getHours();
-  return hour >= 6 && hour < 18 ? 'light' : 'dark';
-}
-
-function applyResolvedTheme(mode: string) {
-  const actual =
-    mode === 'dark'  ? 'dark' :
-    mode === 'light' ? 'light' :
-    getAutoTheme();
-  document.documentElement.setAttribute('data-theme', actual);
+function applyResolvedTheme(mode: ThemeMode) {
+  document.documentElement.setAttribute('data-theme', resolveTheme(mode));
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    const stored = localStorage.getItem('theme') ?? 'auto';
+    const stored = (localStorage.getItem('theme') as ThemeMode | null) ?? 'auto';
     applyResolvedTheme(stored);
 
     const fontSize = localStorage.getItem('fontSize');
@@ -27,7 +20,7 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
     // Re-check auto theme every minute
     const interval = setInterval(() => {
-      const current = localStorage.getItem('theme') ?? 'auto';
+      const current = (localStorage.getItem('theme') as ThemeMode | null) ?? 'auto';
       if (current === 'auto') applyResolvedTheme('auto');
     }, 60_000);
 

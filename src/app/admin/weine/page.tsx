@@ -73,7 +73,7 @@ function AchsenEditor({
       {ACHSEN.map(({ key, label }) => (
         <div key={key}>
           <div className="flex justify-between mb-1">
-            <span className="text-[12px]" style={{ color: 'rgba(168,152,128,0.8)' }}>{label}</span>
+            <span className="text-[12px]" style={{ color: 'rgba(var(--text-muted-rgb),0.8)' }}>{label}</span>
             <span className="text-[12px] font-semibold" style={{ color: '#C9A84C' }}>{profil[key]}</span>
           </div>
           <input
@@ -81,11 +81,11 @@ function AchsenEditor({
             value={profil[key]}
             onChange={e => onChange({ ...profil, [key]: Number(e.target.value) })}
             className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-            style={{ accentColor: '#C9A84C', background: `linear-gradient(to right, #C9A84C ${profil[key] / 5 * 100}%, rgba(255,255,255,0.1) 0)` }}
+            style={{ accentColor: '#C9A84C', background: `linear-gradient(to right, #C9A84C ${profil[key] / 5 * 100}%, var(--border) 0)` }}
           />
           <div className="flex justify-between mt-0.5">
-            <span className="text-[10px]" style={{ color: 'rgba(168,152,128,0.3)' }}>0</span>
-            <span className="text-[10px]" style={{ color: 'rgba(168,152,128,0.3)' }}>5</span>
+            <span className="text-[10px]" style={{ color: 'rgba(var(--text-muted-rgb),0.3)' }}>0</span>
+            <span className="text-[10px]" style={{ color: 'rgba(var(--text-muted-rgb),0.3)' }}>5</span>
           </div>
         </div>
       ))}
@@ -215,17 +215,17 @@ export default function AdminWeinePage() {
   // ── Guard states ───────────────────────────────────────────────────────────
   if (authorized === false) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: '#0A0A0A' }}>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>
         <ShieldOff size={40} color="#f87171" />
         <p className="text-[#f87171] font-semibold text-[15px]">Kein Zugriff</p>
-        <p style={{ color: 'rgba(168,152,128,0.5)', fontSize: 13 }}>Weiterleitung zum Dashboard…</p>
+        <p style={{ color: 'rgba(var(--text-muted-rgb),0.5)', fontSize: 13 }}>Weiterleitung zum Dashboard…</p>
       </div>
     );
   }
 
   if (authorized === null || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: '#0A0A0A' }}>
+      <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg)' }}>
         <Loader2 className="animate-spin text-[#C9A84C]" size={32} />
       </div>
     );
@@ -235,7 +235,7 @@ export default function AdminWeinePage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen" style={{ background: '#0A0A0A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <div className="max-w-5xl mx-auto px-6 py-8">
 
         {/* Header */}
@@ -245,8 +245,8 @@ export default function AdminWeinePage() {
               style={{ color: '#C9A84C' }}>
               <ChevronLeft size={14} /> Admin
             </Link>
-            <h1 className="font-heading text-[28px] font-bold text-[#F5F0E8]">Wein-Datenbank</h1>
-            <p style={{ color: 'rgba(168,152,128,0.7)', fontSize: 13, marginTop: 4 }}>
+            <h1 className="font-heading text-[28px] font-bold text-text-primary">Wein-Datenbank</h1>
+            <p style={{ color: 'rgba(var(--text-muted-rgb),0.7)', fontSize: 13, marginTop: 4 }}>
               {weine.length} Weine · CRUD-Verwaltung
             </p>
           </div>
@@ -267,7 +267,7 @@ export default function AdminWeinePage() {
               className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
               style={filter === t
                 ? { background: t === 'alle' ? 'rgba(201,168,76,0.2)' : `${TYP_COLOR[t as Wein['typ']]}22`, color: t === 'alle' ? '#C9A84C' : TYP_COLOR[t as Wein['typ']], border: `1px solid ${t === 'alle' ? 'rgba(201,168,76,0.4)' : TYP_COLOR[t as Wein['typ']] + '44'}` }
-                : { background: 'transparent', color: 'rgba(168,152,128,0.5)', border: '1px solid rgba(255,255,255,0.07)' }
+                : { background: 'transparent', color: 'rgba(var(--text-muted-rgb),0.5)', border: '1px solid var(--border)' }
               }>
               {t === 'alle' ? `Alle (${weine.length})` : `${TYP_LABELS[t]} (${weine.filter(w => w.typ === t).length})`}
             </button>
@@ -275,24 +275,24 @@ export default function AdminWeinePage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="rounded-2xl overflow-hidden bg-card" style={{ border: '1px solid var(--border)' }}>
           <table className="w-full" style={{ borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
                 {['Name & Rebsorte', 'Typ', 'Region', 'Profil', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-widest"
-                    style={{ color: 'rgba(168,152,128,0.5)' }}>{h}</th>
+                    style={{ color: 'rgba(var(--text-muted-rgb),0.5)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {displayed.map((w, i) => (
                 <tr key={w.id}
-                  style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  style={{ background: i % 2 === 0 ? 'transparent' : 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
                   {/* Name */}
                   <td className="px-4 py-3">
-                    <p className="text-[13px] font-semibold text-[#F5F0E8]">{w.name}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: 'rgba(168,152,128,0.6)' }}>{w.rebsorte}</p>
+                    <p className="text-[13px] font-semibold text-text-primary">{w.name}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>{w.rebsorte}</p>
                   </td>
                   {/* Typ */}
                   <td className="px-4 py-3">
@@ -303,13 +303,13 @@ export default function AdminWeinePage() {
                   </td>
                   {/* Region */}
                   <td className="px-4 py-3">
-                    <p className="text-[12px] text-[#F5F0E8]">{w.region}</p>
-                    <p className="text-[11px]" style={{ color: 'rgba(168,152,128,0.5)' }}>{w.land}</p>
+                    <p className="text-[12px] text-text-primary">{w.region}</p>
+                    <p className="text-[11px]" style={{ color: 'rgba(var(--text-muted-rgb),0.5)' }}>{w.land}</p>
                   </td>
                   {/* Profil */}
                   <td className="px-4 py-3">
                     <ProfileBar profil={w.profil} />
-                    <p className="text-[10px] mt-1" style={{ color: 'rgba(168,152,128,0.35)' }}>
+                    <p className="text-[10px] mt-1" style={{ color: 'rgba(var(--text-muted-rgb),0.35)' }}>
                       S{w.profil.acidity} Sw{w.profil.sweetness} T{w.profil.tannin} B{w.profil.body} F{w.profil.fruitiness}
                     </p>
                   </td>
@@ -334,7 +334,7 @@ export default function AdminWeinePage() {
           </table>
 
           {displayed.length === 0 && (
-            <div className="text-center py-16 text-[13px]" style={{ color: 'rgba(168,152,128,0.4)' }}>
+            <div className="text-center py-16 text-[13px]" style={{ color: 'rgba(var(--text-muted-rgb),0.4)' }}>
               {weine.length === 0
                 ? 'Noch keine Weine — erst Seed ausführen.'
                 : 'Keine Weine für diesen Filter.'}
@@ -349,13 +349,13 @@ export default function AdminWeinePage() {
           style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
           onClick={e => { if (e.target === e.currentTarget) closeForm(); }}>
           <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-6"
-            style={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
 
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-heading text-[18px] font-bold text-[#F5F0E8]">
+              <h2 className="font-heading text-[18px] font-bold text-text-primary">
                 {editId ? 'Wein bearbeiten' : 'Neuer Wein'}
               </h2>
-              <button onClick={closeForm} style={{ color: 'rgba(168,152,128,0.5)' }}>
+              <button onClick={closeForm} style={{ color: 'rgba(var(--text-muted-rgb),0.5)' }}>
                 <X size={18} />
               </button>
             </div>
@@ -364,24 +364,24 @@ export default function AdminWeinePage() {
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="col-span-2">
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Name *</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Name *</label>
                 <input
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="z.B. Riesling trocken Mosel"
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none focus:ring-1 focus:ring-[#C9A84C]"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none focus:ring-1 focus:ring-[#C9A84C]"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Typ *</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Typ *</label>
                 <select
                   value={form.typ}
                   onChange={e => setForm(f => ({ ...f, typ: e.target.value as Wein['typ'] }))}
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none"
-                  style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                   {TYPEN.map(t => (
                     <option key={t} value={t}>{TYP_LABELS[t]}</option>
                   ))}
@@ -390,57 +390,57 @@ export default function AdminWeinePage() {
 
               <div>
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Rebsorte *</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Rebsorte *</label>
                 <input
                   value={form.rebsorte}
                   onChange={e => setForm(f => ({ ...f, rebsorte: e.target.value }))}
                   placeholder="z.B. Riesling"
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Region *</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Region *</label>
                 <input
                   value={form.region}
                   onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
                   placeholder="z.B. Mosel"
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 />
               </div>
 
               <div>
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Land *</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Land *</label>
                 <input
                   value={form.land}
                   onChange={e => setForm(f => ({ ...f, land: e.target.value }))}
                   placeholder="z.B. Deutschland"
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 />
               </div>
 
               <div className="col-span-2">
                 <label className="block text-[11px] font-semibold mb-1.5 uppercase tracking-widest"
-                  style={{ color: 'rgba(168,152,128,0.6)' }}>Beschreibung</label>
+                  style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>Beschreibung</label>
                 <textarea
                   value={form.beschreibung}
                   onChange={e => setForm(f => ({ ...f, beschreibung: e.target.value }))}
                   placeholder="Optionale Beschreibung…"
                   rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-[#F5F0E8] outline-none resize-none"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] text-text-primary outline-none resize-none"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 />
               </div>
             </div>
 
             {/* Profil-Achsen */}
-            <div className="rounded-xl p-4 mb-5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(168,152,128,0.6)' }}>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+              <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(var(--text-muted-rgb),0.6)' }}>
                 Weinprofil (Achsen 0 – 5)
               </p>
               <AchsenEditor profil={form.profil} onChange={p => setForm(f => ({ ...f, profil: p }))} />
@@ -456,7 +456,7 @@ export default function AdminWeinePage() {
             <div className="flex gap-3 justify-end">
               <button onClick={closeForm}
                 className="px-4 py-2 rounded-xl text-[13px] font-medium transition-all hover:opacity-80"
-                style={{ color: 'rgba(168,152,128,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                style={{ color: 'rgba(var(--text-muted-rgb),0.6)', border: '1px solid var(--border)' }}>
                 Abbrechen
               </button>
               <button onClick={handleSave} disabled={saving || !weinFormValid}
@@ -475,15 +475,15 @@ export default function AdminWeinePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-sm rounded-2xl p-6"
-            style={{ background: '#111', border: '1px solid rgba(248,113,113,0.2)' }}>
-            <h3 className="font-heading text-[16px] font-bold text-[#F5F0E8] mb-2">Wein löschen?</h3>
-            <p className="text-[13px] mb-6" style={{ color: 'rgba(168,152,128,0.7)' }}>
+            style={{ background: 'var(--surface)', border: '1px solid rgba(248,113,113,0.2)' }}>
+            <h3 className="font-heading text-[16px] font-bold text-text-primary mb-2">Wein löschen?</h3>
+            <p className="text-[13px] mb-6" style={{ color: 'rgba(var(--text-muted-rgb),0.7)' }}>
               {weine.find(w => w.id === deleteId)?.name} — diese Aktion ist nicht rückgängig zu machen.
             </p>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setDeleteId(null)}
                 className="px-4 py-2 rounded-xl text-[13px] font-medium"
-                style={{ color: 'rgba(168,152,128,0.6)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                style={{ color: 'rgba(var(--text-muted-rgb),0.6)', border: '1px solid var(--border)' }}>
                 Abbrechen
               </button>
               <button onClick={() => handleDelete(deleteId!)} disabled={deleting}

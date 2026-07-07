@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Palette } from 'lucide-react';
 import { TREE_REGISTRY, TREE_ORDER, TREE_EMOJI } from '@/lib/stammbaum';
 import type { TreeNodeData } from '@/lib/stammbaum/types';
 import {
@@ -362,6 +363,15 @@ export default function ZutatenStammbaumPage() {
         <p style={{ color: '#B09880', fontSize: 12, marginTop: 8, letterSpacing: '0.5px' }}>
           Wähle links eine Zutat und klicke auf eine Methode zum Aufklappen
         </p>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          marginTop: 14, padding: '5px 13px', borderRadius: 999,
+          background: 'rgba(107,58,75,0.06)', border: '1px solid rgba(107,58,75,0.15)',
+          color: '#8B7355', fontSize: 11, letterSpacing: '0.2px',
+        }}>
+          <Palette size={11} />
+          Illustration im Sepia-Ton — bewusst unabhängig vom Dark Mode
+        </div>
       </div>
 
       {/* ── main area: rail + stage ────────────────────────────────── */}

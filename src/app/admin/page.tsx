@@ -46,10 +46,10 @@ export default function AdminPage() {
 
   if (authorized === false) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: '#0A0A0A' }}>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>
         <ShieldOff size={40} color="#f87171" />
         <p className="text-[#f87171] font-semibold text-[15px]">Kein Zugriff</p>
-        <p style={{ color: 'rgba(168,152,128,0.5)', fontSize: 13 }}>Weiterleitung zum Dashboard…</p>
+        <p style={{ color: 'rgba(var(--text-muted-rgb), 0.5)', fontSize: 13 }}>Weiterleitung zum Dashboard…</p>
       </div>
     );
   }
@@ -90,18 +90,18 @@ export default function AdminPage() {
   const others   = requests.filter(r => r.status !== 'pending');
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#0A0A0A' }}>
+    <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg)' }}>
       <Loader2 className="animate-spin text-[#C9A84C]" size={32} />
     </div>
   );
 
   return (
-    <div className="min-h-screen p-8" style={{ background: '#0A0A0A' }}>
+    <div className="min-h-screen p-8" style={{ background: 'var(--bg)' }}>
       <div className="max-w-3xl mx-auto">
 
         <div className="mb-8">
-          <h1 className="font-heading text-[28px] font-bold text-[#F5F0E8]">Admin</h1>
-          <p style={{ color: 'rgba(168,152,128,0.7)', fontSize: 13, marginTop: 4 }}>
+          <h1 className="font-heading text-[28px] font-bold text-text-primary">Admin</h1>
+          <p style={{ color: 'rgba(var(--text-muted-rgb), 0.7)', fontSize: 13, marginTop: 4 }}>
             Registrierungsanfragen verwalten
           </p>
         </div>
@@ -130,20 +130,19 @@ export default function AdminPage() {
             </h2>
             <div className="space-y-3">
               {pending.map(r => (
-                <div key={r.id} className="rounded-2xl p-5"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div key={r.id} className="rounded-2xl p-5 bg-card border border-border">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-[#F5F0E8] text-[15px]">{r.name}</span>
+                        <span className="font-semibold text-text-primary text-[15px]">{r.name}</span>
                         {statusBadge(r.status)}
                       </div>
-                      <p style={{ color: 'rgba(168,152,128,0.8)', fontSize: 13 }}>{r.email}</p>
-                      <p className="mt-2 text-[13px]" style={{ color: 'rgba(245,240,232,0.6)', lineHeight: 1.6 }}>
-                        <span style={{ color: 'rgba(168,152,128,0.6)', fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase' }}>Grund: </span>
+                      <p style={{ color: 'rgba(var(--text-muted-rgb), 0.8)', fontSize: 13 }}>{r.email}</p>
+                      <p className="mt-2 text-[13px]" style={{ color: 'rgba(var(--text-rgb), 0.6)', lineHeight: 1.6 }}>
+                        <span style={{ color: 'rgba(var(--text-muted-rgb), 0.6)', fontSize: 11, letterSpacing: '2px', textTransform: 'uppercase' }}>Grund: </span>
                         {r.grund}
                       </p>
-                      <p className="mt-1 text-[11px]" style={{ color: 'rgba(168,152,128,0.4)' }}>
+                      <p className="mt-1 text-[11px]" style={{ color: 'rgba(var(--text-muted-rgb), 0.4)' }}>
                         {new Date(r.created_at).toLocaleString('de-DE')}
                       </p>
                     </div>
@@ -173,7 +172,7 @@ export default function AdminPage() {
         )}
 
         {pending.length === 0 && (
-          <div className="text-center py-16" style={{ color: 'rgba(168,152,128,0.4)', fontSize: 14 }}>
+          <div className="text-center py-16" style={{ color: 'rgba(var(--text-muted-rgb), 0.4)', fontSize: 14 }}>
             Keine ausstehenden Anfragen.
           </div>
         )}
@@ -181,16 +180,15 @@ export default function AdminPage() {
         {/* History */}
         {others.length > 0 && (
           <section>
-            <h2 className="text-[13px] font-semibold mb-3" style={{ color: 'rgba(168,152,128,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+            <h2 className="text-[13px] font-semibold mb-3" style={{ color: 'rgba(var(--text-muted-rgb), 0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>
               Verlauf
             </h2>
             <div className="space-y-2">
               {others.map(r => (
-                <div key={r.id} className="flex items-center justify-between px-4 py-3 rounded-xl"
-                  style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div key={r.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-card-hover border border-border">
                   <div>
-                    <span className="text-[13px] font-medium text-[#F5F0E8]">{r.name}</span>
-                    <span className="text-[12px] ml-2" style={{ color: 'rgba(168,152,128,0.5)' }}>{r.email}</span>
+                    <span className="text-[13px] font-medium text-text-primary">{r.name}</span>
+                    <span className="text-[12px] ml-2" style={{ color: 'rgba(var(--text-muted-rgb), 0.5)' }}>{r.email}</span>
                   </div>
                   {statusBadge(r.status)}
                 </div>

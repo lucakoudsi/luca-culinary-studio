@@ -34,8 +34,8 @@ export default function PhotoZone({ preview, onFile, onClear, uploading = false,
           cursor: uploading ? 'default' : 'pointer',
           border: dragging
             ? '2px dashed rgba(107,58,75,0.6)'
-            : preview ? 'none' : '2px dashed rgba(0,0,0,0.12)',
-          background: preview ? undefined : dragging ? 'rgba(107,58,75,0.04)' : '#F5F2EE',
+            : preview ? 'none' : '2px dashed var(--border)',
+          background: preview ? undefined : dragging ? 'rgba(107,58,75,0.04)' : 'var(--surface-2)',
         }}
       >
         {preview ? (
@@ -74,8 +74,8 @@ export default function PhotoZone({ preview, onFile, onClear, uploading = false,
                   <ImagePlus size={24} color="#6B3A4B" />
                 </div>
                 <div className="text-center">
-                  <p className="text-[14px] font-medium" style={{ color: '#2C2420' }}>Foto hochladen</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: '#8B7355' }}>Hierher ziehen oder klicken · JPG, PNG, WebP</p>
+                  <p className="text-[14px] font-medium" style={{ color: 'var(--text)' }}>Foto hochladen</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Hierher ziehen oder klicken · JPG, PNG, WebP</p>
                 </div>
               </>
             )}

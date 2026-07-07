@@ -92,7 +92,7 @@ const PERM_TIERS = [
 
 // ─── Shared form styles ───────────────────────────────────────────────────────
 
-const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] outline-none transition-all placeholder:text-[#C0B5A8]';
+const fieldCls = 'w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] outline-none transition-all placeholder:text-text-muted';
 const fieldStyle = { background: 'var(--bg, #F9F7F4)', border: '1px solid var(--border, #E8E0D8)', color: 'var(--text, #2C2420)' };
 const labelStyle: React.CSSProperties = {
   display: 'block', fontSize: 10, color: 'var(--text-muted)',
@@ -838,7 +838,7 @@ export default function ProfilPage() {
                       onChange={e => { if (e.target.value.length <= 300) setBio(e.target.value); }}
                       placeholder="Erzähl etwas über dich und deine Küche…"
                       rows={4}
-                      className="w-full px-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
+                      className="w-full px-4 py-3.5 rounded-xl text-[14px] text-text-primary outline-none transition-all placeholder:text-text-muted resize-none"
                       style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
                   </div>
 
@@ -863,7 +863,7 @@ export default function ProfilPage() {
                       <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
                         placeholder="Zutat + Enter"
-                        className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                        className="flex-1 px-4 py-3 rounded-xl text-[14px] text-text-primary outline-none transition-all placeholder:text-text-muted"
                         style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
                       <button onClick={addTag}
                         style={{ padding: '0 14px', borderRadius: 12, fontSize: 20, fontWeight: 700,
@@ -934,7 +934,7 @@ export default function ProfilPage() {
                         }
                       }}
                       placeholder="Sous-vide, Fermentation… + Enter"
-                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-text-primary outline-none transition-all placeholder:text-text-muted"
                       style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
                     <button onClick={() => {
                       const t = technikInput.trim();
@@ -1009,7 +1009,7 @@ export default function ProfilPage() {
                         }
                       }}
                       placeholder="René Redzepi, Noma… + Enter"
-                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                      className="flex-1 px-4 py-3 rounded-xl text-[14px] text-text-primary outline-none transition-all placeholder:text-text-muted"
                       style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
                     <button onClick={() => {
                       const t = inspirInput.trim();
@@ -1193,7 +1193,7 @@ export default function ProfilPage() {
                   <Search size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input type="text" value={adminSearch} onChange={e => setAdminSearch(e.target.value)}
                     placeholder="Nach Name oder E-Mail suchen…"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-[13px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-[13px] text-text-primary outline-none transition-all placeholder:text-text-muted"
                     style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
                     onFocus={onFocus} onBlur={onBlur} />
                 </div>

@@ -275,9 +275,9 @@ export default function RegisterPage() {
           )}
 
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px" style={{ background: '#E8E0D8' }} />
+            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
             <span style={{ color: '#B09880', fontSize: 10, letterSpacing: '2px' }}>ODER</span>
-            <div className="flex-1 h-px" style={{ background: '#E8E0D8' }} />
+            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           </div>
 
           <p className="text-center" style={{ fontSize: 13, color: 'var(--text-muted)' }}>
@@ -290,7 +290,7 @@ export default function RegisterPage() {
             </Link>
           </p>
 
-          <p className="text-center mt-10" style={{ fontSize: 10, color: 'rgba(44,36,32,0.2)', letterSpacing: '3px', textTransform: 'uppercase' }}>
+          <p className="text-center mt-10" style={{ fontSize: 10, color: 'rgba(var(--text-rgb), 0.2)', letterSpacing: '3px', textTransform: 'uppercase' }}>
             Luca Culinary Studio
           </p>
         </div>

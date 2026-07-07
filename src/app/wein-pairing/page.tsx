@@ -42,15 +42,15 @@ function findIngredient(query: string, list: Ingredient[]): Ingredient | null {
 
 function WeinCard({ match }: { match: WeinMatch }) {
   const { wein, score, gründe } = match;
-  const meta = TYP_META[wein.typ] ?? { label: wein.typ, color: '#8B7355' };
+  const meta = TYP_META[wein.typ] ?? { label: wein.typ, color: 'var(--text-muted)' };
   return (
-    <div className="bg-white border border-[#E8E0D8] rounded-xl p-5 transition-all hover:border-[rgba(107,58,75,0.3)]">
+    <div className="bg-card border border-border rounded-xl p-5 transition-all hover:border-[rgba(107,58,75,0.3)]">
       <div className="flex items-start gap-3 mb-3">
         {/* Score badge */}
         <div className="flex-shrink-0 w-12 h-12 rounded-xl flex flex-col items-center justify-center"
           style={{ background: `${meta.color}12`, border: `1px solid ${meta.color}30` }}>
           <span className="text-[15px] font-bold leading-none" style={{ color: meta.color }}>{score}</span>
-          <span className="text-[9px] text-[#B09880] mt-0.5">Match</span>
+          <span className="text-[9px] text-text-muted mt-0.5">Match</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="mb-1">
@@ -59,23 +59,23 @@ function WeinCard({ match }: { match: WeinMatch }) {
               {meta.label}
             </span>
           </div>
-          <h3 className="font-heading text-[15px] font-bold text-[#2C2420] leading-snug">{wein.name}</h3>
-          <p className="text-[11px] text-[#B09880] mt-0.5 italic">{wein.rebsorte}</p>
+          <h3 className="font-heading text-[15px] font-bold text-text-primary leading-snug">{wein.name}</h3>
+          <p className="text-[11px] text-text-muted mt-0.5 italic">{wein.rebsorte}</p>
         </div>
       </div>
 
       {/* Match bar */}
-      <div className="h-1 bg-[#F5F2EE] rounded-full overflow-hidden mb-3">
+      <div className="h-1 rounded-full overflow-hidden mb-3" style={{ background: 'var(--border)' }}>
         <div className="h-full rounded-full" style={{ width: `${score}%`, background: meta.color }} />
       </div>
 
-      <div className="flex items-center gap-1.5 mb-3 text-[12px] text-[#8B7355]">
+      <div className="flex items-center gap-1.5 mb-3 text-[12px] text-text-muted">
         <MapPin size={11} className="flex-shrink-0" />
         <span>{wein.region}, {wein.land}</span>
       </div>
 
       {wein.beschreibung && (
-        <p className="text-[12px] text-[#8B7355] leading-relaxed mb-3">{wein.beschreibung}</p>
+        <p className="text-[12px] text-text-muted leading-relaxed mb-3">{wein.beschreibung}</p>
       )}
 
       {/* Pairing reason */}
@@ -286,7 +286,7 @@ export default function WeinPairingPage() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                 style={{
                   background: modus === id ? 'linear-gradient(135deg, #562E3C, #7D4558)' : 'rgba(0,0,0,0.04)',
-                  color:      modus === id ? '#FFFFFF' : '#8B7355',
+                  color:      modus === id ? '#FFFFFF' : 'var(--text-muted)',
                   border:     `1px solid ${modus === id ? 'transparent' : 'rgba(0,0,0,0.08)'}`,
                 }}>
                 {icon}{label}
@@ -296,19 +296,19 @@ export default function WeinPairingPage() {
 
           {/* ── Mode A: Freitext ─────────────────────────────────────────────── */}
           {modus === 'gericht' && (
-            <div className="bg-white border border-[#E8E0D8] rounded-xl p-5 mb-6">
-              <p className="text-[12px] text-[#8B7355] mb-3">
+            <div className="bg-card border border-border rounded-xl p-5 mb-6">
+              <p className="text-[12px] text-text-muted mb-3">
                 Gib einen Zutaten- oder Gerichtsnamen ein. Das System sucht in der Bibliothek nach dem Geschmacksprofil.
               </p>
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#B09880]" />
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     value={freitext}
                     onChange={e => { setFreitext(e.target.value); setNoMatch(false); }}
                     onKeyDown={e => e.key === 'Enter' && handleFreitextSearch()}
                     placeholder="z.B. Lachs, Spargel, Ziegenkäse, Rote Bete…"
-                    className="w-full border border-[#E8E0D8] rounded-lg pl-10 pr-4 py-2.5 text-[13px] text-[#2C2420] outline-none bg-[#FAFAF9]"
+                    className="w-full border border-border rounded-lg pl-10 pr-4 py-2.5 text-[13px] text-text-primary outline-none bg-card"
                     style={{ borderColor: noMatch ? 'rgba(192,80,80,0.4)' : undefined }}
                   />
                 </div>
@@ -334,7 +334,7 @@ export default function WeinPairingPage() {
 
               {/* Match confirmation */}
               {matchedName && hasSearched && !noMatch && (
-                <p className="text-[11px] text-[#8B7355] mt-2">
+                <p className="text-[11px] text-text-muted mt-2">
                   Geschmacksprofil von <strong className="text-[#6B3A4B]">{matchedName}</strong> wird verwendet.
                 </p>
               )}
@@ -343,43 +343,43 @@ export default function WeinPairingPage() {
 
           {/* ── Mode B: Aus Bibliothek ────────────────────────────────────────── */}
           {modus === 'zutat' && (
-            <div className="bg-white border border-[#E8E0D8] rounded-xl p-5 mb-6">
-              <p className="text-[12px] text-[#8B7355] mb-3">
+            <div className="bg-card border border-border rounded-xl p-5 mb-6">
+              <p className="text-[12px] text-text-muted mb-3">
                 Wähl eine Zutat aus der Bibliothek — ihr Geschmacksprofil fließt direkt in die Pairing-Engine.
               </p>
               <div ref={dropdownRef} className="relative">
-                <div className="flex items-center border border-[#E8E0D8] rounded-lg bg-[#FAFAF9] focus-within:border-[rgba(107,58,75,0.35)] transition-colors">
-                  <Leaf size={14} className="ml-3.5 flex-shrink-0 text-[#B09880]" />
+                <div className="flex items-center border border-border rounded-lg bg-card focus-within:border-[rgba(107,58,75,0.35)] transition-colors">
+                  <Leaf size={14} className="ml-3.5 flex-shrink-0 text-text-muted" />
                   <input
                     value={zutatenSearch}
                     onChange={e => { setZutatenSearch(e.target.value); setShowDropdown(true); setSelectedZutat(null); setHasSearched(false); }}
                     onFocus={() => setShowDropdown(true)}
                     placeholder="Zutat suchen…"
-                    className="flex-1 px-3 py-2.5 text-[13px] text-[#2C2420] bg-transparent outline-none"
+                    className="flex-1 px-3 py-2.5 text-[13px] text-text-primary bg-transparent outline-none"
                   />
                   {selectedZutat ? (
-                    <button onClick={clearZutat} className="mr-3 text-[#B09880] hover:text-[#8B7355] transition-colors">
+                    <button onClick={clearZutat} className="mr-3 text-text-muted hover:text-text-muted transition-colors">
                       <X size={14} />
                     </button>
                   ) : (
-                    <ChevronDown size={14} className="mr-3 text-[#B09880]" />
+                    <ChevronDown size={14} className="mr-3 text-text-muted" />
                   )}
                 </div>
 
                 {showDropdown && filteredZutaten.length > 0 && (
-                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#E8E0D8] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+                  <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
                     {filteredZutaten.map(z => (
                       <button key={z.id} onClick={() => handleZutatSelect(z)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#FAF8F5] transition-colors text-left">
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-card-hover transition-colors text-left">
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-[#2C2420] truncate">{z.name}</div>
-                          <div className="text-[11px] text-[#B09880]">{z.kategorie}</div>
+                          <div className="text-[13px] font-medium text-text-primary truncate">{z.name}</div>
+                          <div className="text-[11px] text-text-muted">{z.kategorie}</div>
                         </div>
                         {/* Mini flavor bar preview */}
                         {z.geschmack && (
                           <div className="flex items-end gap-0.5 flex-shrink-0">
                             {(['acidity','sweetness','bitterness','umami','spiciness'] as const).map(k => (
-                              <div key={k} className="w-1.5 rounded-sm bg-[#E8E0D8] overflow-hidden" style={{ height: 14 }}>
+                              <div key={k} className="w-1.5 rounded-sm overflow-hidden" style={{ height: 14, background: 'var(--border)' }}>
                                 <div className="w-full rounded-sm bg-[#6B3A4B]"
                                   style={{ height: `${(z.geschmack[k] / 5) * 100}%`, marginTop: 'auto' }} />
                               </div>
@@ -410,39 +410,39 @@ export default function WeinPairingPage() {
 
           {/* ── Mode C: Nach Rezept ──────────────────────────────────────────── */}
           {modus === 'rezept' && (
-            <div className="bg-white border border-[#E8E0D8] rounded-xl p-5 mb-6">
-              <p className="text-[12px] text-[#8B7355] mb-3">
+            <div className="bg-card border border-border rounded-xl p-5 mb-6">
+              <p className="text-[12px] text-text-muted mb-3">
                 Wähl eines deiner gespeicherten Rezepte — das Pairing nutzt das gespeicherte Geschmacksprofil.
               </p>
 
               {/* Dropdown */}
               <div ref={rezeptDropdownRef} className="relative">
-                <div className="flex items-center border border-[#E8E0D8] rounded-lg bg-[#FAFAF9] focus-within:border-[rgba(107,58,75,0.35)] transition-colors">
-                  <BookOpen size={14} className="ml-3.5 flex-shrink-0 text-[#B09880]" />
+                <div className="flex items-center border border-border rounded-lg bg-card focus-within:border-[rgba(107,58,75,0.35)] transition-colors">
+                  <BookOpen size={14} className="ml-3.5 flex-shrink-0 text-text-muted" />
                   <input
                     value={rezeptSearch}
                     onChange={e => { setRezeptSearch(e.target.value); setShowRezeptDd(true); setSelectedRezept(null); setHasSearched(false); setNoProfileRezept(false); }}
                     onFocus={() => setShowRezeptDd(true)}
                     placeholder="Rezept suchen…"
-                    className="flex-1 px-3 py-2.5 text-[13px] text-[#2C2420] bg-transparent outline-none"
+                    className="flex-1 px-3 py-2.5 text-[13px] text-text-primary bg-transparent outline-none"
                   />
                   {selectedRezept ? (
-                    <button onClick={clearRezept} className="mr-3 text-[#B09880] hover:text-[#8B7355] transition-colors">
+                    <button onClick={clearRezept} className="mr-3 text-text-muted hover:text-text-muted transition-colors">
                       <X size={14} />
                     </button>
                   ) : (
-                    <ChevronDown size={14} className="mr-3 text-[#B09880]" />
+                    <ChevronDown size={14} className="mr-3 text-text-muted" />
                   )}
                 </div>
 
                 {showRezeptDd && filteredRezepte.length > 0 && (
-                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#E8E0D8] rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+                  <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-64 overflow-y-auto">
                     {filteredRezepte.map(r => (
                       <button key={r.id} onClick={() => handleRezeptSelect(r)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#FAF8F5] transition-colors text-left">
+                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-card-hover transition-colors text-left">
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-[#2C2420] truncate">{r.title}</div>
-                          <div className="text-[11px] text-[#B09880]">{r.category} · {r.status}</div>
+                          <div className="text-[13px] font-medium text-text-primary truncate">{r.title}</div>
+                          <div className="text-[11px] text-text-muted">{r.category} · {r.status}</div>
                         </div>
                         {r.geschmack ? (
                           <span className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
@@ -451,14 +451,14 @@ export default function WeinPairingPage() {
                           </span>
                         ) : (
                           <span className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
-                            style={{ background: 'rgba(0,0,0,0.04)', color: '#B09880', border: '1px solid rgba(0,0,0,0.08)' }}>
+                            style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(0,0,0,0.08)' }}>
                             kein Profil
                           </span>
                         )}
                       </button>
                     ))}
                     {filteredRezepte.length === 0 && (
-                      <div className="px-4 py-3 text-[12px] text-[#B09880]">Keine Rezepte gefunden.</div>
+                      <div className="px-4 py-3 text-[12px] text-text-muted">Keine Rezepte gefunden.</div>
                     )}
                   </div>
                 )}
@@ -524,7 +524,7 @@ export default function WeinPairingPage() {
               {/* Type filter */}
               <div className="flex items-center gap-2 flex-wrap mb-5">
                 {WINE_TYPES.map(t => {
-                  const meta  = t === 'Alle' ? { label: 'Alle', color: '#6B3A4B' } : (TYP_META[t] ?? { label: t, color: '#8B7355' });
+                  const meta  = t === 'Alle' ? { label: 'Alle', color: '#6B3A4B' } : (TYP_META[t] ?? { label: t, color: 'var(--text-muted)' });
                   const count = t === 'Alle' ? results.length : results.filter(r => r.wein.typ === t).length;
                   if (count === 0 && t !== 'Alle') return null;
                   return (
@@ -533,13 +533,13 @@ export default function WeinPairingPage() {
                       style={{
                         background: typeFilter === t ? `${meta.color}15` : 'rgba(0,0,0,0.04)',
                         border:     `1px solid ${typeFilter === t ? `${meta.color}40` : 'rgba(0,0,0,0.08)'}`,
-                        color:      typeFilter === t ? meta.color : '#8B7355',
+                        color:      typeFilter === t ? meta.color : 'var(--text-muted)',
                       }}>
                       {meta.label} ({count})
                     </button>
                   );
                 })}
-                <span className="ml-auto text-[12px] text-[#B09880]">
+                <span className="ml-auto text-[12px] text-text-muted">
                   {showAll || filteredResults.length <= TOP_N
                     ? `${filteredResults.length} Empfehlung${filteredResults.length !== 1 ? 'en' : ''}`
                     : `${TOP_N} von ${filteredResults.length} Empfehlungen`}
@@ -563,7 +563,7 @@ export default function WeinPairingPage() {
                 <button
                   onClick={() => setShowAll(false)}
                   className="mt-5 w-full py-3 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-                  style={{ background: 'rgba(0,0,0,0.03)', color: '#8B7355', border: '1px solid rgba(0,0,0,0.08)' }}>
+                  style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-muted)', border: '1px solid rgba(0,0,0,0.08)' }}>
                   Weniger anzeigen
                 </button>
               )}
@@ -572,12 +572,12 @@ export default function WeinPairingPage() {
 
           {/* ── Empty state ───────────────────────────────────────────────────── */}
           {!weinLoading && !hasSearched && !noMatch && (
-            <div className="text-center py-20 border border-dashed border-[#E8E0D8] rounded-xl">
+            <div className="text-center py-20 border border-dashed border-border rounded-xl">
               <div className="w-16 h-16 rounded-xl mx-auto mb-4 flex items-center justify-center"
                 style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)' }}>
                 <Wine size={28} color="#6B3A4B" strokeWidth={1.5} />
               </div>
-              <p className="font-heading text-xl text-[#2C2420] mb-2">Bereit für das perfekte Pairing</p>
+              <p className="font-heading text-xl text-text-primary mb-2">Bereit für das perfekte Pairing</p>
               <p className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
                 {modus === 'gericht'
                   ? 'Gib eine Zutat ein — das System sucht deren Profil in der Bibliothek'
