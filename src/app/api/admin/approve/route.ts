@@ -48,13 +48,25 @@ export async function GET(req: NextRequest) {
     if (profileErr) console.error('[approve token] profile upsert failed:', profileErr.message);
   }
 
-  await supabase
+  const { error: updateErr } = await supabase
     .from('access_requests')
     .update({ status: 'approved', password_temp: null })
     .eq('id', request.id);
 
+  if (updateErr) {
+    console.error('[approve token] status update failed:', updateErr.message);
+    return new NextResponse(
+      html('Fehler', `Account wurde erstellt, aber der Status konnte nicht gespeichert werden: ${updateErr.message}. Bitte manuell prüfen.`, 'red'),
+      { headers: { 'Content-Type': 'text/html' }, status: 500 },
+    );
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  await sendApprovedEmail(request.email, request.name, appUrl);
+  try {
+    await sendApprovedEmail(request.email, request.name, appUrl);
+  } catch (e) {
+    console.error('[approve token] welcome email failed (non-fatal, Status ist bereits gespeichert):', e);
+  }
 
   return new NextResponse(
     html('Genehmigt!', `${request.name} (${request.email}) hat jetzt Zugang und wurde per Email benachrichtigt.`, 'green'),

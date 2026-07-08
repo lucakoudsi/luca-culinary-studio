@@ -25,12 +25,24 @@ export async function GET(req: NextRequest) {
   if (error || !request) return new NextResponse(html('Nicht gefunden', 'Diese Anfrage existiert nicht.'), { headers: { 'Content-Type': 'text/html' }, status: 404 });
   if (request.status !== 'pending') return new NextResponse(html('Bereits bearbeitet', `Status ist bereits: ${request.status}`), { headers: { 'Content-Type': 'text/html' }, status: 409 });
 
-  await supabase
+  const { error: updateErr } = await supabase
     .from('access_requests')
     .update({ status: 'rejected', password_temp: null })
     .eq('id', request.id);
 
-  await sendRejectedEmail(request.email, request.name);
+  if (updateErr) {
+    console.error('[reject token] status update failed:', updateErr.message);
+    return new NextResponse(
+      html('Fehler', `Status konnte nicht gespeichert werden: ${updateErr.message}`),
+      { headers: { 'Content-Type': 'text/html' }, status: 500 },
+    );
+  }
+
+  try {
+    await sendRejectedEmail(request.email, request.name);
+  } catch (e) {
+    console.error('[reject token] rejection email failed (non-fatal, Status ist bereits gespeichert):', e);
+  }
 
   return new NextResponse(
     html('Abgelehnt', `Die Anfrage von ${request.name} (${request.email}) wurde abgelehnt.`),

@@ -54,6 +54,15 @@ export default function AdminPage() {
     );
   }
 
+  const reloadRequests = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('access_requests')
+      .select('id, name, email, grund, status, created_at')
+      .order('created_at', { ascending: false });
+    setRequests(data ?? []);
+  };
+
   const act = async (id: string, action: 'approve' | 'reject') => {
     setActing(id + action);
     setError('');
@@ -63,10 +72,12 @@ export default function AdminPage() {
       body: JSON.stringify({ id, action }),
     });
     if (res.ok) {
-      setRequests(prev => prev.map(r => r.id === id ? { ...r, status: action === 'approve' ? 'approved' : 'rejected' } : r));
+      // Liste immer vom Server neu laden, damit sie garantiert dem echten DB-Stand entspricht
+      await reloadRequests();
     } else {
       const { error: e } = await res.json();
       setError(e || 'Fehler');
+      if (res.status === 409) await reloadRequests();
     }
     setActing(null);
   };

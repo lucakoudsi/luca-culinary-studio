@@ -27,10 +27,18 @@ export async function POST(
     if (fetchErr || !request) return NextResponse.json({ error: 'Anfrage nicht gefunden.' }, { status: 404 });
     if (request.status !== 'pending') return NextResponse.json({ error: 'Bereits bearbeitet.' }, { status: 409 });
 
-    await admin
+    const { error: updateErr } = await admin
       .from('access_requests')
       .update({ status: 'rejected', password_temp: null })
       .eq('id', params.id);
+
+    if (updateErr) {
+      console.error('[reject] status update failed:', updateErr.message);
+      return NextResponse.json(
+        { error: `Status konnte nicht gespeichert werden: ${updateErr.message}` },
+        { status: 500 },
+      );
+    }
 
     try {
       await sendRejectedEmail(request.email, request.name);

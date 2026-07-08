@@ -76,7 +76,14 @@ export async function POST(
       .from('access_requests')
       .update({ status: 'approved', password_temp: null })
       .eq('id', params.id);
-    if (updateErr) console.error('[approve] status update failed:', updateErr.message);
+
+    if (updateErr) {
+      console.error('[approve] status update failed:', updateErr.message);
+      return NextResponse.json(
+        { error: `Account wurde erstellt, aber der Status konnte nicht gespeichert werden: ${updateErr.message}. Bitte manuell in der DB prüfen.` },
+        { status: 500 },
+      );
+    }
 
     // Send welcome email
     const titleUsed = titel || 'Hobbykoch';

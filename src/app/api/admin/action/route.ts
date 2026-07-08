@@ -48,11 +48,30 @@ export async function POST(req: NextRequest) {
     });
     if (authError) return NextResponse.json({ error: authError.message }, { status: 500 });
 
-    await admin.from('access_requests').update({ status: 'approved', password_temp: null }).eq('id', id);
-    await sendApprovedEmail(request.email, request.name, appUrl);
+    const { error: updateErr } = await admin.from('access_requests').update({ status: 'approved', password_temp: null }).eq('id', id);
+    if (updateErr) {
+      console.error('[admin/action approve] status update failed:', updateErr.message);
+      return NextResponse.json(
+        { error: `Account wurde erstellt, aber der Status konnte nicht gespeichert werden: ${updateErr.message}. Bitte manuell in der DB prüfen.` },
+        { status: 500 },
+      );
+    }
+    try {
+      await sendApprovedEmail(request.email, request.name, appUrl);
+    } catch (e) {
+      console.error('[admin/action approve] welcome email failed (non-fatal, Status ist bereits gespeichert):', e);
+    }
   } else {
-    await admin.from('access_requests').update({ status: 'rejected', password_temp: null }).eq('id', id);
-    await sendRejectedEmail(request.email, request.name);
+    const { error: updateErr } = await admin.from('access_requests').update({ status: 'rejected', password_temp: null }).eq('id', id);
+    if (updateErr) {
+      console.error('[admin/action reject] status update failed:', updateErr.message);
+      return NextResponse.json({ error: `Status konnte nicht gespeichert werden: ${updateErr.message}` }, { status: 500 });
+    }
+    try {
+      await sendRejectedEmail(request.email, request.name);
+    } catch (e) {
+      console.error('[admin/action reject] rejection email failed (non-fatal, Status ist bereits gespeichert):', e);
+    }
   }
 
   return NextResponse.json({ success: true });

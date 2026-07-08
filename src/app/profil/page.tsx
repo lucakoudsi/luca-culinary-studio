@@ -445,17 +445,14 @@ export default function ProfilPage() {
       const d = await res.json();
       if (!res.ok) {
         setAnfragenError(d.error || 'Annehmen fehlgeschlagen.');
-        // 409 = already processed in DB but state is stale → remove card
-        if (res.status === 409) {
-          setAnfragen(prev => prev.filter(r => r.id !== id));
-          setPendingCount(prev => Math.max(0, prev - 1));
-        }
+        // 409 = anderswo bereits bearbeitet → echten Stand nachladen statt Karte blind entfernen
+        if (res.status === 409) await loadAnfragen();
         return;
       }
-      setAnfragen(prev => prev.filter(r => r.id !== id));
-      setPendingCount(prev => Math.max(0, prev - 1));
       setAnfragenSuccessMsg(`${name} wurde angenommen und die Willkommens-Email wurde versendet.`);
       setTimeout(() => setAnfragenSuccessMsg(null), 4000);
+      // Liste immer vom Server neu laden, damit die Anzeige garantiert dem echten DB-Stand entspricht
+      await loadAnfragen();
     } catch {
       setAnfragenError('Netzwerkfehler.');
     } finally {
@@ -471,14 +468,10 @@ export default function ProfilPage() {
       const d = await res.json();
       if (!res.ok) {
         setAnfragenError(d.error || 'Ablehnen fehlgeschlagen.');
-        if (res.status === 409) {
-          setAnfragen(prev => prev.filter(r => r.id !== id));
-          setPendingCount(prev => Math.max(0, prev - 1));
-        }
+        if (res.status === 409) await loadAnfragen();
         return;
       }
-      setAnfragen(prev => prev.filter(r => r.id !== id));
-      setPendingCount(prev => Math.max(0, prev - 1));
+      await loadAnfragen();
     } catch {
       setAnfragenError('Netzwerkfehler.');
     } finally {
