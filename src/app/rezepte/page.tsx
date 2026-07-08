@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import type { Recipe } from '@/types';
 import {
-  BookOpen, Search, Plus, Filter, Clock, Eye, Trash2, Edit3,
+  BookOpen, Search, Plus, Filter, Clock, Eye, Trash2, Edit3, Download,
 } from 'lucide-react';
 import RecipeDetail, { StarRating, diffColor, statusColor } from '@/components/recipes/RecipeDetailModal';
 
@@ -101,7 +101,11 @@ export default function RezeptePage() {
           </h1>
           <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>{filtered.length} Rezepte</p>
         </div>
-        <div className="mt-1">
+        <div className="mt-1 flex items-center gap-2">
+          <button onClick={() => router.push('/rezepte/neu?import=1')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all border border-border hover:border-gold/40 hover:text-gold text-text-muted">
+            <Download size={15} /> Rezept importieren
+          </button>
           <button onClick={() => router.push('/rezepte/neu')}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>

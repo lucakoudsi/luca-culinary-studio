@@ -1,6 +1,6 @@
 ﻿'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
@@ -12,7 +12,7 @@ import KomponenteCard from '@/components/recipes/KomponenteCard';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
@@ -251,7 +251,16 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function NewRezeptPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewRezeptForm />
+    </Suspense>
+  );
+}
+
+function NewRezeptForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addRecipe, ingredients, fetchIngredients } = useStore();
 
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
@@ -276,6 +285,16 @@ export default function NewRezeptPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [imageError, setImageError]   = useState<string | null>(null);
+  const [importedImage, setImportedImage] = useState<string | null>(null);
+
+  // Rezept-Import (Weg A: URL)
+  const [importOpen, setImportOpen]   = useState(false);
+  const [importUrl, setImportUrl]     = useState('');
+  const [importing, setImporting]     = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => { if (searchParams.get('import') === '1') setImportOpen(true); }, [searchParams]);
 
   // Geschmacksprofil
   const [geschmack, setGeschmackRaw]  = useState<FlavorProfile>(EMPTY_FLAVOR);
@@ -303,12 +322,60 @@ export default function NewRezeptPage() {
     setImageError(null);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setImportedImage(null); // manueller Upload ersetzt ein evtl. importiertes Bild
   };
 
   const handleClearPhoto = () => {
     setImageFile(null);
     setImagePreview(null);
     setImageError(null);
+    setImportedImage(null);
+  };
+
+  // ── Rezept-Import (Weg A: URL) ─────────────────────────────────────────────
+  const handleImportUrl = async () => {
+    const url = importUrl.trim();
+    if (!url) return;
+    setImporting(true);
+    setImportError(null);
+    setImportSuccessMsg(null);
+    try {
+      const res = await fetch('/api/rezepte/import-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d.found) {
+        setImportError(d.error || 'Import fehlgeschlagen.');
+        return;
+      }
+      const r = d.recipe as {
+        title: string; description: string;
+        zutaten: RecipeIngredient[]; schritte: string[];
+        time?: number; portionen?: number; category?: string; image: string | null;
+      };
+      setBase(p => ({
+        ...p,
+        title:       r.title || p.title,
+        description: r.description || p.description,
+        time:        r.time ?? p.time,
+        portionen:   r.portionen ?? p.portionen,
+        category:    r.category ?? p.category,
+      }));
+      if (r.zutaten.length > 0) setZutaten(r.zutaten);
+      if (r.schritte.length > 0) setSchritte(r.schritte);
+      if (r.image) {
+        setImportedImage(r.image);
+        setImagePreview(r.image);
+        setImageFile(null);
+      }
+      setImportSuccessMsg('Rezept übernommen — bitte prüfen und bei Bedarf korrigieren.');
+    } catch {
+      setImportError('Netzwerkfehler beim Import.');
+    } finally {
+      setImporting(false);
+    }
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
@@ -386,7 +453,7 @@ export default function NewRezeptPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      let finalImage: string | null = null;
+      let finalImage: string | null = importedImage;
       if (imageFile) {
         finalImage = await uploadPhoto(imageFile);
         if (!finalImage) return; // upload failed; error is shown in PhotoZone
@@ -484,6 +551,52 @@ export default function NewRezeptPage() {
 
       {/* ── Form ──────────────────────────────────────────────────────────── */}
       <div className="max-w-[820px] mx-auto px-8 py-8 pb-24 space-y-5">
+
+        {/* ── Rezept-Import ────────────────────────────────────────────────── */}
+        <div className={SEC}>
+          <button onClick={() => setImportOpen(p => !p)}
+            className="w-full flex items-center justify-between text-left">
+            <span className="font-heading text-[16px] font-bold text-text-primary flex items-center gap-2.5">
+              <Download size={16} color="#6B3A4B" /> Rezept importieren
+            </span>
+            <ChevronDown size={16} className="text-text-muted transition-transform flex-shrink-0"
+              style={{ transform: importOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          </button>
+
+          {importOpen && (
+            <div className="mt-4">
+              <label className={LC}><Link2 size={10} className="inline mr-1" />Rezept-URL einfügen</label>
+              <div className="flex gap-2">
+                <input value={importUrl} onChange={e => setImportUrl(e.target.value)}
+                  placeholder="https://www.chefkoch.de/rezepte/…" className={IC + ' flex-1'}
+                  onKeyDown={e => { if (e.key === 'Enter') handleImportUrl(); }} />
+                <button onClick={handleImportUrl} disabled={importing || !importUrl.trim()}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
+                  style={{ background: '#6B3A4B' }}>
+                  {importing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                  {importing ? 'Importiere…' : 'Importieren'}
+                </button>
+              </div>
+              <p className="text-[11px] text-text-muted mt-2">
+                Funktioniert bei Seiten mit strukturierten Rezeptdaten (Chefkoch, die meisten Food-Blogs &amp; Zeitungen).
+              </p>
+
+              {importError && (
+                <div className="flex items-start gap-2 mt-3 px-4 py-3 rounded-xl text-[13px]"
+                  style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+                  <span className="flex-shrink-0 mt-0.5">⚠</span>
+                  <span>{importError}</span>
+                </div>
+              )}
+              {importSuccessMsg && (
+                <div className="mt-3 px-4 py-3 rounded-xl text-[13px]"
+                  style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#3A7A38' }}>
+                  ✓ {importSuccessMsg}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* ── Foto Upload ─────────────────────────────────────────────────── */}
         <div className={SEC}>
