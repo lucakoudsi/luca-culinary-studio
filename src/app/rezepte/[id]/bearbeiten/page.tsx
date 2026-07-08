@@ -4,12 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
-import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile } from '@/types';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import { submitGlow } from '@/lib/utils';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
+import KomponenteCard from '@/components/recipes/KomponenteCard';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 
@@ -21,6 +22,7 @@ const statuses:    RecipeStatus[]     = ['Fertig', 'In Bearbeitung', 'Entwurf'];
 const label = "block text-[11px] font-semibold uppercase tracking-widest mb-1.5";
 const input = "w-full rounded-lg px-3.5 py-2.5 text-[13px] outline-none transition-colors";
 const inputStyle = { background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' };
+const abt = "flex items-center gap-1.5 text-[12px] text-gold hover:text-gold-light transition-colors mt-3";
 
 export default function RezeptBearbeitenPage() {
   const { id }   = useParams<{ id: string }>();
@@ -54,9 +56,10 @@ export default function RezeptBearbeitenPage() {
   const [matchInfo,    setMatchInfo]     = useState<{ matched: string[]; unmatched: string[] } | null>(null);
   const setGeschmack = (p: FlavorProfile) => { setGeschmackRaw(p); setGeschmackSet(true); };
 
-  // Read-only recipe ingredients for the "compute" button
-  const [zutatenRO,    setZutatenRO]     = useState<RecipeIngredient[]>([]);
-  const [komponentenRO, setKomponentenRO] = useState<RecipeKomponente[]>([]);
+  const [zutaten,     setZutaten]     = useState<RecipeIngredient[]>([]);
+  const [komponenten, setKomponenten] = useState<RecipeKomponente[]>([]);
+  const [collapsed,   setCollapsed]   = useState<boolean[]>([]);
+  const [schritte,    setSchritte]    = useState<string[]>([]);
 
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
 
@@ -94,8 +97,10 @@ export default function RezeptBearbeitenPage() {
     setTagsInput((r.tags || []).join(', '));
     setImage(r.image || '');
     setImagePreview(r.image || null);
-    setZutatenRO(r.zutaten ?? []);
-    setKomponentenRO(r.komponenten ?? []);
+    setZutaten(r.zutaten ?? []);
+    setKomponenten(r.komponenten ?? []);
+    setCollapsed((r.komponenten ?? []).map(() => true));
+    setSchritte(r.schritte ?? []);
     if (r.geschmack) {
       setGeschmackRaw(r.geschmack);
       setGeschmackSet(true);
@@ -103,9 +108,49 @@ export default function RezeptBearbeitenPage() {
   }
 
   const handleCompute = () => {
-    const result = computeRecipeFlavorProfile(zutatenRO, komponentenRO, ingredients);
+    const result = computeRecipeFlavorProfile(zutaten, komponenten, ingredients);
     setGeschmack(result.profile);
     setMatchInfo({ matched: result.matched, unmatched: result.unmatched });
+  };
+
+  // ── Zutaten helpers ────────────────────────────────────────────────────────
+  const addZutat    = () => setZutaten(p => [...p, { name: '', menge: '' }]);
+  const removeZutat = (i: number) => setZutaten(p => p.filter((_, j) => j !== i));
+  const updZutat    = (i: number, k: 'name' | 'menge', v: string) =>
+    setZutaten(p => p.map((z, j) => j === i ? { ...z, [k]: v } : z));
+
+  // ── Komponenten helpers ────────────────────────────────────────────────────
+  const addKomponente    = () => {
+    setKomponenten(p => [...p, { name: '', zutaten: [], zubereitung: '' }]);
+    setCollapsed(p => [...p, false]);
+  };
+  const removeKomponente = (i: number) => {
+    setKomponenten(p => p.filter((_, j) => j !== i));
+    setCollapsed(p => p.filter((_, j) => j !== i));
+  };
+  const toggleCollapse   = (i: number) => setCollapsed(p => p.map((c, j) => j === i ? !c : c));
+  const updKName         = (i: number, v: string) =>
+    setKomponenten(p => p.map((k, j) => j === i ? { ...k, name: v } : k));
+  const updKZubereitung  = (i: number, v: string) =>
+    setKomponenten(p => p.map((k, j) => j === i ? { ...k, zubereitung: v } : k));
+  const addKZutat        = (ki: number) =>
+    setKomponenten(p => p.map((k, j) => j === ki ? { ...k, zutaten: [...k.zutaten, { name: '', menge: '' }] } : k));
+  const removeKZutat     = (ki: number, zi: number) =>
+    setKomponenten(p => p.map((k, j) => j === ki ? { ...k, zutaten: k.zutaten.filter((_, z) => z !== zi) } : k));
+  const updKZutat        = (ki: number, zi: number, fld: 'name' | 'menge', v: string) =>
+    setKomponenten(p => p.map((k, j) => j === ki ? {
+      ...k, zutaten: k.zutaten.map((z, z2) => z2 === zi ? { ...z, [fld]: v } : z),
+    } : k));
+
+  // ── Schritte helpers ───────────────────────────────────────────────────────
+  const addSchritt    = () => setSchritte(p => [...p, '']);
+  const removeSchritt = (i: number) => setSchritte(p => p.filter((_, j) => j !== i));
+  const updSchritt    = (i: number, v: string) => setSchritte(p => p.map((s, j) => j === i ? v : s));
+  const moveSchritt   = (i: number, dir: -1 | 1) => {
+    const a = [...schritte], j = i + dir;
+    if (j < 0 || j >= a.length) return;
+    [a[i], a[j]] = [a[j], a[i]];
+    setSchritte(a);
   };
 
   const handlePhoto = (file: File) => {
@@ -165,6 +210,7 @@ export default function RezeptBearbeitenPage() {
       }
       await updateRecipe(Number(id), {
         title, category, difficulty, season, status, time, description, tags, portionen,
+        zutaten, komponenten, schritte,
         image: finalImage,
         geschmack: geschmackSet ? geschmack : undefined,
       });
@@ -343,6 +389,100 @@ export default function RezeptBearbeitenPage() {
             placeholder="Kurze Beschreibung des Rezepts, Inspiration, Besonderheiten…" />
         </div>
 
+        {/* Zutaten */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1.5"><Tag size={10} /> Zutaten</span>
+          </label>
+          {zutaten.length === 0 && (
+            <p className="text-[13px] mb-3" style={{ color: 'var(--text-muted)' }}>Noch keine Zutaten hinzugefügt.</p>
+          )}
+          <div className="space-y-2">
+            {zutaten.map((z, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input value={z.name} onChange={e => updZutat(i, 'name', e.target.value)}
+                  placeholder="Zutat…" className={input + ' flex-1'} style={inputStyle} />
+                <input value={z.menge} onChange={e => updZutat(i, 'menge', e.target.value)}
+                  placeholder="200g / 3 EL / nach Bedarf" className={input} style={{ ...inputStyle, width: 180 }} />
+                <button onClick={() => removeZutat(i)}
+                  className="text-text-muted hover:text-red-400 transition-colors flex-shrink-0">
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button onClick={addZutat} className={abt}>
+            <Plus size={14} /> Zutat hinzufügen
+          </button>
+        </div>
+
+        {/* Komponenten */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>
+            Komponenten <span style={{ color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional, z.B. für mehrteilige Gerichte)</span>
+          </label>
+          {komponenten.length === 0 && (
+            <p className="text-[13px] mb-3" style={{ color: 'var(--text-muted)' }}>
+              Noch keine Komponenten. Jede Komponente hat eigene Zutaten &amp; Zubereitung.
+            </p>
+          )}
+          <div className="space-y-2">
+            {komponenten.map((k, ki) => (
+              <KomponenteCard
+                key={ki} k={k} ki={ki} collapsed={collapsed[ki] ?? false}
+                onToggle={() => toggleCollapse(ki)}
+                onRemove={() => removeKomponente(ki)}
+                onName={v => updKName(ki, v)}
+                onZubereitung={v => updKZubereitung(ki, v)}
+                onAddZutat={() => addKZutat(ki)}
+                onRemoveZutat={zi => removeKZutat(ki, zi)}
+                onZutat={(zi, fld, v) => updKZutat(ki, zi, fld, v)}
+              />
+            ))}
+          </div>
+          <button onClick={addKomponente} className={abt}>
+            <Plus size={14} /> Komponente hinzufügen
+          </button>
+        </div>
+
+        {/* Zubereitungsschritte */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>Zubereitungsschritte</label>
+          {schritte.length === 0 && (
+            <p className="text-[13px] mb-3" style={{ color: 'var(--text-muted)' }}>Noch keine Schritte.</p>
+          )}
+          <div className="space-y-2">
+            {schritte.map((s, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold mt-2.5"
+                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                  {i + 1}
+                </div>
+                <textarea value={s} onChange={e => updSchritt(i, e.target.value)}
+                  placeholder={`Schritt ${i + 1}…`} rows={2}
+                  className={input + ' flex-1 resize-none leading-relaxed'} style={inputStyle} />
+                <div className="flex flex-col gap-0.5 pt-1.5 flex-shrink-0">
+                  <button onClick={() => moveSchritt(i, -1)} disabled={i === 0}
+                    className="text-text-muted hover:text-text-primary disabled:opacity-20 transition-colors">
+                    <ChevronUp size={15} />
+                  </button>
+                  <button onClick={() => moveSchritt(i, 1)} disabled={i === schritte.length - 1}
+                    className="text-text-muted hover:text-text-primary disabled:opacity-20 transition-colors">
+                    <ChevronDown size={15} />
+                  </button>
+                </div>
+                <button onClick={() => removeSchritt(i)}
+                  className="text-text-muted hover:text-red-400 transition-colors pt-2.5 flex-shrink-0">
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button onClick={addSchritt} className={abt}>
+            <Plus size={14} /> Schritt hinzufügen
+          </button>
+        </div>
+
         {/* Image */}
         <div>
           <label className={label} style={{ color: 'var(--text-muted)' }}>
@@ -371,7 +511,7 @@ export default function RezeptBearbeitenPage() {
           <button
             type="button"
             onClick={handleCompute}
-            disabled={zutatenRO.length === 0 && komponentenRO.every(k => k.zutaten.length === 0)}
+            disabled={zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0)}
             className="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
             style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
             <Calculator size={14} /> Aus Zutaten berechnen
