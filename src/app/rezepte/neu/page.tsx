@@ -12,10 +12,11 @@ import KomponenteCard from '@/components/recipes/KomponenteCard';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
+import { parseRecipeText } from '@/lib/recipeTextParser';
 import type { FlavorProfile } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -287,9 +288,11 @@ function NewRezeptForm() {
   const [imageError, setImageError]   = useState<string | null>(null);
   const [importedImage, setImportedImage] = useState<string | null>(null);
 
-  // Rezept-Import (Weg A: URL)
+  // Rezept-Import (Weg A: URL, Weg B: Text/Caption)
   const [importOpen, setImportOpen]   = useState(false);
+  const [importMode, setImportMode]   = useState<'url' | 'text'>('url');
   const [importUrl, setImportUrl]     = useState('');
+  const [importRawText, setImportRawText] = useState('');
   const [importing, setImporting]     = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
@@ -376,6 +379,33 @@ function NewRezeptForm() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const handleImportText = () => {
+    const text = importRawText.trim();
+    if (!text) return;
+    setImportError(null);
+    setImportSuccessMsg(null);
+
+    const result = parseRecipeText(text);
+    if (result.zutaten.length === 0 && result.schritte.length === 0 && result.unsicher.length === 0) {
+      setImportError('Konnte in diesem Text nichts erkennen.');
+      return;
+    }
+
+    if (result.title) setBase(p => ({ ...p, title: result.title || p.title }));
+    if (result.zutaten.length > 0) setZutaten(result.zutaten);
+    if (result.schritte.length > 0) setSchritte(result.schritte);
+    if (result.unsicher.length > 0) {
+      const note = 'Nicht eindeutig erkannt — bitte manuell einsortieren:\n' + result.unsicher.map(u => `• ${u}`).join('\n');
+      setChefTipps(prev => prev ? `${prev}\n\n${note}` : note);
+    }
+
+    const parts: string[] = [];
+    if (result.zutaten.length > 0) parts.push(`${result.zutaten.length} Zutat${result.zutaten.length !== 1 ? 'en' : ''}`);
+    if (result.schritte.length > 0) parts.push(`${result.schritte.length} Schritt${result.schritte.length !== 1 ? 'e' : ''}`);
+    if (result.unsicher.length > 0) parts.push(`${result.unsicher.length} unklar → Chef-Tipps`);
+    setImportSuccessMsg(`Text analysiert (${parts.join(', ')}) — bitte prüfen und bei Bedarf korrigieren. Best effort ohne KI, nicht jede Formatierung wird erkannt.`);
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
@@ -565,21 +595,64 @@ function NewRezeptForm() {
 
           {importOpen && (
             <div className="mt-4">
-              <label className={LC}><Link2 size={10} className="inline mr-1" />Rezept-URL einfügen</label>
-              <div className="flex gap-2">
-                <input value={importUrl} onChange={e => setImportUrl(e.target.value)}
-                  placeholder="https://www.chefkoch.de/rezepte/…" className={IC + ' flex-1'}
-                  onKeyDown={e => { if (e.key === 'Enter') handleImportUrl(); }} />
-                <button onClick={handleImportUrl} disabled={importing || !importUrl.trim()}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
-                  style={{ background: '#6B3A4B' }}>
-                  {importing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                  {importing ? 'Importiere…' : 'Importieren'}
+              <div className="flex gap-2 mb-4">
+                <button onClick={() => { setImportMode('url'); setImportError(null); setImportSuccessMsg(null); }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                  style={{
+                    background: importMode === 'url' ? 'rgba(107,58,75,0.1)' : 'transparent',
+                    color: importMode === 'url' ? '#6B3A4B' : 'var(--text-muted)',
+                    border: `1px solid ${importMode === 'url' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
+                  }}>
+                  <Link2 size={13} /> Von URL
+                </button>
+                <button onClick={() => { setImportMode('text'); setImportError(null); setImportSuccessMsg(null); }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                  style={{
+                    background: importMode === 'text' ? 'rgba(107,58,75,0.1)' : 'transparent',
+                    color: importMode === 'text' ? '#6B3A4B' : 'var(--text-muted)',
+                    border: `1px solid ${importMode === 'text' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
+                  }}>
+                  <FileText size={13} /> Text/Caption einfügen
                 </button>
               </div>
-              <p className="text-[11px] text-text-muted mt-2">
-                Funktioniert bei Seiten mit strukturierten Rezeptdaten (Chefkoch, die meisten Food-Blogs &amp; Zeitungen).
-              </p>
+
+              {importMode === 'url' ? (
+                <>
+                  <label className={LC}><Link2 size={10} className="inline mr-1" />Rezept-URL einfügen</label>
+                  <div className="flex gap-2">
+                    <input value={importUrl} onChange={e => setImportUrl(e.target.value)}
+                      placeholder="https://www.chefkoch.de/rezepte/…" className={IC + ' flex-1'}
+                      onKeyDown={e => { if (e.key === 'Enter') handleImportUrl(); }} />
+                    <button onClick={handleImportUrl} disabled={importing || !importUrl.trim()}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
+                      style={{ background: '#6B3A4B' }}>
+                      {importing ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                      {importing ? 'Importiere…' : 'Importieren'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-text-muted mt-2">
+                    Funktioniert bei Seiten mit strukturierten Rezeptdaten (Chefkoch, die meisten Food-Blogs &amp; Zeitungen).
+                  </p>
+                </>
+              ) : (
+                <>
+                  <label className={LC}><FileText size={10} className="inline mr-1" />Rezept-Text oder Caption einfügen</label>
+                  <textarea value={importRawText} onChange={e => setImportRawText(e.target.value)}
+                    placeholder={'z.B. eine Instagram-/TikTok-Caption oder kopierter Rezepttext…'} rows={8}
+                    className={IC + ' resize-none leading-relaxed'} />
+                  <div className="flex justify-end mt-2">
+                    <button onClick={handleImportText} disabled={!importRawText.trim()}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
+                      style={{ background: '#6B3A4B' }}>
+                      <FileText size={14} /> Text analysieren
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-text-muted mt-2">
+                    Best effort ohne KI — erkennt „Zutaten:"/„Zubereitung:"-Abschnitte oder Aufzählungen &amp; Nummerierungen.
+                    Nicht sicher Erkanntes landet gesammelt in Chef-Tipps statt verworfen zu werden.
+                  </p>
+                </>
+              )}
 
               {importError && (
                 <div className="flex items-start gap-2 mt-3 px-4 py-3 rounded-xl text-[13px]"
