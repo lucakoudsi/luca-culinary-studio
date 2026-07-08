@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { ADMIN_EMAIL, getUserTier, getMinTierForPath } from '@/config/roles';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -60,11 +60,7 @@ export async function middleware(request: NextRequest) {
 
     if (minTier > 1 && user.email !== ADMIN_EMAIL) {
       // Fetch profile once per request — only for protected routes
-      const admin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { autoRefreshToken: false, persistSession: false } }
-      );
+      const admin = createAdminClient();
       const { data: profile } = await admin
         .from('profiles')
         .select('stufe')
