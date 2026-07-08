@@ -140,11 +140,27 @@
   box-shadow: 0 0 0 1.5px var(--accent), 0 0 20px rgba(201,168,76,0.15);
 }
 
-/* ── Saison-Karussell: sanftes Einblenden neu rotierter Karten ──────────────── */
-@keyframes seasonalItemIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Saison-Marquee: kontinuierliches, nahtloses Durchlaufen ────────────────── */
+/* Track enthaelt die Liste zweimal hintereinander; -50% entspricht exakt der
+   Hoehe EINER Kopie, daher ist der Loop-Punkt unsichtbar (klassischer
+   Marquee-Trick: wenn Kopie 1 komplett durchgelaufen ist, steht Kopie 2
+   exakt an der Startposition -- kein Sprung). */
+.seasonal-marquee-wrap {
+  overflow: hidden;
+  position: relative;
 }
-.seasonal-item-enter {
-  animation: seasonalItemIn 0.4s ease;
+.seasonal-marquee-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation-name: seasonalMarquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.seasonal-marquee-wrap:hover .seasonal-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes seasonalMarquee {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
 }

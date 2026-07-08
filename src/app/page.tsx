@@ -27,6 +27,30 @@ function getWeatherInfo(code: number) {
 
 type SaisonItem = { id: number; name: string; kategorie: string; saison: string[] | null; image_url: string | null };
 
+function SeasonalCard({ s }: { s: SaisonItem }) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
+      {s.image_url ? (
+        <img src={s.image_url} alt="" className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
+      ) : (
+        <span className="text-lg flex-shrink-0">🌿</span>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
+        {s.saison && (
+          <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>
+            {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
+          </div>
+        )}
+      </div>
+      <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
+        style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B' }}>
+        {s.kategorie}
+      </span>
+    </div>
+  );
+}
+
 const INSPIRATION = [
   { title: 'Yuzu Kosho – Japanische Würzpaste', sub: 'Fermentation · Japanisch', img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=120' },
   { title: 'Sansho-Pfeffer Emulsion',           sub: 'Technik · Modern',         img: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=120' },
@@ -79,8 +103,6 @@ export default function DashboardPage() {
   const [meinStil, setMeinStil]         = useState<MeinStil>({ kuechenstil: '', spezialitaeten: '', lieblingszutaten: '' });
   const [dataLoaded, setDataLoaded]     = useState(false);
   const [seasonalItems, setSeasonalItems] = useState<SaisonItem[]>([]);
-  const [seasonalRotation, setSeasonalRotation] = useState(0);
-  const [seasonalPaused, setSeasonalPaused] = useState(false);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
@@ -127,20 +149,13 @@ export default function DashboardPage() {
       .catch(() => {});
   }, []);
 
-  // Saison-Karussell: alle ~4.5s eine Zutat weiterrotieren, bei Hover pausieren
-  const SEASONAL_VISIBLE = 8;
-  const SEASONAL_INTERVAL_MS = 4500;
-  useEffect(() => {
-    if (seasonalPaused || seasonalItems.length <= SEASONAL_VISIBLE) return;
-    const id = setInterval(() => {
-      setSeasonalRotation(i => (i + 1) % seasonalItems.length);
-    }, SEASONAL_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [seasonalPaused, seasonalItems.length]);
-
-  const visibleSeasonalItems = seasonalItems.length > SEASONAL_VISIBLE
-    ? Array.from({ length: SEASONAL_VISIBLE }, (_, i) => seasonalItems[(seasonalRotation + i) % seasonalItems.length])
-    : seasonalItems;
+  // Saison-Marquee: kontinuierliches, nahtloses Durchlaufen per CSS-Animation
+  // (siehe globals.css .seasonal-marquee-*). Track-Inhalt wird unten dupliziert
+  // gerendert -- Geschwindigkeit skaliert mit der Anzahl, damit das Tempo pro
+  // Zutat immer gleich "ruhig" bleibt, egal wie viele es gerade sind.
+  const SEASONAL_MARQUEE_COUNT = 40;
+  const marqueeItems = seasonalItems.slice(0, SEASONAL_MARQUEE_COUNT);
+  const seasonalDuration = Math.max(20, marqueeItems.length * 3);
 
   // Dashboard-Daten: Stats, Projekte, Ideen, Mein Stil
   useEffect(() => {
@@ -494,35 +509,18 @@ export default function DashboardPage() {
               <Link href="/saison" className="text-[10px] tracking-[1px]"
                 style={{ color: '#6B3A4B' }}>Alle →</Link>
             </div>
-            <div className="space-y-2 slim-scroll" style={{ maxHeight: 320, overflowY: 'auto' }}
-              onMouseEnter={() => setSeasonalPaused(true)}
-              onMouseLeave={() => setSeasonalPaused(false)}>
-              {seasonalItems.length === 0 ? (
-                <div className="text-[12px] italic py-2" style={{ color: 'var(--text-muted)' }}>
-                  Keine saisonalen Zutaten gefunden
+            {seasonalItems.length === 0 ? (
+              <div className="text-[12px] italic py-2" style={{ color: 'var(--text-muted)' }}>
+                Keine saisonalen Zutaten gefunden
+              </div>
+            ) : (
+              <div className="seasonal-marquee-wrap" style={{ height: 320 }}>
+                <div className="seasonal-marquee-track" style={{ animationDuration: `${seasonalDuration}s` }}>
+                  {marqueeItems.map(s => <SeasonalCard key={`a-${s.id}`} s={s} />)}
+                  {marqueeItems.map(s => <SeasonalCard key={`b-${s.id}`} s={s} />)}
                 </div>
-              ) : visibleSeasonalItems.map(s => (
-                <div key={s.id} className="seasonal-item-enter flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
-                  {s.image_url ? (
-                    <img src={s.image_url} alt="" className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
-                  ) : (
-                    <span className="text-lg flex-shrink-0">🌿</span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
-                    {s.saison && (
-                      <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>
-                        {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
-                    style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B' }}>
-                    {s.kategorie}
-                  </span>
-                </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-border" />
