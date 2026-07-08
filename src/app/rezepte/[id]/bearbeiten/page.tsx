@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
-import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown, ChefHat } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile } from '@/types';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import { submitGlow } from '@/lib/utils';
@@ -60,6 +60,8 @@ export default function RezeptBearbeitenPage() {
   const [komponenten, setKomponenten] = useState<RecipeKomponente[]>([]);
   const [collapsed,   setCollapsed]   = useState<boolean[]>([]);
   const [schritte,    setSchritte]    = useState<string[]>([]);
+  const [getraenke,   setGetraenke]   = useState('');
+  const [chefTipps,   setChefTipps]   = useState('');
 
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
 
@@ -101,6 +103,8 @@ export default function RezeptBearbeitenPage() {
     setKomponenten(r.komponenten ?? []);
     setCollapsed((r.komponenten ?? []).map(() => true));
     setSchritte(r.schritte ?? []);
+    setGetraenke(r.getraenke ?? '');
+    setChefTipps(r.chefTipps ?? '');
     if (r.geschmack) {
       setGeschmackRaw(r.geschmack);
       setGeschmackSet(true);
@@ -210,7 +214,7 @@ export default function RezeptBearbeitenPage() {
       }
       await updateRecipe(Number(id), {
         title, category, difficulty, season, status, time, description, tags, portionen,
-        zutaten, komponenten, schritte,
+        zutaten, komponenten, schritte, getraenke, chefTipps,
         image: finalImage,
         geschmack: geschmackSet ? geschmack : undefined,
       });
@@ -481,6 +485,26 @@ export default function RezeptBearbeitenPage() {
           <button onClick={addSchritt} className={abt}>
             <Plus size={14} /> Schritt hinzufügen
           </button>
+        </div>
+
+        {/* Getränkeempfehlung */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1.5"><Wine size={10} /> Getränkeempfehlung</span>
+          </label>
+          <textarea value={getraenke} onChange={e => setGetraenke(e.target.value)} rows={3}
+            className={input + ' resize-none leading-relaxed'} style={inputStyle}
+            placeholder="Weinempfehlung, Cocktail oder alkoholfreie Alternative…" />
+        </div>
+
+        {/* Chef-Tipps */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1.5"><ChefHat size={10} /> Notizen &amp; Chef-Tipps</span>
+          </label>
+          <textarea value={chefTipps} onChange={e => setChefTipps(e.target.value)} rows={4}
+            className={input + ' resize-none leading-relaxed'} style={inputStyle}
+            placeholder="Persönliche Notizen, Variationen, Tricks aus der Küche…" />
         </div>
 
         {/* Image */}
