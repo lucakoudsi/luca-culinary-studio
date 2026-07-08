@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
 import { ADMIN_EMAIL } from '@/config/roles';
+import { requireTier } from '@/lib/apiAuth';
 
 export const dynamic = 'force-dynamic';
 
 const db = createAdminClient();
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const check = await requireTier(req, 4);
+  if (!check.ok) return check.response;
+
   const { data, error } = await db
     .from('weine')
     .select('*')

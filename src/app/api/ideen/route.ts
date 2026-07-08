@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getRequestUser } from '@/lib/get-request-user';
 const supabase = createAdminClient();
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json([], { status: 401 });
+
   const { data, error } = await supabase
     .from('ideen')
     .select('*')
@@ -12,6 +16,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+
   const body = await req.json();
   const { data, error } = await supabase
     .from('ideen')

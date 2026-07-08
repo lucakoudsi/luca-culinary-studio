@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getRequestUser } from '@/lib/get-request-user';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 const MEHR_ZUTATEN = [
   // ── KLASSISCHES GEMÜSE & SALAT ──────────────────────────────────────────────
@@ -775,7 +777,11 @@ const MEHR_ZUTATEN = [
   },
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user || user.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Nicht autorisiert. Diese Aktion ist nur für Admins.' }, { status: 403 });
+  }
   const supabase = createAdminClient();
 
   const { data, error } = await supabase

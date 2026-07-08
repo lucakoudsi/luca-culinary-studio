@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getRequestUser } from '@/lib/get-request-user';
+import { ADMIN_EMAIL } from '@/config/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -127,7 +129,11 @@ const WEINE = [
   { name: 'Pedro Ximénez Sherry', typ: 'suesswein', rebsorte: 'Pedro Ximénez', region: 'Jerez', land: 'Spanien', beschreibung: 'Dickflüssige Rosinensüße — über Eis-Cream gegossen ein unvergessliches Dessert.', profil: { acidity: 1, sweetness: 5, tannin: 0, body: 5, fruitiness: 5 } },
 ];
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user || user.email !== ADMIN_EMAIL) {
+    return NextResponse.json({ error: 'Nicht autorisiert. Diese Aktion ist nur für Admins.' }, { status: 403 });
+  }
   const db = createAdminClient();
 
   // Clear existing seed data to allow re-seeding

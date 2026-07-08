@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
+import { requireTier } from '@/lib/apiAuth';
 
 const db = createAdminClient();
 
@@ -32,8 +33,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getRequestUser(req);
-  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+  const check = await requireTier(req, 3);
+  if (!check.ok) return check.response;
+  const user = check.user;
 
   const body = await req.json();
   const { data, error } = await db

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
+import { requireTier } from '@/lib/apiAuth';
 
 const db = createAdminClient();
 
@@ -19,8 +20,9 @@ function toProject(row: Record<string, unknown>) {
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getRequestUser(req);
-  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+  const check = await requireTier(req, 3);
+  if (!check.ok) return check.response;
+  const user = check.user;
 
   const body = await req.json();
   const update: Record<string, unknown> = {};
@@ -44,8 +46,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const user = await getRequestUser(req);
-  if (!user) return NextResponse.json({ error: 'Nicht eingeloggt' }, { status: 401 });
+  const check = await requireTier(req, 3);
+  if (!check.ok) return check.response;
+  const user = check.user;
 
   const { error } = await db
     .from('projekte')

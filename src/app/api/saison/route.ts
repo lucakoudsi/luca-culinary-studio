@@ -1,9 +1,13 @@
 import { createAdminClient } from '@/lib/supabase-admin'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getRequestUser } from '@/lib/get-request-user'
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const user = await getRequestUser(request)
+    if (!user) return NextResponse.json([], { status: 401 })
+
     const { searchParams } = new URL(request.url)
     const season = searchParams.get('season') || 'Sommer'
 

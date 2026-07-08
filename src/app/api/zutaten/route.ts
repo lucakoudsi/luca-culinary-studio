@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { requireTier } from '@/lib/apiAuth';
 
 // Force dynamic so Next.js never caches this route between users
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(req: NextRequest) {
+  const check = await requireTier(req, 2);
+  if (!check.ok) return check.response;
+
   try {
     const body = await req.json();
     const { data, error } = await db
