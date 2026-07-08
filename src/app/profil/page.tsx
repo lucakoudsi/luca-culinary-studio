@@ -773,6 +773,24 @@ export default function ProfilPage() {
                   )}
                 </div>
 
+                {/* Stufe — nur Anzeige, Berechtigung wird ausschließlich im Verwaltungs-Tab geändert */}
+                <div>
+                  <label style={labelStyle}>Stufe</label>
+                  <div style={{
+                    padding: '12px 14px', borderRadius: 12,
+                    background: 'var(--surface-2, #F4EFE9)',
+                    border: '1px solid var(--border, #E8E0D8)',
+                    fontSize: 14,
+                    color: 'var(--text-muted)',
+                    cursor: 'default',
+                  }}>
+                    {tierLabel}
+                  </div>
+                  <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Berechtigung — wird vom Administrator in der Nutzerverwaltung vergeben
+                  </p>
+                </div>
+
                 <div>
                   <label style={labelStyle}>E-Mail</label>
                   <div className="relative">
