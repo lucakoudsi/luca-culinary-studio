@@ -79,6 +79,8 @@ export default function DashboardPage() {
   const [meinStil, setMeinStil]         = useState<MeinStil>({ kuechenstil: '', spezialitaeten: '', lieblingszutaten: '' });
   const [dataLoaded, setDataLoaded]     = useState(false);
   const [seasonalItems, setSeasonalItems] = useState<SaisonItem[]>([]);
+  const [seasonalRotation, setSeasonalRotation] = useState(0);
+  const [seasonalPaused, setSeasonalPaused] = useState(false);
 
   useEffect(() => { setGreeting(getGreeting()); }, []);
 
@@ -121,9 +123,24 @@ export default function DashboardPage() {
   useEffect(() => {
     fetch('/api/saison')
       .then(r => r.json())
-      .then((items: SaisonItem[]) => setSeasonalItems(items.slice(0, 8)))
+      .then((items: SaisonItem[]) => setSeasonalItems(items))
       .catch(() => {});
   }, []);
+
+  // Saison-Karussell: alle ~4.5s eine Zutat weiterrotieren, bei Hover pausieren
+  const SEASONAL_VISIBLE = 8;
+  const SEASONAL_INTERVAL_MS = 4500;
+  useEffect(() => {
+    if (seasonalPaused || seasonalItems.length <= SEASONAL_VISIBLE) return;
+    const id = setInterval(() => {
+      setSeasonalRotation(i => (i + 1) % seasonalItems.length);
+    }, SEASONAL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [seasonalPaused, seasonalItems.length]);
+
+  const visibleSeasonalItems = seasonalItems.length > SEASONAL_VISIBLE
+    ? Array.from({ length: SEASONAL_VISIBLE }, (_, i) => seasonalItems[(seasonalRotation + i) % seasonalItems.length])
+    : seasonalItems;
 
   // Dashboard-Daten: Stats, Projekte, Ideen, Mein Stil
   useEffect(() => {
@@ -477,13 +494,15 @@ export default function DashboardPage() {
               <Link href="/saison" className="text-[10px] tracking-[1px]"
                 style={{ color: '#6B3A4B' }}>Alle →</Link>
             </div>
-            <div className="space-y-2 slim-scroll" style={{ maxHeight: 320, overflowY: 'auto' }}>
+            <div className="space-y-2 slim-scroll" style={{ maxHeight: 320, overflowY: 'auto' }}
+              onMouseEnter={() => setSeasonalPaused(true)}
+              onMouseLeave={() => setSeasonalPaused(false)}>
               {seasonalItems.length === 0 ? (
                 <div className="text-[12px] italic py-2" style={{ color: 'var(--text-muted)' }}>
                   Keine saisonalen Zutaten gefunden
                 </div>
-              ) : seasonalItems.map(s => (
-                <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
+              ) : visibleSeasonalItems.map(s => (
+                <div key={s.id} className="seasonal-item-enter flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
                   {s.image_url ? (
                     <img src={s.image_url} alt="" className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
                   ) : (
