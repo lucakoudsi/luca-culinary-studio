@@ -35,10 +35,11 @@ const SOCIAL_ICONS: { key: keyof SocialLinks; Icon: React.ElementType }[] = [
   { key: 'linkedin',  Icon: Briefcase   },
 ]
 
-export default function DepthHeader({ initial, name, role, stats, avatarUrl, onAvatarClick, socialLinks }: {
+export default function DepthHeader({ initial, name, role, tierLabel, stats, avatarUrl, onAvatarClick, socialLinks }: {
   initial: string
   name: string
   role: string
+  tierLabel?: string
   stats: { rezepte: number; projekte: number; fermente: number }
   avatarUrl?: string | null
   onAvatarClick?: () => void
@@ -181,6 +182,12 @@ export default function DepthHeader({ initial, name, role, stats, avatarUrl, onA
             fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase',
             color: '#6B3A4B', marginTop: '4px',
           }}>{role}</div>
+          {tierLabel && (
+            <div style={{
+              fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase',
+              color: 'var(--text-muted)', marginTop: '2px', opacity: 0.75,
+            }}>{tierLabel}</div>
+          )}
 
           {/* Social icons — only when at least one link is filled */}
           {activeSocial.length > 0 && (

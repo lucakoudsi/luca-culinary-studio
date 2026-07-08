@@ -297,6 +297,8 @@ export default function ProfilPage() {
   const memberSince = (userCreatedAt ?? profile?.created_at)
     ? new Date((userCreatedAt ?? profile!.created_at)!).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
     : '—';
+  const currentTier = getUserTier(user?.email, profile?.stufe);
+  const tierLabel = user?.email === ADMIN_EMAIL ? 'Admin' : (STUFEN.find(s => s.stufe === currentTier)?.label ?? `Stufe ${currentTier}`);
 
   // ── Actions ────────────────────────────────────────────────────────────────
   const saveProfile = async () => {
@@ -309,9 +311,12 @@ export default function ProfilPage() {
       });
       const d = await res.json();
       if (!res.ok) { setProfileError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setProfile(d.profile);
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
-      window.dispatchEvent(new CustomEvent('profile-updated', { detail: { full_name: name } }));
+      window.dispatchEvent(new CustomEvent('profile-updated', {
+        detail: { full_name: name, tier: getUserTier(user?.email, d.profile?.stufe) },
+      }));
     } catch {
       setProfileError('Netzwerkfehler. Bitte versuche es erneut.');
     } finally {
@@ -632,6 +637,7 @@ export default function ProfilPage() {
           initial={initials[0] ?? '?'}
           name={displayName || '—'}
           role={profile?.titel || 'Chef'}
+          tierLabel={tierLabel}
           stats={stats}
           avatarUrl={profile?.avatar_url}
           onAvatarClick={() => fileInputRef.current?.click()}

@@ -87,9 +87,11 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
     // Live update when profile is saved from the Profil page
     const onProfileUpdated = (e: Event) => {
-      const name = (e as CustomEvent<{ full_name: string }>).detail?.full_name ?? '';
+      const detail = (e as CustomEvent<{ full_name?: string; tier?: number }>).detail;
+      const name = detail?.full_name ?? '';
       setFullName(name);
       setProfileName(name.split(' ')[0] ?? '');
+      if (typeof detail?.tier === 'number') setUserTier(detail.tier);
     };
     window.addEventListener('profile-updated', onProfileUpdated);
     return () => window.removeEventListener('profile-updated', onProfileUpdated);
