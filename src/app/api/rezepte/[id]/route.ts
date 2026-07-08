@@ -21,6 +21,7 @@ function toRecipe(row: Record<string, unknown>): Recipe {
     description: (row.beschreibung as string) ?? '',
     lastEdited:  (row.zuletzt_bearbeitet as string) ?? '',
     views:       row.aufrufe as number,
+    portionen:   (row.portionen as number) ?? 4,
     zutaten:     (row.zutaten as Recipe['zutaten']) ?? [],
     komponenten: (row.komponenten as Recipe['komponenten']) ?? [],
     schritte:    (row.schritte as string[]) ?? [],
@@ -66,6 +67,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (body.rating      !== undefined) update.bewertung        = body.rating;
   if (body.image       !== undefined) update.bild             = body.image;
   if (body.views       !== undefined) update.aufrufe          = body.views;
+  if (body.portionen   !== undefined) update.portionen        = body.portionen;
   if (body.zutaten     !== undefined) update.zutaten          = body.zutaten;
   if (body.komponenten !== undefined) update.komponenten      = body.komponenten;
   if (body.schritte    !== undefined) update.schritte         = body.schritte;

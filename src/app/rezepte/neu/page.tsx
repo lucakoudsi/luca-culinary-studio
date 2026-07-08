@@ -338,7 +338,7 @@ export default function NewRezeptPage() {
   const [base, setBase] = useState({
     title: '', category: 'Hauptgang', status: 'Entwurf',
     difficulty: 'Mittel', time: 60, season: 'Ganzjährig',
-    tags: '', rating: 3, description: '',
+    tags: '', rating: 3, description: '', portionen: 4,
   });
 
   // Extended fields
@@ -480,6 +480,7 @@ export default function NewRezeptPage() {
         tags:        base.tags.split(',').map(t => t.trim()).filter(Boolean),
         rating:      base.rating,
         description: base.description,
+        portionen:   base.portionen,
         image:       finalImage,
         zutaten,
         komponenten,
@@ -597,7 +598,7 @@ export default function NewRezeptPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
               <div>
                 <label className={LC}>Schwierigkeit</label>
                 <select value={base.difficulty} onChange={e => upd('difficulty', e.target.value)} className={IC + ' cursor-pointer'}>
@@ -614,6 +615,11 @@ export default function NewRezeptPage() {
                 <select value={base.season} onChange={e => upd('season', e.target.value)} className={IC + ' cursor-pointer'}>
                   {SEASONS.map(s => <option key={s}>{s}</option>)}
                 </select>
+              </div>
+              <div>
+                <label className={LC}>Portionen</label>
+                <input type="number" value={base.portionen} onChange={e => upd('portionen', +e.target.value)}
+                  className={IC} min={1} max={100} />
               </div>
             </div>
             <div>

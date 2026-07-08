@@ -28,6 +28,7 @@ export interface Recipe {
   description: string;
   lastEdited: string;
   views: number;
+  portionen: number;
   zutaten?: RecipeIngredient[];
   komponenten?: RecipeKomponente[];
   schritte?: string[];

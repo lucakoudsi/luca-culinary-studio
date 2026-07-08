@@ -38,6 +38,7 @@ export default function RezeptBearbeitenPage() {
   const [season,      setSeason]      = useState<Season>('Ganzjährig');
   const [status,      setStatus]      = useState<RecipeStatus>('Entwurf');
   const [time,        setTime]        = useState(60);
+  const [portionen,   setPortionen]   = useState(4);
   const [description, setDescription] = useState('');
   const [tagsInput,   setTagsInput]   = useState('');
   const [image,       setImage]       = useState('');
@@ -88,6 +89,7 @@ export default function RezeptBearbeitenPage() {
     setSeason(r.season);
     setStatus(r.status);
     setTime(r.time);
+    setPortionen(r.portionen ?? 4);
     setDescription(r.description || '');
     setTagsInput((r.tags || []).join(', '));
     setImage(r.image || '');
@@ -162,7 +164,7 @@ export default function RezeptBearbeitenPage() {
         finalImage = uploaded;
       }
       await updateRecipe(Number(id), {
-        title, category, difficulty, season, status, time, description, tags,
+        title, category, difficulty, season, status, time, description, tags, portionen,
         image: finalImage,
         geschmack: geschmackSet ? geschmack : undefined,
       });
@@ -252,8 +254,8 @@ export default function RezeptBearbeitenPage() {
             style={inputStyle} placeholder="Rezepttitel…" />
         </div>
 
-        {/* Grid: Category + Difficulty + Time */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Grid: Category + Difficulty + Time + Portionen */}
+        <div className="grid grid-cols-4 gap-4">
           <div>
             <label className={label} style={{ color: 'var(--text-muted)' }}>Kategorie</label>
             <select value={category} onChange={e => setCategory(e.target.value as RecipeCategory)}
@@ -271,6 +273,11 @@ export default function RezeptBearbeitenPage() {
           <div>
             <label className={label} style={{ color: 'var(--text-muted)' }}>Zeit (Minuten)</label>
             <input type="number" value={time} onChange={e => setTime(Number(e.target.value))} min={1}
+              className={input} style={inputStyle} />
+          </div>
+          <div>
+            <label className={label} style={{ color: 'var(--text-muted)' }}>Portionen</label>
+            <input type="number" value={portionen} onChange={e => setPortionen(Number(e.target.value))} min={1} max={100}
               className={input} style={inputStyle} />
           </div>
         </div>

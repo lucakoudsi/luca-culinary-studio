@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Recipe, Project } from '@/types';
-import { BookOpen, Eye, Star, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Search } from 'lucide-react';
+import { BookOpen, Eye, Star, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Minus, RotateCcw, Search } from 'lucide-react';
 import { matchWeine } from '@/lib/weinPairing';
 import type { Wein, WeinMatch, FoodProfile } from '@/lib/weinPairing';
 import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
+import { scaleMenge } from '@/lib/portionen';
 
 export const TYP_COLOR: Record<Wein['typ'], string> = {
   weiss: '#9B6E1A', rot: '#C04040', rose: '#C06080', schaumwein: '#3A80A8', suesswein: '#8B4A9B',
@@ -82,10 +83,22 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
   const [pairingDone,    setPairingDone]    = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
 
+  const basisPortionen = recipe.portionen || 4;
+  const [portionen, setPortionen] = useState(basisPortionen);
+  const factor = portionen / basisPortionen;
+  const isScaled = factor !== 1;
+
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
   useEffect(() => { if (projects.length === 0) fetchProjects(); }, []);
 
   const recipeProjects = projects.filter(p => p.recipeIds.includes(recipe.id));
+
+  const hasIngredients = (recipe.zutaten ?? []).length > 0 || (recipe.komponenten ?? []).some(k => k.zutaten.length > 0);
+  const scaledZutaten = (recipe.zutaten ?? []).map(z => ({ ...z, menge: scaleMenge(z.menge, factor) }));
+  const scaledKomponenten = (recipe.komponenten ?? []).map(k => ({
+    ...k,
+    zutaten: k.zutaten.map(z => ({ ...z, menge: scaleMenge(z.menge, factor) })),
+  }));
 
   const runPairing = async (profile: FoodProfile) => {
     setPairingLoading(true);
@@ -164,12 +177,48 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
             ))}
           </div>
 
+          {/* Portionen-Rechner */}
+          {hasIngredients && (
+            <div className="mb-5 flex items-center justify-between rounded-xl px-4 py-3"
+              style={{ background: 'rgba(107,58,75,0.04)', border: '1px solid rgba(107,58,75,0.15)' }}>
+              <div className="flex items-center gap-3">
+                <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: '#6B3A4B' }}>
+                  Portionen
+                </span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setPortionen(p => Math.max(1, p - 1))}
+                    className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                    style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                    <Minus size={12} />
+                  </button>
+                  <span className="text-[15px] font-bold w-6 text-center tabular-nums" style={{ color: '#6B3A4B' }}>
+                    {portionen}
+                  </span>
+                  <button onClick={() => setPortionen(p => Math.min(100, p + 1))}
+                    className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-80"
+                    style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                    <Plus size={12} />
+                  </button>
+                </div>
+              </div>
+              {isScaled && (
+                <button onClick={() => setPortionen(basisPortionen)}
+                  className="flex items-center gap-1.5 text-[11px] font-medium transition-colors"
+                  style={{ color: 'rgba(107,58,75,0.6)' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(107,58,75,0.6)')}>
+                  <RotateCcw size={11} /> umgerechnet · zurücksetzen
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Zutaten */}
-          {(recipe.zutaten ?? []).length > 0 && (
+          {scaledZutaten.length > 0 && (
             <div className="mb-5">
               <div className={labelCls + ' flex items-center gap-1.5'}><Tag size={10} /> Zutaten</div>
               <div className="bg-card rounded-xl divide-y divide-border border border-border">
-                {(recipe.zutaten ?? []).map((z, i) => (
+                {scaledZutaten.map((z, i) => (
                   <div key={i} className="flex justify-between px-4 py-2.5 text-sm">
                     <span className="text-text-primary">{z.name}</span>
                     <span className="text-text-muted">{z.menge}</span>
@@ -180,10 +229,10 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
           )}
 
           {/* Komponenten */}
-          {(recipe.komponenten ?? []).length > 0 && (
+          {scaledKomponenten.length > 0 && (
             <div className="mb-5 space-y-3">
               <div className={labelCls}>Komponenten</div>
-              {(recipe.komponenten ?? []).map((k, i) => (
+              {scaledKomponenten.map((k, i) => (
                 <div key={i} className="bg-card border border-border rounded-xl p-4">
                   <div className="font-semibold text-text-primary mb-2">{k.name}</div>
                   {k.zutaten.length > 0 && (

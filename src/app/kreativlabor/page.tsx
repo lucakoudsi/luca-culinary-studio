@@ -133,6 +133,7 @@ export default function KreativlaborPage() {
       title: result.name, category: 'Hauptgang',
       tags: [result.inputStyle, 'KI-generiert'], difficulty: 'Mittel', time: 90,
       season: 'Ganzjährig', status: 'Entwurf', rating: 0, image: null, description: result.concept,
+      portionen: 4,
     });
   };
 
