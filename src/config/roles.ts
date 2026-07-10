@@ -16,10 +16,10 @@ export const ALL_TITLES = [
 ];
 
 export const STUFEN = [
-  { stufe: 1, label: 'Stufe 1 · Gast',      desc: 'Dashboard + Rezepte ansehen'                 },
-  { stufe: 2, label: 'Stufe 2 · Einsteiger', desc: '+ Zutaten, Rezepte erstellen, Fermentation'  },
-  { stufe: 3, label: 'Stufe 3 · Profi',      desc: '+ Projekte, Mein Stil'                       },
-  { stufe: 4, label: 'Stufe 4 · Leitung',    desc: '+ Wein & Pairing, KI-Funktionen'            },
+  { stufe: 1, label: 'Stufe 1 · Free',  desc: 'Kostenlos – ansehen, eigene Rezepte anlegen, keine KI'      },
+  { stufe: 2, label: 'Stufe 2 · Basic', desc: '+ KI-Sous-Chef & Menügenerator'                             },
+  { stufe: 3, label: 'Stufe 3 · Pro',   desc: '+ Kreativlabor & Tellerdesigner, höheres Bildkontingent'    },
+  { stufe: 4, label: 'Stufe 4 · Team',  desc: '+ Mehrbenutzer'                                             },
 ];
 
 // Minimum tier required per route prefix

@@ -62,7 +62,7 @@ type AdminUser = {
   stufe: number | null;
 };
 
-const TIER_LABEL: Record<number, string> = { 1: 'Gast', 2: 'Einsteiger', 3: 'Profi', 4: 'Leitung' };
+const TIER_LABEL: Record<number, string> = { 1: 'Free', 2: 'Basic', 3: 'Pro', 4: 'Team' };
 const TIER_COLOR: Record<number, { bg: string; text: string }> = {
   1:  { bg: 'rgba(154,128,112,0.12)', text: '#9A8070' },
   2:  { bg: 'rgba(90,138,154,0.12)',  text: '#5A8B9A' },
@@ -84,10 +84,10 @@ const PERM_ROWS: { label: string; minTier: number }[] = [
   { label: 'Nutzer verwalten',  minTier: 99 },
 ];
 const PERM_TIERS = [
-  { tier: 1, label: 'Gast' },
-  { tier: 2, label: 'Einsteiger' },
-  { tier: 3, label: 'Profi' },
-  { tier: 4, label: 'Leitung' },
+  { tier: 1, label: 'Free' },
+  { tier: 2, label: 'Basic' },
+  { tier: 3, label: 'Pro' },
+  { tier: 4, label: 'Team' },
   { tier: 99, label: 'Admin' },
 ];
 

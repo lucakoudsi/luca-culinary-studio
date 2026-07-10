@@ -9,7 +9,7 @@ type TierCheck =
   | { ok: false; response: NextResponse };
 
 const STUFE_LABEL: Record<number, string> = {
-  1: 'Gast', 2: 'Einsteiger', 3: 'Profi', 4: 'Leitung',
+  1: 'Free', 2: 'Basic', 3: 'Pro', 4: 'Team',
 };
 
 /**
