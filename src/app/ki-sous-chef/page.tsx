@@ -1,8 +1,8 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
+import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { ChefHat, Send, Loader2, User } from 'lucide-react';
-import { FEATURES } from '@/config/features';
+import { ChefHat, Send, Loader2, User, KeyRound } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -19,22 +19,6 @@ const quickPrompts = [
   'Was passt zu Bärlauch im Frühling?',
   'Foie Gras vegan ersetzen?',
 ];
-
-const responses: [RegExp, string][] = [
-  [/steinbutt|plattfisch/i, `Steinbutt hat ein delikates, nussiges Fleisch – Saucen müssen tragen, nicht überdecken. Meine Empfehlungen:\n\n**Beurre Blanc** — Reduktion aus trockenem Champagner, Schalotten und weißem Pfeffer, dann mit eiskalter Butter montiert. Zeitlos und präzise.\n\n**Champagner-Kaviar-Sauce** — Fischfond mit Champagner auf ein Drittel reduziert, Crème fraîche eingearbeitet, Beluga-Kaviar kalt als Finish. Luxuriös ohne zu schwer zu werden.\n\n**Trüffel-Nage** — Heller Fischfond mit schwarzer Trüffel infusiert, klar gehalten, wenig Fett. Unterstreicht die Mineralik des Fisches.\n\nWichtig: Steinbutt braucht Hitze und Butter – aber keine schwere Rahmsoße. Die Sauce ist Rahmen, nicht Hauptdarsteller.`],
-  [/knoblauch|schwarzer|ferment/i, `Schwarzer Knoblauch entsteht durch die Maillard-Reaktion bei niedrigen Temperaturen – kein klassisches Ferment, sondern enzymatische Reifung.\n\n**Methode:**\n1. Ganze, ungeschälte Knoblauchknollen nehmen\n2. In Reiskocher auf „Warmhalten" legen (60–70°C)\n3. 40–50 Tage Geduld – Wöchentlich auf Kondensation kontrollieren\n4. Fertig: Zehen sind tief schwarz, weich, kein Beißen mehr\n\n**Aroma:** Balsamisch, Tamarinde, tiefes Umami, leichte Süße.\n\n**Verwendung:** Schwarze-Knoblauch-Butter für Steaks, Vinaigrette für Salate, als eigenständiges Element auf dem Teller neben Rotem Fleisch.`],
-  [/tartare|tatar/i, `Perfektes Tartare lebt von drei Dingen: Produktqualität, Temperatur und Präzision beim Schnitt.\n\n**Schnitt:** Niemals den Wolf – ausschließlich Messer. Zuerst in dünne Scheiben, dann Julienne, dann kleine Würfel (3–4mm). Jede Textur zählt.\n\n**Temperatur:** Das Fleisch muss bis kurz vor dem Anrichten kalt bleiben – 0–2°C. Nie bei Raumtemperatur stehen lassen.\n\n**Würzen:** Erst würzen, dann schnell und leicht vermengen. Senf, Worcestershire, Tabasco, Eigelb. Die Würze soll das Fleisch begleiten, nicht überdecken.\n\n**Fettkompensation:** Ein Spritzer hochwertiges Olivenöl oder ein Hauch gehackte Kapern binden das Gericht.\n\nWenn du ein Produkt oben drauflegst – Jakobsmuschel-Tartare, Krabben – gilt dasselbe Prinzip: kalt, präzise, respektvoll.`],
-  [/dessert|7.gang|sieben|gang/i, `Für das finale Dessert eines 7-Gängers empfehle ich einen klaren Kontrast zum Vorangegangenen: leicht, frisch, mit einer Überraschung.\n\n**Ideen auf verschiedenen Niveaus:**\n\n**Klassisch-elegant:** Mille-feuille mit Vanillecreme und karamellisierten Blätterteig-Schichten. Bekannt, beruhigend, handwerklich stark.\n\n**Modern:** Miso-Crème Brûlée mit Sesam-Praline und Yuzu-Gel. Die Miso-Süße endet das Menü mit einem unerwarteten Umami-Finish.\n\n**Avantgarde:** Topinambur-Eis mit fermentiertem Karamell, Koji-Crumble und Bienenpollen. Verbindet den Fermentations-Bogen des Menüs.\n\nGenerell: Das Dessert ist Erinnerung. Es sollte leise ankommen und laut nachklingen.`],
-  [/bärlauch|frühling|frühjahr/i, `Bärlauch ist Frühling in seiner intensivsten Form – aber er toleriert keine Hitze.\n\n**Goldene Regel:** Nie kochen – immer nur kurz erwärmen oder roh verwenden.\n\n**Pairings die funktionieren:**\n- **Ricotta-Ravioli** mit Bärlauch-Pesto: Die Milchproteinfülle nimmt die Schärfe auf\n- **Lammrücken** mit Bärlauch-Salsa verde: Klassisch, stark, überzeugend\n- **Jakobsmuschel** mit Bärlauch-Schaum: Kontrast zwischen Meer und Wald\n- **Burrata** mit gehacktem Bärlauch, gutem Olivenöl, Fleur de Sel: Simpel und brillant\n\n**Technik-Tipp:** Bärlauch-Öl kalt herstellen – Blätter in Eiswasser blanchieren (5 Sek.), sofort in Eiswasser abschrecken, dann mit Neutralöl mixen und filtern. Leuchtendes Grün, stabiles Aroma.`],
-  [/foie|vegan|ersetzen|ersatz/i, `Foie Gras vegan ersetzen ist eine ernste Herausforderung – die Kombination aus Fett-Schmelz, Umami und Reichhaltigkeit ist einmalig. Aber es gibt ehrliche Annäherungen:\n\n**Cashew-Terrine:** Rohe Cashews über Nacht einweichen, mit weißem Miso, Kokosöl und Trüffelöl mixen, in Terrinenform setzen und kühlen. Cremig, reichhaltig, fein.\n\n**Schwarze-Bohnen-Mousse:** Gekochte schwarze Bohnen mit Räucheröl und Tahini verarbeiten. Ergibt Tiefe und Farbe – nicht identisch, aber eigenständig stark.\n\n**Weiße Bohnen mit Trüffelöl:** Die klassische provenzalische Lösung – Cassoulet-Basis als Fine-Dining-Mousse interpretiert.\n\nMein ehrlicher Rat: Nenne es nicht „vegane Foie Gras" – präsentiere es als eigenständiges Gericht. Das ist stärker.`],
-];
-
-function getMockResponse(text: string): string {
-  for (const [pattern, reply] of responses) {
-    if (pattern.test(text)) return reply;
-  }
-  return `Das ist eine interessante kulinarische Frage. Lass mich meine Gedanken dazu teilen:\n\nIn der professionellen Küche kommt es immer auf das Zusammenspiel von Textur, Temperatur und Aroma an. Die präzise Antwort hängt stark vom Kontext ab – welche anderen Komponenten hat das Gericht? Welche Aussage soll der Gang machen?\n\nMein grundlegender Ansatz: Starte mit dem Produkt, nicht mit der Technik. Was will diese Zutat in ihrer besten Form sein? Aus der Antwort ergibt sich die Methode von selbst.\n\nGib mir mehr Details – ich helfe dir gern präziser.`;
-}
 
 function now() {
   return new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -72,26 +56,80 @@ const initial: Message[] = [{
   time: '09:00',
 }];
 
+type KeyStatus = { provider: string; key_hint: string; is_valid: boolean } | null;
+
 export default function KiSousChefPage() {
   const [messages, setMessages] = useState<Message[]>(initial);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  // undefined = wird noch geladen, null = kein Key hinterlegt, Objekt = Key vorhanden
+  const [keyStatus, setKeyStatus] = useState<KeyStatus | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const loadKeyStatus = () => {
+    fetch('/api/ki/key')
+      .then(r => r.json())
+      .then(d => setKeyStatus(d))
+      .catch(() => setKeyStatus(null));
+  };
+
+  useEffect(() => { loadKeyStatus(); }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  const hasKey = !!keyStatus;
+
   const send = async (text: string) => {
-    if (!text.trim() || loading) return;
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text, time: now() }]);
+    if (!text.trim() || loading || !hasKey) return;
+    const userMsg: Message = { id: Date.now(), role: 'user', text, time: now() };
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200 + Math.random() * 900));
-    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', text: getMockResponse(text), time: now() }]);
-    setLoading(false);
-    setTimeout(() => inputRef.current?.focus(), 50);
+
+    const assistantId = Date.now() + 1;
+    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', text: '', time: now() }]);
+
+    try {
+      const res = await fetch('/api/ki/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history.map(m => ({ role: m.role, content: m.text })),
+        }),
+      });
+
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        const errText = d.message || d.error || 'Etwas ist schiefgelaufen. Bitte versuche es erneut.';
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: errText } : m));
+        if (res.status === 402 || res.status === 401) loadKeyStatus();
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          if (chunk) {
+            setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: m.text + chunk } : m));
+          }
+        }
+      }
+    } catch {
+      setMessages(prev => prev.map(m => m.id === assistantId
+        ? { ...m, text: 'Netzwerkfehler. Bitte versuche es erneut.' }
+        : m));
+    } finally {
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
   };
 
   return (
@@ -158,21 +196,34 @@ export default function KiSousChefPage() {
       <div className="flex gap-2 flex-wrap mb-3 flex-shrink-0">
         {quickPrompts.map(q => (
           <button key={q}
-            onClick={() => FEATURES.AI_ENABLED && send(q)}
-            disabled={!FEATURES.AI_ENABLED}
-            title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
+            onClick={() => hasKey && send(q)}
+            disabled={!hasKey || loading}
+            title={!hasKey ? 'Erst API-Key in den Einstellungen hinterlegen' : undefined}
             className="text-[11px] px-3 py-1.5 rounded-full bg-card border border-border text-text-muted transition-all whitespace-nowrap"
-            style={FEATURES.AI_ENABLED ? {} : { opacity: 0.4, cursor: 'not-allowed' }}>
+            style={hasKey ? {} : { opacity: 0.4, cursor: 'not-allowed' }}>
             {q}
           </button>
         ))}
       </div>
 
       {/* Input */}
-      {!FEATURES.AI_ENABLED ? (
-        <div className="flex-shrink-0 rounded-xl px-4 py-3 text-center text-[13px]"
-          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)', color: 'var(--text-muted)' }}>
-          KI-Sous-Chef wird bald verfügbar — OpenAI API Key wird eingerichtet
+      {keyStatus === undefined ? (
+        <div className="flex-shrink-0 flex items-center justify-center rounded-xl px-4 py-3"
+          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
+          <Loader2 size={16} className="animate-spin" style={{ color: '#6B3A4B' }} />
+        </div>
+      ) : !hasKey ? (
+        <div className="flex-shrink-0 flex items-center gap-3 rounded-xl px-4 py-3.5"
+          style={{ background: 'rgba(107,58,75,0.05)', border: '1px solid rgba(107,58,75,0.18)' }}>
+          <KeyRound size={16} style={{ color: '#6B3A4B', flexShrink: 0 }} />
+          <span className="flex-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            Um den KI-Sous-Chef zu nutzen, hinterlege deinen API-Key in den Einstellungen.
+          </span>
+          <Link href="/profil"
+            className="flex-shrink-0 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
+            style={{ background: 'rgba(107,58,75,0.1)', border: '1px solid rgba(107,58,75,0.25)', color: '#6B3A4B' }}>
+            Zu den Einstellungen
+          </Link>
         </div>
       ) : (
         <div className="flex gap-3 flex-shrink-0">
