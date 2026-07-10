@@ -10,6 +10,7 @@ import {
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles, Star,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
   Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2,
+  KeyRound,
 } from 'lucide-react';
 import { ADMIN_EMAIL, ALL_TITLES, STUFEN, getUserTier } from '@/config/roles';
 
@@ -41,7 +42,7 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
+type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'ki-funktionen' | 'verwaltung' | 'anfragen';
 
 type AccessRequest = {
   id: string;
@@ -225,6 +226,19 @@ export default function ProfilPage() {
   const [showProcessed, setShowProcessed]   = useState(false);
   const [pendingCount, setPendingCount]     = useState(0);
 
+  // Tab – KI-Funktionen (BYOK)
+  type AiKeyStatus = { provider: 'openai' | 'anthropic'; key_hint: string; is_valid: boolean };
+  const [aiTabLoaded, setAiTabLoaded]   = useState(false);
+  const [aiKeyStatus, setAiKeyStatus]   = useState<AiKeyStatus | null>(null);
+  const [aiReplacing, setAiReplacing]   = useState(false);
+  const [aiProvider, setAiProvider]     = useState<'openai' | 'anthropic'>('openai');
+  const [aiKeyInput, setAiKeyInput]     = useState('');
+  const [aiShowKey, setAiShowKey]       = useState(false);
+  const [aiSaving, setAiSaving]         = useState(false);
+  const [aiDeleting, setAiDeleting]     = useState(false);
+  const [aiError, setAiError]           = useState<string | null>(null);
+  const [aiSuccessMsg, setAiSuccessMsg] = useState<string | null>(null);
+
   // Tab 4 – Sicherheit
   const [currentPw, setCurrentPw]     = useState('');
   const [newPw, setNewPw]             = useState('');
@@ -398,6 +412,61 @@ export default function ProfilPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user?.email]);
+
+  // KI-Funktionen-Tab: einmalig per GET pruefen, ob schon ein Key hinterlegt ist
+  useEffect(() => {
+    if (activeTab === 'ki-funktionen' && !aiTabLoaded) {
+      fetch('/api/ki/key')
+        .then(r => r.json())
+        .then(d => setAiKeyStatus(d))
+        .catch(() => {})
+        .finally(() => setAiTabLoaded(true));
+    }
+  }, [activeTab, aiTabLoaded]);
+
+  const handleSaveAiKey = async () => {
+    const keyToSend = aiKeyInput.trim();
+    if (!keyToSend) return;
+    setAiKeyInput(''); // verlaesst den Frontend-State, sobald der Request unterwegs ist
+    setAiSaving(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/ki/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: aiProvider, apiKey: keyToSend }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setAiError(d.error || 'Speichern fehlgeschlagen.'); return; }
+      setAiKeyStatus({ provider: aiProvider, key_hint: d.key_hint, is_valid: d.is_valid });
+      setAiReplacing(false);
+      setAiSuccessMsg('Key gespeichert und geprüft.');
+      setTimeout(() => setAiSuccessMsg(null), 3000);
+    } catch {
+      setAiError('Netzwerkfehler. Bitte versuche es erneut.');
+    } finally {
+      setAiSaving(false);
+    }
+  };
+
+  const handleDeleteAiKey = async () => {
+    setAiDeleting(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/ki/key', { method: 'DELETE' });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setAiError(d.error || 'Entfernen fehlgeschlagen.');
+        return;
+      }
+      setAiKeyStatus(null);
+      setAiReplacing(false);
+    } catch {
+      setAiError('Netzwerkfehler.');
+    } finally {
+      setAiDeleting(false);
+    }
+  };
 
   const loadAnfragen = async () => {
     setAnfragenLoading(true);
@@ -597,6 +666,7 @@ export default function ProfilPage() {
     { id: 'mein-stil',   label: 'Küche & Stil', sublabel: 'Dein Küchenprofil', Icon: Star      },
     { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',     Icon: Share2    },
     { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',        Icon: Shield    },
+    { id: 'ki-funktionen', label: 'KI-Funktionen', sublabel: 'Dein API-Key', Icon: KeyRound  },
     ...(isAdmin ? [
       { id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users    },
       { id: 'anfragen'   as Tab, label: 'Anfragen',   sublabel: 'Registrierungen', Icon: UserPlus, badge: pendingCount || undefined },
@@ -1194,6 +1264,118 @@ export default function ProfilPage() {
                 {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
                 <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
               </div>
+            </div>
+          )}
+
+          {/* ── Tab: KI-Funktionen (BYOK) ─────────────────────────────────── */}
+          {activeTab === 'ki-funktionen' && (
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1rem' }}>
+                KI-Funktionen
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6, maxWidth: 440 }}>
+                Für den KI-Sous-Chef hinterlegst du deinen eigenen OpenAI- oder Anthropic-Key.
+                Er wird verschlüsselt gespeichert und ausschließlich für deine eigenen Anfragen
+                verwendet.
+              </p>
+
+              {!aiTabLoaded ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 size={22} className="animate-spin" style={{ color: '#6B3A4B' }} />
+                </div>
+              ) : aiKeyStatus && !aiReplacing ? (
+                /* ── Zustand: Key hinterlegt ─────────────────────────────── */
+                <div style={{ maxWidth: 420 }}>
+                  <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3.5"
+                    style={{ background: 'var(--surface-2, #F4EFE9)', border: '1px solid var(--border, #E8E0D8)' }}>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <KeyRound size={16} style={{ color: '#6B3A4B', flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                        {aiKeyStatus.provider === 'anthropic' ? 'Anthropic' : 'OpenAI'} · {aiKeyStatus.key_hint}
+                      </span>
+                    </div>
+                    <span className="flex items-center gap-1 flex-shrink-0"
+                      style={{ fontSize: 11, fontWeight: 700, color: aiKeyStatus.is_valid ? '#5A9A58' : '#C05050' }}>
+                      {aiKeyStatus.is_valid ? <><CheckCircle size={12} /> Aktiv</> : 'Ungültig'}
+                    </span>
+                  </div>
+
+                  {aiError && <div className="mt-3"><ErrorBanner message={aiError} /></div>}
+
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => { setAiProvider(aiKeyStatus.provider); setAiReplacing(true); setAiError(null); }}
+                      className="px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all"
+                      style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)', color: '#6B3A4B' }}>
+                      Key ersetzen
+                    </button>
+                    <button
+                      onClick={handleDeleteAiKey} disabled={aiDeleting}
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
+                      style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.2)', color: '#C05050' }}>
+                      {aiDeleting && <Loader2 size={12} className="animate-spin" />}
+                      Entfernen
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* ── Zustand: kein Key hinterlegt / Key ersetzen ─────────── */
+                <div style={{ maxWidth: 420 }}>
+                  <label style={labelStyle}>Anbieter</label>
+                  <div className="flex gap-2 mb-4">
+                    {(['openai', 'anthropic'] as const).map(p => (
+                      <button key={p} type="button" onClick={() => setAiProvider(p)}
+                        className="flex-1 py-2.5 rounded-xl text-[13px] font-medium transition-all"
+                        style={{
+                          background: aiProvider === p ? 'rgba(107,58,75,0.12)' : 'var(--bg, #F9F7F4)',
+                          border: `1px solid ${aiProvider === p ? 'rgba(107,58,75,0.35)' : 'var(--border, #E8E0D8)'}`,
+                          color: aiProvider === p ? '#6B3A4B' : 'var(--text-muted)',
+                        }}>
+                        {p === 'openai' ? 'OpenAI' : 'Anthropic'}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label style={labelStyle}>API-Key</label>
+                  <div className="relative">
+                    <Lock size={14} color="#B09880" className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type={aiShowKey ? 'text' : 'password'}
+                      value={aiKeyInput} onChange={e => setAiKeyInput(e.target.value)}
+                      placeholder={aiProvider === 'anthropic' ? 'sk-ant-…' : 'sk-…'}
+                      autoComplete="off" spellCheck={false}
+                      className={fieldCls + ' pr-11'} style={fieldStyle}
+                      onFocus={onFocus} onBlur={onBlur} />
+                    <button type="button" onClick={() => setAiShowKey(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors"
+                      style={{ color: '#B09880' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#B09880')}>
+                      {aiShowKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '6px 0 1.25rem', lineHeight: 1.5 }}>
+                    Den Key bekommst du bei {aiProvider === 'anthropic' ? 'console.anthropic.com' : 'platform.openai.com/api-keys'}.
+                    Er wird sofort beim Anbieter geprüft und danach nur verschlüsselt gespeichert —
+                    im Klartext siehst du ihn hier nicht wieder.
+                  </p>
+
+                  {aiError && <div className="mb-4"><ErrorBanner message={aiError} /></div>}
+                  {aiSuccessMsg && <div className="mb-4"><SuccessBanner message={aiSuccessMsg} /></div>}
+
+                  <div className="flex gap-2">
+                    <SaveButton onClick={handleSaveAiKey} loading={aiSaving}
+                      label={aiSaving ? 'Key wird geprüft…' : 'Speichern & testen'} />
+                    {aiReplacing && (
+                      <button onClick={() => { setAiReplacing(false); setAiKeyInput(''); setAiError(null); }}
+                        className="px-5 py-3 rounded-xl text-[13px] font-medium transition-all"
+                        style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--text-muted)', border: '1px solid rgba(0,0,0,0.08)' }}>
+                        Abbrechen
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
