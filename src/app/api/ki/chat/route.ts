@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
 import { decryptKey } from '@/lib/crypto';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,14 @@ export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
   if (!user) {
     return Response.json({ error: 'Nicht eingeloggt.' }, { status: 401 });
+  }
+
+  const rateLimit = await checkRateLimit(user.id);
+  if (!rateLimit.allowed) {
+    return Response.json(
+      { error: `rate_limit_${rateLimit.reason}`, message: rateLimit.message },
+      { status: 429 },
+    );
   }
 
   let body: { messages?: ChatMessage[] };
