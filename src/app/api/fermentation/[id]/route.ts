@@ -23,7 +23,7 @@ function toProject(row: Record<string, unknown>) {
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const check = await requireTier(req, 2);
+    const check = await requireTier(req, 1);
     if (!check.ok) return check.response;
     const user = check.user;
 
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const check = await requireTier(req, 2);
+    const check = await requireTier(req, 1);
     if (!check.ok) return check.response;
     const user = check.user;
 

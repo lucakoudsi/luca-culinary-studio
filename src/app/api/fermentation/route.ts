@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const check = await requireTier(req, 2);
+    const check = await requireTier(req, 1);
     if (!check.ok) return check.response;
     const user = check.user;
 

@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const check = await requireTier(req, 2);
+  const check = await requireTier(req, 1);
   if (!check.ok) return check.response;
   const user = check.user;
 
@@ -88,7 +88,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const check = await requireTier(req, 2);
+  const check = await requireTier(req, 1);
   if (!check.ok) return check.response;
   const user = check.user;
 

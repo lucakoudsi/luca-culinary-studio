@@ -9,7 +9,7 @@ import { extractRecipeJsonLd, mapSchemaOrgRecipe } from '@/lib/schemaOrgRecipe';
 const NOT_FOUND_MSG = 'Konnte kein Rezept auf dieser Seite finden — versuch das Einfügen der Zutaten als Text.';
 
 export async function POST(req: NextRequest) {
-  const check = await requireTier(req, 2);
+  const check = await requireTier(req, 1);
   if (!check.ok) return check.response;
 
   let url: unknown;

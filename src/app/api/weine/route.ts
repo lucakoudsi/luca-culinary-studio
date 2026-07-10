@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const db = createAdminClient();
 
 export async function GET(req: NextRequest) {
-  const check = await requireTier(req, 4);
+  const check = await requireTier(req, 1);
   if (!check.ok) return check.response;
 
   const { data, error } = await db
