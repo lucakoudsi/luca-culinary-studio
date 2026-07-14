@@ -59,7 +59,7 @@ export default function KomponenteCard({
                   <input value={z.name} onChange={e => onZutat(zi, 'name', e.target.value)}
                     placeholder="Zutat…" className={IC + ' flex-1'} />
                   <input value={z.menge} onChange={e => onZutat(zi, 'menge', e.target.value)}
-                    placeholder="Menge" className={IC} style={{ width: 130 }} />
+                    placeholder="Menge" className={IC} style={{ width: 160 }} />
                   <button onClick={() => onRemoveZutat(zi)}
                     className="text-text-muted hover:text-red-400 transition-colors flex-shrink-0 self-center">
                     <X size={14} />

@@ -12,18 +12,19 @@ import KomponenteCard from '@/components/recipes/KomponenteCard';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 import { parseRecipeText } from '@/lib/recipeTextParser';
+import { REZEPT_KATEGORIEN, REZEPT_SCHWIERIGKEITEN, REZEPT_SAISONS } from '@/config/rezeptFelder';
 import type { FlavorProfile } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const CATEGORIES  = ['Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'] as const;
-const DIFFICULTIES = ['Leicht', 'Mittel', 'Schwer'] as const;
-const SEASONS     = ['Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'] as const;
-const STATUSES    = ['Entwurf', 'In Bearbeitung', 'Fertig'] as const;
+const CATEGORIES   = REZEPT_KATEGORIEN;
+const DIFFICULTIES = REZEPT_SCHWIERIGKEITEN;
+const SEASONS      = REZEPT_SAISONS;
+const STATUSES     = ['Entwurf', 'In Bearbeitung', 'Fertig'] as const;
 
 const diffColor:   Record<string, string> = { Leicht: '#7CB87A', Mittel: '#E8A838', Schwer: '#E06B6B' };
 const statusColor: Record<string, string> = { Fertig: '#7CB87A', 'In Bearbeitung': '#E8A838', Entwurf: '#7BB8D4' };
@@ -294,6 +295,7 @@ function NewRezeptForm() {
   const [importUrl, setImportUrl]     = useState('');
   const [importRawText, setImportRawText] = useState('');
   const [importing, setImporting]     = useState(false);
+  const [importingKi, setImportingKi] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
 
@@ -406,6 +408,72 @@ function NewRezeptForm() {
     if (result.schritte.length > 0) parts.push(`${result.schritte.length} Schritt${result.schritte.length !== 1 ? 'e' : ''}`);
     if (result.unsicher.length > 0) parts.push(`${result.unsicher.length} unklar → Chef-Tipps`);
     setImportSuccessMsg(`Text analysiert (${parts.join(', ')}) — bitte prüfen und bei Bedarf korrigieren. Best effort ohne KI, nicht jede Formatierung wird erkannt.`);
+  };
+
+  // ── Rezept-Import (Weg B, KI-gestützt) ─────────────────────────────────────
+  const handleImportTextKi = async () => {
+    const text = importRawText.trim();
+    if (!text) return;
+    setImportingKi(true);
+    setImportError(null);
+    setImportSuccessMsg(null);
+    try {
+      const res = await fetch('/api/rezepte/import-ki', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.found) {
+        setImportError(d.message || d.error || 'KI-Import fehlgeschlagen.');
+        return;
+      }
+      const r = d.recipe as {
+        title: string; description: string; category: string; difficulty: string;
+        time: number; season: string; tags: string[]; portionen: number;
+        zutaten: RecipeIngredient[]; komponenten: RecipeKomponente[]; schritte: string[];
+        getraenke: string; chefTipps: string; geschmack: FlavorProfile;
+      };
+      setBase(p => ({
+        ...p,
+        title:       r.title || p.title,
+        description: r.description || p.description,
+        category:    r.category || p.category,
+        difficulty:  r.difficulty || p.difficulty,
+        time:        r.time || p.time,
+        season:      r.season || p.season,
+        tags:        r.tags.length > 0 ? r.tags.join(', ') : p.tags,
+        portionen:   r.portionen || p.portionen,
+      }));
+      if (r.zutaten.length > 0) setZutaten(r.zutaten);
+      if (r.komponenten.length > 0) {
+        setKomponenten(r.komponenten);
+        setCollapsed(r.komponenten.map(() => false));
+      }
+      if (r.schritte.length > 0) setSchritte(r.schritte);
+      if (r.getraenke) setGetraenke(r.getraenke);
+      if (r.chefTipps) setChefTipps(prev => prev ? `${prev}\n\n${r.chefTipps}` : r.chefTipps);
+
+      // Geschmacksprofil: erst echte Bibliotheks-Berechnung versuchen (praeziser,
+      // da auf realen Zutaten-Daten basierend), sonst die KI-eigene Schaetzung
+      // uebernehmen -- ohne Profil ist das Rezept im Wein-Pairing nicht nutzbar.
+      const computeZutaten = r.zutaten.length > 0 ? r.zutaten : zutaten;
+      const computeKomponenten = r.komponenten.length > 0 ? r.komponenten : komponenten;
+      const computed = computeRecipeFlavorProfile(computeZutaten, computeKomponenten, ingredients);
+      if (computed.matched.length > 0) {
+        setGeschmack(computed.profile);
+        setMatchInfo({ matched: computed.matched, unmatched: computed.unmatched });
+      } else {
+        setGeschmack(r.geschmack);
+        setMatchInfo(null);
+      }
+
+      setImportSuccessMsg('Rezept per KI erkannt — bitte prüfen und bei Bedarf korrigieren.');
+    } catch {
+      setImportError('Netzwerkfehler beim KI-Import.');
+    } finally {
+      setImportingKi(false);
+    }
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
@@ -640,16 +708,24 @@ function NewRezeptForm() {
                   <textarea value={importRawText} onChange={e => setImportRawText(e.target.value)}
                     placeholder={'z.B. eine Instagram-/TikTok-Caption oder kopierter Rezepttext…'} rows={8}
                     className={IC + ' resize-none leading-relaxed'} />
-                  <div className="flex justify-end mt-2">
-                    <button onClick={handleImportText} disabled={!importRawText.trim()}
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button onClick={handleImportText} disabled={!importRawText.trim() || importingKi}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-semibold transition-all disabled:opacity-40 flex-shrink-0"
+                      style={{ background: 'transparent', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
+                      <FileText size={14} /> Text analysieren
+                    </button>
+                    <button onClick={handleImportTextKi} disabled={!importRawText.trim() || importingKi}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
                       style={{ background: '#6B3A4B' }}>
-                      <FileText size={14} /> Text analysieren
+                      {importingKi ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                      {importingKi ? 'Analysiere…' : 'Mit KI analysieren'}
                     </button>
                   </div>
                   <p className="text-[11px] text-text-muted mt-2">
-                    Best effort ohne KI — erkennt „Zutaten:"/„Zubereitung:"-Abschnitte oder Aufzählungen &amp; Nummerierungen.
-                    Nicht sicher Erkanntes landet gesammelt in Chef-Tipps statt verworfen zu werden.
+                    <strong>Mit KI analysieren</strong> versteht auch Fließtext, Emojis und lockere Mengenangaben („ne Handvoll…") —
+                    ideal für Instagram-/TikTok-Captions. <strong>Text analysieren</strong> ist der schnelle, kostenlose Weg ohne KI
+                    für sauber strukturierte „Zutaten:"/„Zubereitung:"-Texte. Bei beiden landet Unsicheres gesammelt in Chef-Tipps
+                    statt verworfen zu werden — bitte Ergebnis immer prüfen.
                   </p>
                 </>
               )}
@@ -762,7 +838,7 @@ function NewRezeptForm() {
                 <input value={z.name} onChange={e => updZutat(i, 'name', e.target.value)}
                   placeholder="Zutat…" className={IC + ' flex-1'} />
                 <input value={z.menge} onChange={e => updZutat(i, 'menge', e.target.value)}
-                  placeholder="200g / 3 EL / nach Bedarf" className={IC} style={{ width: 180 }} />
+                  placeholder="200g / 3 EL / nach Bedarf" className={IC} style={{ width: 220 }} />
                 <button onClick={() => removeZutat(i)}
                   className="text-text-muted hover:text-red-400 transition-colors flex-shrink-0">
                   <X size={15} />
