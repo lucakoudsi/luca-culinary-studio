@@ -6,6 +6,7 @@ import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult } f
 
 export const dynamic = 'force-dynamic';
 
+const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_TEXT_LENGTH = 8000; // Captions sind normalerweise deutlich kuerzer -- grosszuegige Sicherheitsgrenze
 
 const INTRO = `Du extrahierst Rezepte aus Social-Media-Captions (Instagram/TikTok) oder kopiertem Rezepttext für LUCA Culinary Studio.
@@ -15,7 +16,7 @@ Der Nutzer gibt dir einen rohen Text -- oft eine ungeordnete Caption mit Emojis,
 const SYSTEM_PROMPT = buildRezeptSystemPrompt(INTRO);
 
 export async function POST(req: NextRequest) {
-  const check = await requireTier(req, 1);
+  const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
   const { user } = check;
 

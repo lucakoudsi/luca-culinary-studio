@@ -1,5 +1,6 @@
 ﻿'use client';
 import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
@@ -10,15 +11,17 @@ import { submitGlow } from '@/lib/utils';
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 import KomponenteCard from '@/components/recipes/KomponenteCard';
 import SousChefPanel from '@/components/recipes/SousChefPanel';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles, Images,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles, Images, ZoomIn, Lock,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 import { parseRecipeText } from '@/lib/recipeTextParser';
 import { REZEPT_KATEGORIEN, REZEPT_SCHWIERIGKEITEN, REZEPT_SAISONS } from '@/config/rezeptFelder';
+import { getUserTier } from '@/config/roles';
 import type { FlavorProfile } from '@/types';
 import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 
@@ -270,6 +273,22 @@ function NewRezeptForm() {
 
   useEffect(() => { if (ingredients.length === 0) fetchIngredients(); }, []);
 
+  // KI-Rezept-Import (Text/Bild) + Rezept-Sous-Chef laufen ueber den
+  // Betreiber-Key und sind ab Basic (Tier 2) freigeschaltet -- URL-Import und
+  // der Regex-Text-Parser ("Text analysieren") kosten nichts und bleiben fuer
+  // Free nutzbar. Server erzwingt das ohnehin (requireTier), hier nur UI.
+  const [userTier, setUserTier] = useState<number | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email ?? null;
+      fetch('/api/profil').then(r => r.json()).then(d => {
+        setUserTier(getUserTier(email, d.profile?.stufe));
+      }).catch(() => setUserTier(1));
+    });
+  }, []);
+  const kiLocked = userTier !== null && userTier < 2;
+
   // Form base fields
   const [base, setBase] = useState({
     title: '', category: 'Hauptgang', status: 'Entwurf',
@@ -301,6 +320,7 @@ function NewRezeptForm() {
   const [importingKi, setImportingKi] = useState(false);
   const [importImages, setImportImages] = useState<File[]>([]);
   const [importImagePreviews, setImportImagePreviews] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [importingBild, setImportingBild] = useState(false);
   const [importDragOver, setImportDragOver] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
@@ -747,6 +767,7 @@ function NewRezeptForm() {
   }
 
   return (
+    <>
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* ── Sticky Header ─────────────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 border-b border-border px-8 py-4 flex items-center justify-between"
@@ -821,6 +842,7 @@ function NewRezeptForm() {
                     border: `1px solid ${importMode === 'text' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
                   }}>
                   <FileText size={13} /> Text/Caption einfügen
+                  {kiLocked && <Lock size={11} style={{ color: '#C9A84C' }} />}
                 </button>
                 <button onClick={() => { setImportMode('bild'); setImportError(null); setImportSuccessMsg(null); }}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
@@ -830,6 +852,7 @@ function NewRezeptForm() {
                     border: `1px solid ${importMode === 'bild' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
                   }}>
                   <Images size={13} /> Bild(er) hochladen
+                  {kiLocked && <Lock size={11} style={{ color: '#C9A84C' }} />}
                 </button>
               </div>
 
@@ -863,20 +886,58 @@ function NewRezeptForm() {
                       style={{ background: 'transparent', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
                       <FileText size={14} /> Text analysieren
                     </button>
-                    <button onClick={handleImportTextKi} disabled={!importRawText.trim() || importingKi}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
-                      style={{ background: '#6B3A4B' }}>
-                      {importingKi ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                      {importingKi ? 'Analysiere…' : 'Mit KI analysieren'}
-                    </button>
+                    {kiLocked ? (
+                      <button disabled title="Ab Basic verfügbar"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold transition-all cursor-not-allowed flex-shrink-0"
+                        style={{ background: 'rgba(107,58,75,0.08)', color: '#8B7355', border: '1px solid rgba(107,58,75,0.2)' }}>
+                        <Lock size={13} /> Ab Basic verfügbar
+                      </button>
+                    ) : (
+                      <button onClick={handleImportTextKi} disabled={!importRawText.trim() || importingKi}
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
+                        style={{ background: '#6B3A4B' }}>
+                        {importingKi ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                        {importingKi ? 'Analysiere…' : 'Mit KI analysieren'}
+                      </button>
+                    )}
                   </div>
                   <p className="text-[11px] text-text-muted mt-2">
-                    <strong>Mit KI analysieren</strong> versteht auch Fließtext, Emojis und lockere Mengenangaben („ne Handvoll…") —
-                    ideal für Instagram-/TikTok-Captions. <strong>Text analysieren</strong> ist der schnelle, kostenlose Weg ohne KI
-                    für sauber strukturierte „Zutaten:"/„Zubereitung:"-Texte. Bei beiden landet Unsicheres gesammelt in Chef-Tipps
-                    statt verworfen zu werden — bitte Ergebnis immer prüfen.
+                    {kiLocked ? (
+                      <>
+                        <strong>Mit KI analysieren</strong> ist ein Basic-Feature (versteht auch Fließtext, Emojis und lockere
+                        Mengenangaben — ideal für Instagram-/TikTok-Captions). <Link href="/profil" className="underline hover:text-gold transition-colors">Jetzt upgraden</Link>.
+                        Bis dahin bleibt <strong>Text analysieren</strong> kostenlos nutzbar für sauber strukturierte
+                        „Zutaten:"/„Zubereitung:"-Texte.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Mit KI analysieren</strong> versteht auch Fließtext, Emojis und lockere Mengenangaben („ne Handvoll…") —
+                        ideal für Instagram-/TikTok-Captions. <strong>Text analysieren</strong> ist der schnelle, kostenlose Weg ohne KI
+                        für sauber strukturierte „Zutaten:"/„Zubereitung:"-Texte. Bei beiden landet Unsicheres gesammelt in Chef-Tipps
+                        statt verworfen zu werden — bitte Ergebnis immer prüfen.
+                      </>
+                    )}
                   </p>
                 </>
+              ) : kiLocked ? (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-xl py-10 px-6 text-center"
+                  style={{ border: '1px solid rgba(107,58,75,0.2)', background: 'rgba(107,58,75,0.04)' }}>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                    style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }}>
+                    <Lock size={18} style={{ color: '#C9A84C' }} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-text-primary mb-1">Bild-Import ist ein Basic-Feature</p>
+                    <p className="text-[12px] text-text-muted max-w-[360px]">
+                      Fotos von Kochbuchseiten, Screenshots oder handgeschriebenen Rezepten per KI auslesen — ab Basic verfügbar.
+                    </p>
+                  </div>
+                  <Link href="/profil"
+                    className="px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                    style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                    Jetzt upgraden
+                  </Link>
+                </div>
               ) : (
                 <>
                   <label className={LC}><Images size={10} className="inline mr-1" />Foto(s) einer Kochbuchseite, eines Reels oder handgeschriebenen Rezepts</label>
@@ -907,9 +968,15 @@ function NewRezeptForm() {
                   {importImages.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {importImages.map((file, i) => (
-                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group flex-shrink-0">
+                        <div key={i}
+                          onClick={() => setLightboxIndex(i)}
+                          className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group flex-shrink-0 cursor-zoom-in">
                           <img src={importImagePreviews[i]} alt="" className="w-full h-full object-cover" />
-                          <button onClick={() => removeImportImage(i)}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ background: 'rgba(0,0,0,0.35)' }}>
+                            <ZoomIn size={18} color="#FFFFFF" />
+                          </div>
+                          <button onClick={e => { e.stopPropagation(); removeImportImage(i); }}
                             className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
                             style={{ background: 'rgba(0,0,0,0.6)', color: '#FFFFFF' }}>
                             <X size={12} />
@@ -1206,5 +1273,13 @@ function NewRezeptForm() {
       )}
     </div>
     </div>
+
+    <ImageLightbox
+      images={importImagePreviews}
+      index={lightboxIndex}
+      onClose={() => setLightboxIndex(null)}
+      onNavigate={setLightboxIndex}
+    />
+    </>
   );
 }

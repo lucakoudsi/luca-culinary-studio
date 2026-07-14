@@ -4,7 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
-import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown, ChefHat } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown, ChefHat, Lock } from 'lucide-react';
 import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile } from '@/types';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import { submitGlow } from '@/lib/utils';
@@ -12,6 +13,7 @@ import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 import KomponenteCard from '@/components/recipes/KomponenteCard';
 import SousChefPanel from '@/components/recipes/SousChefPanel';
+import { getUserTier } from '@/config/roles';
 import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
@@ -35,6 +37,20 @@ export default function RezeptBearbeitenPage() {
   const [saving,  setSaving]    = useState(false);
   const [saved,   setSaved]     = useState(false);
   const [notFound, setNotFound] = useState(false);
+
+  // Rezept-Sous-Chef laeuft ueber den Betreiber-Key und ist ab Basic (Tier 2)
+  // freigeschaltet -- Server erzwingt das ohnehin (requireTier), hier nur UI.
+  const [userTier, setUserTier] = useState<number | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email ?? null;
+      fetch('/api/profil').then(r => r.json()).then(d => {
+        setUserTier(getUserTier(email, d.profile?.stufe));
+      }).catch(() => setUserTier(1));
+    });
+  }, []);
+  const kiLocked = userTier !== null && userTier < 2;
 
   const [title,       setTitle]       = useState('');
   const [category,    setCategory]    = useState<RecipeCategory>('Hauptgang');
@@ -619,12 +635,34 @@ export default function RezeptBearbeitenPage() {
       </div>
 
       {/* ── KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern ──────────── */}
-      <SousChefPanel
-        getSnapshot={getSousChefSnapshot}
-        onApplyPatch={applySousChefPatch}
-        greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
-        stickyTop={32}
-      />
+      {kiLocked ? (
+        <div className="w-[380px] flex-shrink-0 sticky flex flex-col hidden lg:flex" style={{ top: 32 }}>
+          <div className="bg-card border border-border rounded-xl flex flex-col items-center justify-center gap-3 p-8 text-center">
+            <div className="w-11 h-11 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }}>
+              <Lock size={18} style={{ color: '#C9A84C' }} />
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold text-text-primary mb-1">KI-Sous-Chef ist ein Basic-Feature</p>
+              <p className="text-[12px] text-text-muted">
+                Rezepte im Dialog korrigieren und verfeinern — ab Basic verfügbar.
+              </p>
+            </div>
+            <Link href="/profil"
+              className="px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
+              style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+              Jetzt upgraden
+            </Link>
+          </div>
+        </div>
+      ) : userTier !== null ? (
+        <SousChefPanel
+          getSnapshot={getSousChefSnapshot}
+          onApplyPatch={applySousChefPatch}
+          greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
+          stickyTop={32}
+        />
+      ) : null}
     </div>
     </div>
   );

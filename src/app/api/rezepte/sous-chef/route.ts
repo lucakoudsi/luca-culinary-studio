@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
+const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_PAYLOAD_CHARS = 30000;
 const MAX_MESSAGES = 40;
 
@@ -78,7 +79,7 @@ function parsePatch(raw: unknown, logPrefix: string): Partial<RezeptSnapshot> {
 }
 
 export async function POST(req: NextRequest) {
-  const check = await requireTier(req, 1);
+  const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
   const { user } = check;
 
