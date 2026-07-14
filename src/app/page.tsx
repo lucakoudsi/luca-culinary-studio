@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronRight, ArrowRight, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
-import { FEATURES } from '@/config/features';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -259,18 +258,14 @@ export default function DashboardPage() {
                 deine kulinarischen Projekte.
               </p>
               <button
-                onClick={() => FEATURES.AI_ENABLED && router.push('/ki-sous-chef')}
-                disabled={!FEATURES.AI_ENABLED}
-                title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
+                onClick={() => router.push('/ki-sous-chef')}
                 className="mt-4 sm:mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
                 style={{
                   border: '1px solid rgba(107,58,75,0.35)',
                   color: '#6B3A4B',
                   background: 'rgba(107,58,75,0.06)',
-                  opacity: FEATURES.AI_ENABLED ? 1 : 0.5,
-                  cursor: FEATURES.AI_ENABLED ? 'pointer' : 'not-allowed',
                 }}>
-                {FEATURES.AI_ENABLED ? 'Mit mir sprechen' : 'Coming Soon'} <ArrowRight size={14} />
+                Mit mir sprechen <ArrowRight size={14} />
               </button>
             </div>
           </div>

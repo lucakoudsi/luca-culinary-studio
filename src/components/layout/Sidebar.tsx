@@ -17,9 +17,9 @@ import type { User } from '@supabase/supabase-js';
 const navItems = [
   { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
   { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        aiLocked: false },
-  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    aiLocked: true  },
-  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: true  },
-  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: true  },
+  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    aiLocked: !FEATURES.AI_LAB_ENABLED   },
+  { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: !FEATURES.AI_MENU_ENABLED  },
+  { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: !FEATURES.AI_PLATE_ENABLED },
   { href: '/zutatenstammbaum',label: 'Stammbaum',        icon: GitFork,         aiLocked: false },
   { href: '/zutaten',         label: 'Zutatenbibliothek',icon: Leaf,            aiLocked: false },
   { href: '/saison',          label: 'Saisonkalender',   icon: Sun,             aiLocked: false },
@@ -173,7 +173,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
         <nav className="flex-1 py-3 overflow-y-auto">
           {navItems.map(({ href, label, icon: Icon, aiLocked }) => {
             const isActive    = href === '/' ? pathname === '/' : pathname.startsWith(href);
-            const aiBlocked   = aiLocked && !FEATURES.AI_ENABLED;
+            const aiBlocked   = aiLocked;
             const minTier     = PAGE_MIN_TIER[href] ?? 1;
             const tierBlocked = userTier < minTier;
             const isLocked    = aiBlocked || tierBlocked;

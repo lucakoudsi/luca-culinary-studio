@@ -204,17 +204,17 @@ export default function KreativlaborPage() {
 
             <div className="relative">
               <button onClick={handleGenerate}
-                disabled={loading || !ingredients.trim() || !FEATURES.AI_ENABLED}
-                title={!FEATURES.AI_ENABLED ? 'KI-Funktion coming soon' : undefined}
+                disabled={loading || !ingredients.trim() || !FEATURES.AI_LAB_ENABLED}
+                title={!FEATURES.AI_LAB_ENABLED ? 'KI-Funktion coming soon' : undefined}
                 className="w-full py-3 rounded-lg font-semibold text-[14px] flex items-center justify-center gap-2 transition-all disabled:cursor-not-allowed"
                 style={{
                   background: 'linear-gradient(135deg, #562E3C, #7D4558)',
                   color: '#FFFFFF',
-                  opacity: !FEATURES.AI_ENABLED || loading || !ingredients.trim() ? 0.5 : 1,
+                  opacity: !FEATURES.AI_LAB_ENABLED || loading || !ingredients.trim() ? 0.5 : 1,
                 }}>
                 {loading ? <><Loader2 size={17} className="animate-spin" /> Wird entwickelt…</> : <><Sparkles size={17} /> {projektContext ? 'Konzept aktualisieren' : 'Konzept generieren'}</>}
               </button>
-              {!FEATURES.AI_ENABLED && (
+              {!FEATURES.AI_LAB_ENABLED && (
                 <span className="absolute -top-2 -right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
                   style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
                   Coming Soon

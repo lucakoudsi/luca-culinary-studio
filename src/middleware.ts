@@ -45,13 +45,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // ── KI-Seiten: gesperrt solange AI_ENABLED !== 'true' ────────────────────
-  const AI_LOCKED = ['/kreativlabor', '/menuegenerator', '/tellerdesigner'];
-  const aiEnabled = process.env.NEXT_PUBLIC_AI_ENABLED === 'true';
-  if (!aiEnabled && AI_LOCKED.some(r => pathname.startsWith(r))) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
+  // ── KI-Seiten: jede Route prueft ihr EIGENES Flag, nicht mehr ein globales
+  // (Menuegenerator ist echt, Kreativlabor/Tellerdesigner sind noch Mocks) ──
+  const AI_ROUTE_FLAGS: Record<string, string | undefined> = {
+    '/menuegenerator': process.env.NEXT_PUBLIC_AI_MENU_ENABLED,
+    '/kreativlabor':   process.env.NEXT_PUBLIC_AI_LAB_ENABLED,
+    '/tellerdesigner': process.env.NEXT_PUBLIC_AI_PLATE_ENABLED,
+  };
+  for (const [prefix, flag] of Object.entries(AI_ROUTE_FLAGS)) {
+    if (pathname.startsWith(prefix) && flag !== 'true') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
+    }
   }
 
   // ── Tier-basierter Schutz ─────────────────────────────────────────────────

@@ -5,7 +5,8 @@ import { FEATURES } from '@/config/features';
 
 export default function AiBanner() {
   const [closed, setClosed] = useState(false);
-  if (FEATURES.AI_ENABLED || closed) return null;
+  const alleAiFeaturesAktiv = FEATURES.AI_MENU_ENABLED && FEATURES.AI_LAB_ENABLED && FEATURES.AI_PLATE_ENABLED;
+  if (alleAiFeaturesAktiv || closed) return null;
 
   return (
     <div
