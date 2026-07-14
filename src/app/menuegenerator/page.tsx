@@ -77,6 +77,7 @@ type GangResult = {
   hauptzutaten: string[];
   geschmacksprofil: Partial<FlavorProfile>;
   zubereitungsidee: string;
+  technik?: string;
   wein_empfehlung?: { id: number; name: string } | null;
 };
 type MenuResult = {
@@ -405,6 +406,7 @@ export default function MenuegeneratorPage() {
               hauptzutaten: g.hauptzutaten,
               geschmacksprofil: g.geschmacksprofil,
               zubereitungsidee: g.zubereitungsidee,
+              technik: g.technik,
             })),
             createdAt: new Date().toISOString().slice(0, 10),
           }],

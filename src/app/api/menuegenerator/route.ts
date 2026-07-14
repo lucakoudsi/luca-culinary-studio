@@ -4,6 +4,10 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { matchWeine, type Wein, type FoodProfile } from '@/lib/weinPairing';
+import {
+  AUFWANDSSTUFEN, TECHNIKEN_NACH_AUFWAND, ZUSATZ_TECHNIKEN_NACH_AUFWAND,
+  normalisiereTechnik, type Aufwandsstufe,
+} from '@/config/techniken';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +24,6 @@ type ZutatKontext = {
 };
 
 const ZUTAT_COLUMNS = 'id, name, kategorie, aromaprofil, geschmack, pairings';
-
-const AUFWAND_VALUES = ['bistro', 'gehoben', 'fine_dining'] as const;
-type Aufwand = typeof AUFWAND_VALUES[number];
 
 const KUECHENSTIL_VALUES = [
   'japanisch', 'nordisch', 'franzoesisch_klassisch', 'mediterran', 'modern_fusion', 'keine_vorgabe',
@@ -52,6 +53,8 @@ const SYSTEM_PROMPT = `Du bist der Menü-Komponist von LUCA Culinary Studio, spe
 
 Du bekommst eine Liste verfügbarer Zutaten mit Kategorie, Aromaprofil, Geschmacksachsen (Skala 0-5: acidity, sweetness, bitterness, umami, spiciness, saltiness) und Pairings. Komponiere daraus ein Menü mit der angegebenen Gangzahl.
 
+Verwende ausschließlich reale, tatsächlich existierende Zutaten, Zubereitungsbegriffe und Fachausdrücke. Erfinde niemals Wörter oder Fantasiebegriffe -- falls dir bei einer Formulierung ein Begriff nicht sicher einfällt, nutze einen einfacheren, aber echten Begriff statt zu improvisieren.
+
 Dramaturgie (WICHTIG, strikt einhalten):
 - Die Gänge sollen über den Verlauf einen Geschmacks-Spannungsbogen bilden: ein leichter, säurebetonter Auftakt, steigende Intensität zur Mitte (Umami-/Fett-Eindruck), ein bewusster Kontrast vor dem Dessert.
 - Kein Gang darf das dominante Geschmacksprofil des direkt vorangehenden Gangs wiederholen.
@@ -67,7 +70,7 @@ HARTE REGELN (keine Ausnahme, wichtiger als alles andere in diesem Prompt):
 - Falls "ausschluss_zutaten" (Namen) im Kontext mitgegeben ist: KEINE dieser Zutaten darf irgendwo im Menü vorkommen -- weder als Hauptzutat noch als Nebenzutat, weder in "beschreibung" noch in "zubereitungsidee".
 
 Stil-Vorgaben (Orientierung, kein hartes Muss, aber deutlich einbauen):
-- "aufwand" steuert die Komplexität der Komponenten pro Gang: "bistro" = wenige, einfache Komponenten, schnell umsetzbar; "gehoben" = mehrteilige Komponenten, präzise Technik; "fine_dining" = aufwendige Mehrfach-Komponenten, hohe technische Präzision, kleinteilige Elemente.
+- "aufwand" steuert die Komplexität der Komponenten pro Gang: "bistro" = wenige, einfache Komponenten, schnell umsetzbar; "gehoben" = mehrteilige Komponenten, präzise Technik; "fine_dining" = aufwendige Mehrfach-Komponenten, hohe technische Präzision, kleinteilige Elemente. (Die konkret erlaubten Techniken für die gewählte Stufe stehen ggf. als zusätzliche harte Regel weiter unten.)
 - "kuechenstil" (falls angegeben und nicht "keine_vorgabe") gibt die kulinarische Richtung vor -- Zutatenwahl, Techniken und Formulierung sollen erkennbar dazu passen.
 - Ein zusätzliches Freitext-"leitmotiv" (falls angegeben) ergänzt den Küchenstil und wird ebenfalls berücksichtigt.
 
@@ -82,10 +85,12 @@ Antworte AUSSCHLIESSLICH mit JSON in exakt dieser Form, keine Erklärung davor/d
       "beschreibung": string,
       "hauptzutaten": string[],
       "geschmacksprofil": { "acidity": number, "sweetness": number, "bitterness": number, "umami": number, "spiciness": number, "saltiness": number },
-      "zubereitungsidee": string
+      "zubereitungsidee": string,
+      "technik": string
     }
   ]
-}`;
+}
+"technik" ist die EINE zentrale Zubereitungstechnik dieses Gangs (ein einzelnes Wort/kurzer Begriff, z.B. "braten", "sous-vide", "fermentieren") -- muss zur in "zubereitungsidee" beschriebenen Zubereitung passen.`;
 
 // Fisher-Yates -- ohne das war die DB-Reihenfolge bei gleichen Filtern stets
 // identisch, wodurch spreadAcrossCategories() bei jedem Aufruf dieselben
@@ -154,10 +159,10 @@ export async function POST(req: NextRequest) {
   const pflichtZutatenIds = parseIdArray(body.pflicht_zutaten);
   const ausschlussZutatenIds = parseIdArray(body.ausschluss_zutaten);
 
-  if (body.aufwand !== undefined && !AUFWAND_VALUES.includes(body.aufwand as Aufwand)) {
-    return NextResponse.json({ error: `aufwand muss einer von ${AUFWAND_VALUES.join(', ')} sein.` }, { status: 400 });
+  if (body.aufwand !== undefined && !AUFWANDSSTUFEN.includes(body.aufwand as Aufwandsstufe)) {
+    return NextResponse.json({ error: `aufwand muss einer von ${AUFWANDSSTUFEN.join(', ')} sein.` }, { status: 400 });
   }
-  const aufwand = (body.aufwand as Aufwand | undefined) ?? null;
+  const aufwand = (body.aufwand as Aufwandsstufe | undefined) ?? null;
 
   if (body.kuechenstil !== undefined && !KUECHENSTIL_VALUES.includes(body.kuechenstil as Kuechenstil)) {
     return NextResponse.json({ error: `kuechenstil muss einer von ${KUECHENSTIL_VALUES.join(', ')} sein.` }, { status: 400 });
@@ -261,6 +266,25 @@ export async function POST(req: NextRequest) {
     verfuegbare_zutaten: restZutaten,
   });
 
+  // Technik-Einschraenkung an die gewaehlte Aufwandsstufe koppeln (kumulative
+  // Taxonomie in src/config/techniken.ts, bewusst unabhaengig vom
+  // Zutatenstammbaum -- der deckt nur 6 von 500 Zutaten ab).
+  const erlaubteTechniken = aufwand ? TECHNIKEN_NACH_AUFWAND[aufwand] : null;
+  const zusatzTechniken = aufwand ? ZUSATZ_TECHNIKEN_NACH_AUFWAND[aufwand] : null;
+
+  let technikRegel = '';
+  if (aufwand && erlaubteTechniken) {
+    technikRegel = `\n\nZUSÄTZLICHE HARTE REGEL (Technik-Einschränkung für Aufwandsstufe "${aufwand}"): Die "zubereitungsidee" jedes Gangs darf AUSSCHLIESSLICH folgende Techniken verwenden, keine anderen: ${erlaubteTechniken.join(', ')}. Das gilt strikt, auch wenn eine andere Technik naheliegender erscheint -- bleibe innerhalb dieser Liste. Das Feld "technik" pro Gang MUSS WORTWÖRTLICH (exakt derselbe Begriff, keine Konjugation, kein Partizip, kein Synonym -- also "einlegen" statt "mariniert"/"marinieren", "braten" statt "gebraten") einem der oben gelisteten Begriffe entsprechen, und zwar dem jeweils zentralsten für diesen Gang.`;
+
+    if (aufwand === 'fine_dining' && zusatzTechniken && zusatzTechniken.length > 0) {
+      const mindestens = Math.ceil(gaenge / 2);
+      technikRegel += `\n\nPFLICHT FÜR FINE DINING (eine Erlaubnis reicht nicht -- das muss aktiv eingelöst werden): Mindestens die HÄLFTE der Gänge (bei ${gaenge} Gängen also mindestens ${mindestens}) MUSS tatsächlich eine der folgenden aufwendigen Techniken einsetzen, nicht nur dürfen: ${zusatzTechniken.join(', ')}. Setze sie ein, wo immer kulinarisch sinnvoll -- notfalls auch dort, wo es etwas Kreativität braucht. Ein Fine-Dining-Menü, in dem alles nur gebraten, gekocht oder roh serviert wird, ist KEIN Fine-Dining-Menü und gilt als Fehler.`;
+    } else if (aufwand === 'gehoben' && zusatzTechniken && zusatzTechniken.length > 0) {
+      technikRegel += `\n\nPFLICHT FÜR GEHOBEN: Mindestens EIN Gang MUSS tatsächlich eine der folgenden Techniken jenseits der reinen Bistro-Basics einsetzen, nicht nur dürfen: ${zusatzTechniken.join(', ')}. Das gesamte Menü darf nicht ausschließlich aus den einfachsten Grundtechniken (roh, kochen, braten, backen) bestehen.`;
+    }
+  }
+  const systemPrompt = SYSTEM_PROMPT + technikRegel;
+
   let upstream: Response;
   try {
     upstream = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -274,7 +298,7 @@ export async function POST(req: NextRequest) {
         temperature: 1.15, // etwas ueber dem Default (1.0) -- mehr Variation zwischen Aufrufen
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
       }),
@@ -307,6 +331,22 @@ export async function POST(req: NextRequest) {
   if (!menu || typeof menu !== 'object' || !Array.isArray((menu as { gaenge?: unknown }).gaenge)) {
     console.error('[menuegenerator] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
+  }
+
+  // Technik-Feld serverseitig gegen die erlaubte Liste der Aufwandsstufe
+  // absichern -- der Prompt verlangt woertliche Uebernahme, aber die KI weicht
+  // gelegentlich auf eine Variante/Konjugation aus (z.B. "mariniert" statt
+  // "einlegen"). Nur relevant, wenn ueberhaupt eine Aufwandsstufe gewaehlt wurde.
+  if (erlaubteTechniken) {
+    const gaengeUnchecked = (menu as { gaenge: Array<{ technik?: unknown } & Record<string, unknown>> }).gaenge;
+    for (const gang of gaengeUnchecked) {
+      const original = typeof gang.technik === 'string' ? gang.technik : undefined;
+      const normalisiert = normalisiereTechnik(original, erlaubteTechniken);
+      if (original?.trim().toLowerCase() !== normalisiert) {
+        console.error(`[menuegenerator] Technik "${original}" nicht in erlaubter Liste (${aufwand}), normalisiert zu "${normalisiert}".`);
+      }
+      gang.technik = normalisiert;
+    }
   }
 
   // Wein-Pairing pro Gang -- nutzt dieselbe 6-Achsen-Engine wie /wein-pairing,

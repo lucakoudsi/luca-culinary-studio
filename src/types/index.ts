@@ -132,6 +132,7 @@ export interface MenuGang {
   hauptzutaten?: string[];
   geschmacksprofil?: Partial<FlavorProfile>;
   zubereitungsidee?: string;
+  technik?: string;
 }
 
 export interface ProjectMenu {
