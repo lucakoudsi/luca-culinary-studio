@@ -13,6 +13,8 @@ export type MenuekarteGang = {
   hauptzutaten?: string[];
   geschmacksprofil?: Partial<FlavorProfile>;
   zubereitungsidee?: string;
+  weinId?: number | null;
+  weinName?: string | null;
 };
 
 export type MenuekarteDaten = {
@@ -133,6 +135,12 @@ export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
               )}
 
               {g.geschmacksprofil && <MiniFlavorBars profile={g.geschmacksprofil} />}
+
+              {g.weinName && (
+                <p className="text-center italic mt-4" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  <span style={{ color: '#C9A84C' }}>✦</span> {g.weinName}
+                </p>
+              )}
             </div>
             {i < data.gaenge.length - 1 && (
               <div className="flex items-center justify-center gap-3">

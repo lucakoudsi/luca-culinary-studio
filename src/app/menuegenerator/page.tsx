@@ -77,6 +77,7 @@ type GangResult = {
   hauptzutaten: string[];
   geschmacksprofil: Partial<FlavorProfile>;
   zubereitungsidee: string;
+  wein_empfehlung?: { id: number; name: string } | null;
 };
 type MenuResult = {
   titel: string;
@@ -215,6 +216,8 @@ function toMenuekarteDaten(menu: MenuResult): MenuekarteDaten {
       hauptzutaten: g.hauptzutaten,
       geschmacksprofil: g.geschmacksprofil,
       zubereitungsidee: g.zubereitungsidee,
+      weinId: g.wein_empfehlung?.id ?? null,
+      weinName: g.wein_empfehlung?.name ?? null,
     })),
   };
 }
@@ -396,8 +399,8 @@ export default function MenuegeneratorPage() {
               id: crypto.randomUUID(),
               bezeichnung: g.titel,
               rezeptId: null,
-              weinId: null,
-              weinName: null,
+              weinId: g.wein_empfehlung?.id ?? null,
+              weinName: g.wein_empfehlung?.name ?? null,
               beschreibung: g.beschreibung,
               hauptzutaten: g.hauptzutaten,
               geschmacksprofil: g.geschmacksprofil,

@@ -23,6 +23,8 @@ function toMenuekarteDaten(menu: ProjectMenu): MenuekarteDaten {
       hauptzutaten: g.hauptzutaten,
       geschmacksprofil: g.geschmacksprofil,
       zubereitungsidee: g.zubereitungsidee,
+      weinId: g.weinId,
+      weinName: g.weinName,
     })),
   };
 }

@@ -3,6 +3,7 @@ import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { matchWeine, type Wein, type FoodProfile } from '@/lib/weinPairing';
 
 export const dynamic = 'force-dynamic';
 
@@ -306,6 +307,37 @@ export async function POST(req: NextRequest) {
   if (!menu || typeof menu !== 'object' || !Array.isArray((menu as { gaenge?: unknown }).gaenge)) {
     console.error('[menuegenerator] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
+  }
+
+  // Wein-Pairing pro Gang -- nutzt dieselbe 6-Achsen-Engine wie /wein-pairing,
+  // ohne Formatkonvertierung (geschmacksprofil deckt sich 1:1 mit FoodProfile).
+  // Best effort: schlaegt der Weine-Load fehl, wird das Menue trotzdem geliefert.
+  const validMenu = menu as {
+    gaenge: Array<{ geschmacksprofil?: Partial<FoodProfile> } & Record<string, unknown>>;
+  };
+  try {
+    const { data: weineRaw } = await db.from('weine').select('*');
+    const weine = (weineRaw ?? []) as Wein[];
+    if (weine.length > 0) {
+      for (const gang of validMenu.gaenge) {
+        const p = gang.geschmacksprofil;
+        if (!p) continue;
+        const foodProfile: FoodProfile = {
+          acidity: p.acidity ?? 0,
+          sweetness: p.sweetness ?? 0,
+          bitterness: p.bitterness ?? 0,
+          umami: p.umami ?? 0,
+          spiciness: p.spiciness ?? 0,
+          saltiness: p.saltiness ?? 0,
+        };
+        const top = matchWeine(foodProfile, weine)[0];
+        if (top) {
+          gang.wein_empfehlung = { id: top.wein.id, name: top.wein.name };
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[menuegenerator] Wein-Pairing fehlgeschlagen (nicht kritisch):', e instanceof Error ? e.message : e);
   }
 
   return NextResponse.json(menu);

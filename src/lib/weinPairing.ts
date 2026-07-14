@@ -1,5 +1,3 @@
-'use client';
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // Food flavor profile — same 6 axes as Ingredient.geschmack (scale 0–5)
