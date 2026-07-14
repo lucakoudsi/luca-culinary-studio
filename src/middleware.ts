@@ -1,7 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { ADMIN_EMAIL, getUserTier, getMinTierForPath } from '@/config/roles';
-import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -65,9 +64,12 @@ export async function middleware(request: NextRequest) {
     const minTier = getMinTierForPath(pathname);
 
     if (minTier > 1 && user.email !== ADMIN_EMAIL) {
-      // Fetch profile once per request — only for protected routes
-      const admin = createAdminClient();
-      const { data: profile } = await admin
+      // Fetch profile once per request — only for protected routes.
+      // Session-bound Client statt Service-Role: laeuft Edge-kompatibel (kein
+      // Node-only Code aus supabase-admin.ts mehr im Middleware-Bundle) und
+      // RLS erlaubt einem Nutzer explizit das Lesen der eigenen Zeile
+      // (verifiziert: fremde Profile bleiben weiterhin blockiert).
+      const { data: profile } = await supabase
         .from('profiles')
         .select('stufe')
         .eq('id', user.id)
