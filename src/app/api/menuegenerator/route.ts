@@ -44,9 +44,9 @@ type RequestBody = {
 
 function parseIdArray(value: unknown): number[] {
   if (!Array.isArray(value)) return [];
-  return [...new Set(
+  return Array.from(new Set(
     value.map(v => Number(v)).filter(v => Number.isInteger(v) && v > 0),
-  )];
+  ));
 }
 
 const SYSTEM_PROMPT = `Du bist der Menü-Komponist von LUCA Culinary Studio, spezialisiert auf die Gestaltung stimmiger Mehrgänge-Menüs für professionelle und ambitionierte Köch:innen.
@@ -113,7 +113,7 @@ function spreadAcrossCategories(items: ZutatKontext[], max: number): ZutatKontex
     list.push(item);
     byCategory.set(item.kategorie, list);
   }
-  const categories = [...byCategory.keys()];
+  const categories = Array.from(byCategory.keys());
   const result: ZutatKontext[] = [];
   let idx = 0;
   while (result.length < max && categories.some(c => (byCategory.get(c)?.length ?? 0) > idx)) {
