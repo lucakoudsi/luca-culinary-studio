@@ -29,6 +29,9 @@ export type KiRezeptResult = {
   erkennungsQualitaet: ErkennungsQualitaet;
 };
 
+/** Formular-Stand ohne die importspezifischen Felder -- der Kontext, den der KI-Sous-Chef beim Verfeinern/Korrigieren bekommt (Import UND Bearbeiten bestehender Rezepte). */
+export type RezeptSnapshot = Omit<KiRezeptResult, 'erkennungsQualitaet'>;
+
 const ERKENNUNGS_QUALITAETEN = ['gut', 'teilweise', 'schlecht'] as const;
 
 // Der Regelblock, der fuer Text- und Bild-Import identisch gilt -- nur die
@@ -85,11 +88,11 @@ export function buildRezeptSystemPrompt(intro: string, extraRules?: string): str
   return `${intro}\n\n${SHARED_RULES}${extraRules ? `\n\n${extraRules}` : ''}`;
 }
 
-function isValidEnum<T extends string>(value: unknown, allowed: readonly T[]): value is T {
+export function isValidEnum<T extends string>(value: unknown, allowed: readonly T[]): value is T {
   return typeof value === 'string' && (allowed as readonly string[]).includes(value);
 }
 
-function parseZutatenArray(value: unknown): Zutat[] {
+export function parseZutatenArray(value: unknown): Zutat[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((z): z is Record<string, unknown> => !!z && typeof z === 'object')
@@ -100,7 +103,7 @@ function parseZutatenArray(value: unknown): Zutat[] {
     .filter(z => z.name.length > 0);
 }
 
-function parseKomponenten(value: unknown): Komponente[] {
+export function parseKomponenten(value: unknown): Komponente[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((k): k is Record<string, unknown> => !!k && typeof k === 'object')
@@ -117,7 +120,7 @@ function clamp05(n: unknown): number {
   return Math.max(0, Math.min(5, Math.round(num)));
 }
 
-function parseGeschmack(value: unknown): FlavorProfile {
+export function parseGeschmack(value: unknown): FlavorProfile {
   const g = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
   return {
     acidity: clamp05(g.acidity),

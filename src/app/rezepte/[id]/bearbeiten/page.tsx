@@ -11,6 +11,8 @@ import { submitGlow } from '@/lib/utils';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 import KomponenteCard from '@/components/recipes/KomponenteCard';
+import SousChefPanel from '@/components/recipes/SousChefPanel';
+import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 
@@ -227,6 +229,35 @@ export default function RezeptBearbeitenPage() {
     }
   };
 
+  // ── KI-Sous-Chef: bestehendes Rezept im Dialog korrigieren/verfeinern ─────
+  // Änderungen landen nur im Formular-Stand -- übernommen wird wie bei jeder
+  // anderen Bearbeitung erst durch "Änderungen speichern".
+  const getSousChefSnapshot = (): RezeptSnapshot => ({
+    title, description, category, difficulty, time, season,
+    tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
+    portionen, zutaten, komponenten, schritte, getraenke, chefTipps, geschmack,
+  });
+
+  const applySousChefPatch = (f: Partial<RezeptSnapshot>) => {
+    if (f.title !== undefined) setTitle(f.title);
+    if (f.description !== undefined) setDescription(f.description);
+    if (f.category) setCategory(f.category as RecipeCategory);
+    if (f.difficulty) setDifficulty(f.difficulty as RecipeDifficulty);
+    if (f.time) setTime(f.time);
+    if (f.season) setSeason(f.season as Season);
+    if (f.tags) setTagsInput(f.tags.join(', '));
+    if (f.portionen) setPortionen(f.portionen);
+    if (f.zutaten) setZutaten(f.zutaten);
+    if (f.komponenten) {
+      setKomponenten(f.komponenten);
+      setCollapsed(f.komponenten.map(() => false));
+    }
+    if (f.schritte) setSchritte(f.schritte);
+    if (f.getraenke !== undefined) setGetraenke(f.getraenke);
+    if (f.chefTipps !== undefined) setChefTipps(f.chefTipps);
+    if (f.geschmack) setGeschmack(f.geschmack);
+  };
+
   if (loading) {
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
@@ -294,8 +325,9 @@ export default function RezeptBearbeitenPage() {
         </div>
       )}
 
-      {/* Form */}
-      <div className="p-8 max-w-[800px] grid gap-6">
+      {/* Form (+ KI-Sous-Chef-Sidebar) */}
+      <div className="flex gap-6 items-start p-8">
+      <div className="max-w-[800px] w-full grid gap-6">
 
         {/* Title */}
         <div>
@@ -585,6 +617,15 @@ export default function RezeptBearbeitenPage() {
         </div>
 
       </div>
+
+      {/* ── KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern ──────────── */}
+      <SousChefPanel
+        getSnapshot={getSousChefSnapshot}
+        onApplyPatch={applySousChefPatch}
+        greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
+        stickyTop={32}
+      />
+    </div>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { submitGlow } from '@/lib/utils';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 import KomponenteCard from '@/components/recipes/KomponenteCard';
+import SousChefPanel from '@/components/recipes/SousChefPanel';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
@@ -19,6 +20,7 @@ import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtil
 import { parseRecipeText } from '@/lib/recipeTextParser';
 import { REZEPT_KATEGORIEN, REZEPT_SCHWIERIGKEITEN, REZEPT_SAISONS } from '@/config/rezeptFelder';
 import type { FlavorProfile } from '@/types';
+import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const CATEGORIES   = REZEPT_KATEGORIEN;
@@ -305,6 +307,9 @@ function NewRezeptForm() {
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
   const [importQualityWarning, setImportQualityWarning] = useState<string | null>(null);
 
+  // ── KI-Sous-Chef (Rezept-Verfeinerung nach KI-Import) ──────────────────────
+  const [sousChefActive, setSousChefActive] = useState(false);
+
   useEffect(() => { if (searchParams.get('import') === '1') setImportOpen(true); }, [searchParams]);
 
   useEffect(() => {
@@ -472,6 +477,10 @@ function NewRezeptForm() {
       setGeschmack(r.geschmack);
       setMatchInfo(null);
     }
+
+    // KI-Sous-Chef-Panel aktivieren, damit das Rezept direkt im Dialog
+    // korrigiert/verfeinert werden kann.
+    setSousChefActive(true);
   };
 
   const handleImportTextKi = async () => {
@@ -561,6 +570,49 @@ function NewRezeptForm() {
     } finally {
       setImportingBild(false);
     }
+  };
+
+  // ── KI-Sous-Chef: aktuelles Rezept im Dialog korrigieren/verfeinern ───────
+  const getSousChefSnapshot = (): RezeptSnapshot => ({
+    title: base.title,
+    description: base.description,
+    category: base.category,
+    difficulty: base.difficulty,
+    time: base.time,
+    season: base.season,
+    tags: base.tags.split(',').map(t => t.trim()).filter(Boolean),
+    portionen: base.portionen,
+    zutaten,
+    komponenten,
+    schritte,
+    getraenke,
+    chefTipps,
+    geschmack,
+  });
+
+  const applySousChefPatch = (f: Partial<RezeptSnapshot>) => {
+    if ('title' in f || 'description' in f || 'category' in f || 'difficulty' in f || 'time' in f || 'season' in f || 'tags' in f || 'portionen' in f) {
+      setBase(p => ({
+        ...p,
+        ...('title' in f ? { title: f.title! } : {}),
+        ...('description' in f ? { description: f.description! } : {}),
+        ...('category' in f ? { category: f.category! } : {}),
+        ...('difficulty' in f ? { difficulty: f.difficulty! } : {}),
+        ...('time' in f ? { time: f.time! } : {}),
+        ...('season' in f ? { season: f.season! } : {}),
+        ...('tags' in f ? { tags: f.tags!.join(', ') } : {}),
+        ...('portionen' in f ? { portionen: f.portionen! } : {}),
+      }));
+    }
+    if (f.zutaten) setZutaten(f.zutaten);
+    if (f.komponenten) {
+      setKomponenten(f.komponenten);
+      setCollapsed(f.komponenten.map(() => false));
+    }
+    if (f.schritte) setSchritte(f.schritte);
+    if (f.getraenke !== undefined) setGetraenke(f.getraenke);
+    if (f.chefTipps !== undefined) setChefTipps(f.chefTipps);
+    if (f.geschmack) setGeschmack(f.geschmack);
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
@@ -734,8 +786,9 @@ function NewRezeptForm() {
         </div>
       )}
 
-      {/* ── Form ──────────────────────────────────────────────────────────── */}
-      <div className="max-w-[820px] mx-auto px-8 py-8 pb-24 space-y-5">
+      {/* ── Form (+ KI-Sous-Chef-Sidebar nach erfolgtem KI-Import) ─────────── */}
+      <div className={`flex gap-6 items-start px-8 py-8 pb-24 ${sousChefActive ? 'max-w-[1300px] mx-auto' : ''}`}>
+      <div className={`max-w-[820px] w-full space-y-5 ${sousChefActive ? '' : 'mx-auto'}`}>
 
         {/* ── Rezept-Import ────────────────────────────────────────────────── */}
         <div className={SEC}>
@@ -1142,6 +1195,16 @@ function NewRezeptForm() {
             className={IC + ' resize-none leading-relaxed'} />
         </div>
       </div>
+
+      {/* ── KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern ──────────── */}
+      {sousChefActive && (
+        <SousChefPanel
+          getSnapshot={getSousChefSnapshot}
+          onApplyPatch={applySousChefPatch}
+          greeting={`Rezept „${base.title || 'Unbenannt'}“ ist importiert. Sag mir, was ich korrigieren oder ergänzen soll — z.B. „Das sind Calamari, keine Ofenkartoffeln“ oder „Mach die Mengen für 2 Personen statt 4“.`}
+        />
+      )}
+    </div>
     </div>
   );
 }
