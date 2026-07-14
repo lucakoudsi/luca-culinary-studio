@@ -8,6 +8,7 @@ import { submitGlow } from '@/lib/utils';
 import RecipeDetail from '@/components/recipes/RecipeDetailModal';
 import MenuEditorModal from '@/components/projects/MenuEditorModal';
 import MenuCardView from '@/components/projects/MenuCardView';
+import GeneratedMenuView, { isGeneratedMenu } from '@/components/projects/GeneratedMenuView';
 import type { Recipe, ProjectNote } from '@/types';
 import {
   ArrowLeft, Plus, X, Search, BookOpen, Trash2, StickyNote, Calendar,
@@ -172,6 +173,7 @@ export default function ProjectDetailPage() {
   const [viewingRecipe, setViewingRecipe] = useState<Recipe | null>(null);
   const [editingMenuId, setEditingMenuId] = useState<string | null>(null);
   const [viewingMenuId, setViewingMenuId] = useState<string | null>(null);
+  const [viewingGeneratedMenuId, setViewingGeneratedMenuId] = useState<string | null>(null);
   const [noteInput, setNoteInput] = useState('');
 
   useEffect(() => {
@@ -208,6 +210,7 @@ export default function ProjectDetailPage() {
   const st = statusLabels[project.status];
   const editingMenu = project.menus.find(m => m.id === editingMenuId) ?? null;
   const viewingMenu = project.menus.find(m => m.id === viewingMenuId) ?? null;
+  const viewingGeneratedMenu = project.menus.find(m => m.id === viewingGeneratedMenuId) ?? null;
 
   const handleAddNote = () => {
     if (!noteInput.trim()) return;
@@ -348,7 +351,7 @@ export default function ProjectDetailPage() {
             <div className="space-y-2.5">
               {project.menus.map(m => (
                 <div key={m.id}
-                  onClick={() => setEditingMenuId(m.id)}
+                  onClick={() => { if (isGeneratedMenu(m)) setViewingGeneratedMenuId(m.id); else setEditingMenuId(m.id); }}
                   className="bg-card border border-border rounded-xl px-5 py-4 flex items-center justify-between gap-4 cursor-pointer card-hover">
                   <div className="min-w-0">
                     <h3 className="font-heading text-[15px] font-bold text-text-primary">{m.name}</h3>
@@ -356,7 +359,7 @@ export default function ProjectDetailPage() {
                     <p className="text-[11px] text-text-muted mt-1">{m.gaenge.length} {m.gaenge.length === 1 ? 'Gang' : 'Gänge'}</p>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <button onClick={e => { e.stopPropagation(); setViewingMenuId(m.id); }}
+                    <button onClick={e => { e.stopPropagation(); if (isGeneratedMenu(m)) setViewingGeneratedMenuId(m.id); else setViewingMenuId(m.id); }}
                       title="Menü ansehen"
                       className="text-text-muted hover:text-gold transition-colors">
                       <Eye size={14} />
@@ -403,6 +406,11 @@ export default function ProjectDetailPage() {
       )}
       {viewingMenu && (
         <MenuCardView menu={viewingMenu} recipes={recipes} onClose={() => setViewingMenuId(null)} />
+      )}
+      {viewingGeneratedMenu && (
+        <GeneratedMenuView menu={viewingGeneratedMenu}
+          onClose={() => setViewingGeneratedMenuId(null)}
+          onEdit={() => { setEditingMenuId(viewingGeneratedMenu.id); setViewingGeneratedMenuId(null); }} />
       )}
     </div>
     </PageTransition>

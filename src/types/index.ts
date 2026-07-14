@@ -126,6 +126,12 @@ export interface MenuGang {
   rezeptId: number | null;
   weinId: number | null;
   weinName: string | null;
+  // Optional, nur gefuellt wenn der Gang aus dem Menuegenerator (KI) stammt --
+  // manuell angelegte Gaenge lassen diese Felder einfach weg.
+  beschreibung?: string;
+  hauptzutaten?: string[];
+  geschmacksprofil?: Partial<FlavorProfile>;
+  zubereitungsidee?: string;
 }
 
 export interface ProjectMenu {

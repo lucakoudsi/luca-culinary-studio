@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/lib/store';
 import { submitGlow } from '@/lib/utils';
 import type { Recipe, Project, ProjectMenu, MenuGang, Ingredient } from '@/types';
@@ -12,6 +12,20 @@ import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
 import { TYP_COLOR, TYP_LABELS } from '@/components/recipes/RecipeDetailModal';
 
 const GANG_PRESETS = ['Vorspeise', 'Hauptgang', 'Dessert'];
+
+// Laesst ein <textarea> automatisch mit seinem Inhalt mitwachsen (statt fester
+// Zeilenzahl) -- noetig, seit Gaenge/Beschreibung auch laengere KI-generierte
+// Texte enthalten koennen, nicht mehr nur kurze manuelle Bezeichnungen.
+function useAutoGrow(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return ref;
+}
 
 // ─── Rezept-Einzelauswahl für einen Gang ──────────────────────────────────────
 function GangRecipePicker({ recipes, onClose, onSelect }: { recipes: Recipe[]; onClose: () => void; onSelect: (id: number) => void }) {
@@ -129,6 +143,7 @@ function GangRow({
   onMove: (direction: 'up' | 'down') => void;
 }) {
   const [bezeichnung, setBezeichnung] = useState(gang.bezeichnung);
+  const bezeichnungRef = useAutoGrow(bezeichnung);
   const [showRecipePicker, setShowRecipePicker] = useState(false);
   const [showWeinPicker, setShowWeinPicker] = useState(false);
   const [suggestions, setSuggestions] = useState<WeinMatch[] | null>(null);
@@ -182,13 +197,16 @@ function GangRow({
           </button>
         </div>
 
-        <div className="flex-1 min-w-0 space-y-3">
-          {/* Bezeichnung */}
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* Bezeichnung -- eigene Zeile, volle Breite, waechst mit dem Text
+              (statt einzeiliges Input, das laengere KI-Titel abgeschnitten hat) */}
+          <textarea ref={bezeichnungRef} value={bezeichnung} rows={1}
+            onChange={e => setBezeichnung(e.target.value)}
+            onBlur={() => { if (bezeichnung.trim() && bezeichnung !== gang.bezeichnung) onUpdate({ bezeichnung }); }}
+            className="font-heading text-[15px] font-bold text-text-primary bg-transparent outline-none border-b border-transparent focus:border-gold/40 w-full resize-none leading-snug"
+            style={{ overflow: 'hidden' }} />
+
           <div className="flex items-center gap-2 flex-wrap">
-            <input value={bezeichnung}
-              onChange={e => setBezeichnung(e.target.value)}
-              onBlur={() => { if (bezeichnung.trim() && bezeichnung !== gang.bezeichnung) onUpdate({ bezeichnung }); }}
-              className="font-heading text-[15px] font-bold text-text-primary bg-transparent outline-none border-b border-transparent focus:border-gold/40 min-w-[100px]" />
             <div className="flex gap-1">
               {GANG_PRESETS.map(p => (
                 <button key={p} onClick={() => { setBezeichnung(p); onUpdate({ bezeichnung: p }); }}
@@ -298,6 +316,7 @@ export default function MenuEditorModal({ project, menu, onClose, onView }: { pr
   const { recipes, ingredients, fetchIngredients, updateMenu, addGang, updateGang, removeGang, moveGang } = useStore();
   const [name, setName] = useState(menu.name);
   const [beschreibung, setBeschreibung] = useState(menu.beschreibung);
+  const beschreibungRef = useAutoGrow(beschreibung);
   const [newGangName, setNewGangName] = useState('');
 
   const canAddGang = newGangName.trim().length > 0;
@@ -316,10 +335,12 @@ export default function MenuEditorModal({ project, menu, onClose, onView }: { pr
             <input value={name} onChange={e => setName(e.target.value)}
               onBlur={() => { if (name.trim() && name !== menu.name) updateMenu(project.id, menu.id, { name }); }}
               className="font-heading text-[22px] font-bold text-text-primary bg-transparent outline-none border-b border-transparent focus:border-gold/40 w-full" />
-            <input value={beschreibung} onChange={e => setBeschreibung(e.target.value)}
+            <textarea ref={beschreibungRef} value={beschreibung} rows={1}
+              onChange={e => setBeschreibung(e.target.value)}
               onBlur={() => { if (beschreibung !== menu.beschreibung) updateMenu(project.id, menu.id, { beschreibung }); }}
               placeholder="Beschreibung hinzufügen…"
-              className="text-[13px] text-text-muted bg-transparent outline-none border-b border-transparent focus:border-gold/40 w-full mt-1.5" />
+              className="text-[13px] text-text-muted bg-transparent outline-none border-b border-transparent focus:border-gold/40 w-full mt-1.5 resize-none leading-relaxed"
+              style={{ overflow: 'hidden' }} />
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             {onView && (
