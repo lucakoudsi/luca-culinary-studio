@@ -303,6 +303,7 @@ function NewRezeptForm() {
   const [importDragOver, setImportDragOver] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+  const [importQualityWarning, setImportQualityWarning] = useState<string | null>(null);
 
   useEffect(() => { if (searchParams.get('import') === '1') setImportOpen(true); }, [searchParams]);
 
@@ -355,6 +356,7 @@ function NewRezeptForm() {
     setImporting(true);
     setImportError(null);
     setImportSuccessMsg(null);
+    setImportQualityWarning(null);
     try {
       const res = await fetch('/api/rezepte/import-url', {
         method: 'POST',
@@ -399,6 +401,7 @@ function NewRezeptForm() {
     if (!text) return;
     setImportError(null);
     setImportSuccessMsg(null);
+    setImportQualityWarning(null);
 
     const result = parseRecipeText(text);
     if (result.zutaten.length === 0 && result.schritte.length === 0 && result.unsicher.length === 0) {
@@ -427,6 +430,7 @@ function NewRezeptForm() {
     time: number; season: string; tags: string[]; portionen: number;
     zutaten: RecipeIngredient[]; komponenten: RecipeKomponente[]; schritte: string[];
     getraenke: string; chefTipps: string; geschmack: FlavorProfile;
+    erkennungsQualitaet: 'gut' | 'teilweise' | 'schlecht';
   };
 
   const applyKiRezept = (r: KiRezept, image?: string | null) => {
@@ -476,6 +480,7 @@ function NewRezeptForm() {
     setImportingKi(true);
     setImportError(null);
     setImportSuccessMsg(null);
+    setImportQualityWarning(null);
     try {
       const res = await fetch('/api/rezepte/import-ki', {
         method: 'POST',
@@ -487,8 +492,12 @@ function NewRezeptForm() {
         setImportError(d.message || d.error || 'KI-Import fehlgeschlagen.');
         return;
       }
-      applyKiRezept(d.recipe as KiRezept);
+      const r = d.recipe as KiRezept;
+      applyKiRezept(r);
       setImportSuccessMsg('Rezept per KI erkannt — bitte prüfen und bei Bedarf korrigieren.');
+      if (r.erkennungsQualitaet === 'schlecht' || r.erkennungsQualitaet === 'teilweise') {
+        setImportQualityWarning('Der Text war teilweise unklar oder unvollständig – bitte alle Felder prüfen.');
+      }
     } catch {
       setImportError('Netzwerkfehler beim KI-Import.');
     } finally {
@@ -527,6 +536,7 @@ function NewRezeptForm() {
     setImportingBild(true);
     setImportError(null);
     setImportSuccessMsg(null);
+    setImportQualityWarning(null);
     try {
       const images = await Promise.all(importImages.map(fileToBase64));
       const res = await fetch('/api/rezepte/import-bild', {
@@ -543,6 +553,9 @@ function NewRezeptForm() {
       applyKiRezept(r, r.image);
       const fotoHinweis = r.image ? ' Das fertige Gericht wurde als Rezeptfoto übernommen.' : '';
       setImportSuccessMsg(`Rezept aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} erkannt — bitte prüfen und bei Bedarf korrigieren.${fotoHinweis}`);
+      if (r.erkennungsQualitaet === 'schlecht' || r.erkennungsQualitaet === 'teilweise') {
+        setImportQualityWarning('Das Bild war schwer lesbar – bitte alle Felder prüfen.');
+      }
     } catch {
       setImportError('Netzwerkfehler beim Bild-Import.');
     } finally {
@@ -880,6 +893,13 @@ function NewRezeptForm() {
                 <div className="mt-3 px-4 py-3 rounded-xl text-[13px]"
                   style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#3A7A38' }}>
                   ✓ {importSuccessMsg}
+                </div>
+              )}
+              {importQualityWarning && (
+                <div className="flex items-start gap-2 mt-3 px-4 py-3 rounded-xl text-[13px] font-medium"
+                  style={{ background: 'rgba(196,142,42,0.1)', border: '1px solid rgba(196,142,42,0.3)', color: '#9A6B1E' }}>
+                  <span className="flex-shrink-0 mt-0.5">⚠</span>
+                  <span>{importQualityWarning}</span>
                 </div>
               )}
             </div>
