@@ -59,6 +59,7 @@ Dramaturgie (WICHTIG, strikt einhalten):
 Zutatenwahl:
 - Nutze bevorzugt die mitgegebenen Zutaten -- die "hauptzutaten" pro Gang sollen möglichst exakt aus deren Namen stammen (für spätere Verlinkung in der App). Nur wenn wirklich nötig, ergänze eine naheliegende Zutat, die nicht in der Liste steht.
 - Beachte Anlass und etwaige Diät-Einschränkungen strikt.
+- Vermeide naheliegende Standard-Kombinationen und wiederkehrende Lieblingszutaten. Überrasche mit einer weniger offensichtlichen, aber stimmigen Auswahl aus dem gegebenen Kontext, statt immer zu denselben auffälligen/exotischen Zutaten zu greifen.
 
 HARTE REGELN (keine Ausnahme, wichtiger als alles andere in diesem Prompt):
 - Falls "pflicht_zutaten" im Kontext mitgegeben ist: JEDE dieser Zutaten MUSS in mindestens einem Gang als Hauptzutat vorkommen. Finde für jede eine sinnvolle Verwendung, auch wenn es Kreativität erfordert -- weglassen ist keine Option.
@@ -84,6 +85,18 @@ Antworte AUSSCHLIESSLICH mit JSON in exakt dieser Form, keine Erklärung davor/d
     }
   ]
 }`;
+
+// Fisher-Yates -- ohne das war die DB-Reihenfolge bei gleichen Filtern stets
+// identisch, wodurch spreadAcrossCategories() bei jedem Aufruf dieselben
+// (auffaelligsten) Zutaten pro Kategorie gezogen hat (z.B. immer Sudachi).
+function shuffle<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 // Round-Robin ueber die Kategorien, damit die Auswahl gestreut ist statt
 // z.B. nur die ersten 50 alphabetisch/nach id.
@@ -215,7 +228,9 @@ export async function POST(req: NextRequest) {
     .filter(z => !ausschlussIdSet.has(z.id) && !pflichtIdSet.has(z.id));
 
   const restSlots = Math.max(MAX_ZUTATEN - pflichtZutaten.length, 0);
-  const restZutaten = spreadAcrossCategories(basisGefiltert, restSlots);
+  // shuffle() NUR auf den Rest-Pool -- Pflicht-Zutaten sind separat geladen
+  // und landen ohnehin garantiert im Kontext, unabhaengig vom Zufall hier.
+  const restZutaten = spreadAcrossCategories(shuffle(basisGefiltert), restSlots);
 
   if (pflichtZutaten.length === 0 && restZutaten.length === 0) {
     return NextResponse.json(
@@ -255,6 +270,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'gpt-4o',
+        temperature: 1.15, // etwas ueber dem Default (1.0) -- mehr Variation zwischen Aufrufen
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
