@@ -12,7 +12,7 @@ import KomponenteCard from '@/components/recipes/KomponenteCard';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
   ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
-  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles,
+  Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles, Images,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
@@ -25,6 +25,7 @@ const CATEGORIES   = REZEPT_KATEGORIEN;
 const DIFFICULTIES = REZEPT_SCHWIERIGKEITEN;
 const SEASONS      = REZEPT_SAISONS;
 const STATUSES     = ['Entwurf', 'In Bearbeitung', 'Fertig'] as const;
+const MAX_IMPORT_IMAGES = 5; // muss zum Server-Limit in api/rezepte/import-bild passen
 
 const diffColor:   Record<string, string> = { Leicht: '#7CB87A', Mittel: '#E8A838', Schwer: '#E06B6B' };
 const statusColor: Record<string, string> = { Fertig: '#7CB87A', 'In Bearbeitung': '#E8A838', Entwurf: '#7BB8D4' };
@@ -289,17 +290,27 @@ function NewRezeptForm() {
   const [imageError, setImageError]   = useState<string | null>(null);
   const [importedImage, setImportedImage] = useState<string | null>(null);
 
-  // Rezept-Import (Weg A: URL, Weg B: Text/Caption)
+  // Rezept-Import (Weg A: URL, Weg B: Text/Caption, Weg C: Bild-Upload)
   const [importOpen, setImportOpen]   = useState(false);
-  const [importMode, setImportMode]   = useState<'url' | 'text'>('url');
+  const [importMode, setImportMode]   = useState<'url' | 'text' | 'bild'>('url');
   const [importUrl, setImportUrl]     = useState('');
   const [importRawText, setImportRawText] = useState('');
   const [importing, setImporting]     = useState(false);
   const [importingKi, setImportingKi] = useState(false);
+  const [importImages, setImportImages] = useState<File[]>([]);
+  const [importImagePreviews, setImportImagePreviews] = useState<string[]>([]);
+  const [importingBild, setImportingBild] = useState(false);
+  const [importDragOver, setImportDragOver] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => { if (searchParams.get('import') === '1') setImportOpen(true); }, [searchParams]);
+
+  useEffect(() => {
+    const urls = importImages.map(f => URL.createObjectURL(f));
+    setImportImagePreviews(urls);
+    return () => { urls.forEach(u => URL.revokeObjectURL(u)); };
+  }, [importImages]);
 
   // Geschmacksprofil
   const [geschmack, setGeschmackRaw]  = useState<FlavorProfile>(EMPTY_FLAVOR);
@@ -410,7 +421,55 @@ function NewRezeptForm() {
     setImportSuccessMsg(`Text analysiert (${parts.join(', ')}) — bitte prüfen und bei Bedarf korrigieren. Best effort ohne KI, nicht jede Formatierung wird erkannt.`);
   };
 
-  // ── Rezept-Import (Weg B, KI-gestützt) ─────────────────────────────────────
+  // ── Rezept-Import (KI-gestützt, Text UND Bild teilen sich diese Logik) ────
+  type KiRezept = {
+    title: string; description: string; category: string; difficulty: string;
+    time: number; season: string; tags: string[]; portionen: number;
+    zutaten: RecipeIngredient[]; komponenten: RecipeKomponente[]; schritte: string[];
+    getraenke: string; chefTipps: string; geschmack: FlavorProfile;
+  };
+
+  const applyKiRezept = (r: KiRezept, image?: string | null) => {
+    if (image) {
+      setImportedImage(image);
+      setImagePreview(image);
+      setImageFile(null);
+    }
+    setBase(p => ({
+      ...p,
+      title:       r.title || p.title,
+      description: r.description || p.description,
+      category:    r.category || p.category,
+      difficulty:  r.difficulty || p.difficulty,
+      time:        r.time || p.time,
+      season:      r.season || p.season,
+      tags:        r.tags.length > 0 ? r.tags.join(', ') : p.tags,
+      portionen:   r.portionen || p.portionen,
+    }));
+    if (r.zutaten.length > 0) setZutaten(r.zutaten);
+    if (r.komponenten.length > 0) {
+      setKomponenten(r.komponenten);
+      setCollapsed(r.komponenten.map(() => false));
+    }
+    if (r.schritte.length > 0) setSchritte(r.schritte);
+    if (r.getraenke) setGetraenke(r.getraenke);
+    if (r.chefTipps) setChefTipps(prev => prev ? `${prev}\n\n${r.chefTipps}` : r.chefTipps);
+
+    // Geschmacksprofil: erst echte Bibliotheks-Berechnung versuchen (praeziser,
+    // da auf realen Zutaten-Daten basierend), sonst die KI-eigene Schaetzung
+    // uebernehmen -- ohne Profil ist das Rezept im Wein-Pairing nicht nutzbar.
+    const computeZutaten = r.zutaten.length > 0 ? r.zutaten : zutaten;
+    const computeKomponenten = r.komponenten.length > 0 ? r.komponenten : komponenten;
+    const computed = computeRecipeFlavorProfile(computeZutaten, computeKomponenten, ingredients);
+    if (computed.matched.length > 0) {
+      setGeschmack(computed.profile);
+      setMatchInfo({ matched: computed.matched, unmatched: computed.unmatched });
+    } else {
+      setGeschmack(r.geschmack);
+      setMatchInfo(null);
+    }
+  };
+
   const handleImportTextKi = async () => {
     const text = importRawText.trim();
     if (!text) return;
@@ -428,51 +487,66 @@ function NewRezeptForm() {
         setImportError(d.message || d.error || 'KI-Import fehlgeschlagen.');
         return;
       }
-      const r = d.recipe as {
-        title: string; description: string; category: string; difficulty: string;
-        time: number; season: string; tags: string[]; portionen: number;
-        zutaten: RecipeIngredient[]; komponenten: RecipeKomponente[]; schritte: string[];
-        getraenke: string; chefTipps: string; geschmack: FlavorProfile;
-      };
-      setBase(p => ({
-        ...p,
-        title:       r.title || p.title,
-        description: r.description || p.description,
-        category:    r.category || p.category,
-        difficulty:  r.difficulty || p.difficulty,
-        time:        r.time || p.time,
-        season:      r.season || p.season,
-        tags:        r.tags.length > 0 ? r.tags.join(', ') : p.tags,
-        portionen:   r.portionen || p.portionen,
-      }));
-      if (r.zutaten.length > 0) setZutaten(r.zutaten);
-      if (r.komponenten.length > 0) {
-        setKomponenten(r.komponenten);
-        setCollapsed(r.komponenten.map(() => false));
-      }
-      if (r.schritte.length > 0) setSchritte(r.schritte);
-      if (r.getraenke) setGetraenke(r.getraenke);
-      if (r.chefTipps) setChefTipps(prev => prev ? `${prev}\n\n${r.chefTipps}` : r.chefTipps);
-
-      // Geschmacksprofil: erst echte Bibliotheks-Berechnung versuchen (praeziser,
-      // da auf realen Zutaten-Daten basierend), sonst die KI-eigene Schaetzung
-      // uebernehmen -- ohne Profil ist das Rezept im Wein-Pairing nicht nutzbar.
-      const computeZutaten = r.zutaten.length > 0 ? r.zutaten : zutaten;
-      const computeKomponenten = r.komponenten.length > 0 ? r.komponenten : komponenten;
-      const computed = computeRecipeFlavorProfile(computeZutaten, computeKomponenten, ingredients);
-      if (computed.matched.length > 0) {
-        setGeschmack(computed.profile);
-        setMatchInfo({ matched: computed.matched, unmatched: computed.unmatched });
-      } else {
-        setGeschmack(r.geschmack);
-        setMatchInfo(null);
-      }
-
+      applyKiRezept(d.recipe as KiRezept);
       setImportSuccessMsg('Rezept per KI erkannt — bitte prüfen und bei Bedarf korrigieren.');
     } catch {
       setImportError('Netzwerkfehler beim KI-Import.');
     } finally {
       setImportingKi(false);
+    }
+  };
+
+  // ── Rezept-Import (Weg C: Bild-Upload) ─────────────────────────────────────
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      reader.readAsDataURL(file);
+    });
+
+  const addImportImages = (files: FileList | File[]) => {
+    const arr = Array.from(files);
+    setImportError(null);
+    const valid: File[] = [];
+    for (const f of arr) {
+      if (importImages.length + valid.length >= MAX_IMPORT_IMAGES) {
+        setImportError(`Maximal ${MAX_IMPORT_IMAGES} Bilder auf einmal.`);
+        break;
+      }
+      const err = validateImageFile(f);
+      if (err) { setImportError(err); continue; }
+      valid.push(f);
+    }
+    if (valid.length > 0) setImportImages(prev => [...prev, ...valid]);
+  };
+  const removeImportImage = (i: number) => setImportImages(prev => prev.filter((_, j) => j !== i));
+
+  const handleImportBild = async () => {
+    if (importImages.length === 0) return;
+    setImportingBild(true);
+    setImportError(null);
+    setImportSuccessMsg(null);
+    try {
+      const images = await Promise.all(importImages.map(fileToBase64));
+      const res = await fetch('/api/rezepte/import-bild', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || !d.found) {
+        setImportError(d.message || d.error || 'Bild-Import fehlgeschlagen.');
+        return;
+      }
+      const r = d.recipe as KiRezept & { image: string | null };
+      applyKiRezept(r, r.image);
+      const fotoHinweis = r.image ? ' Das fertige Gericht wurde als Rezeptfoto übernommen.' : '';
+      setImportSuccessMsg(`Rezept aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} erkannt — bitte prüfen und bei Bedarf korrigieren.${fotoHinweis}`);
+    } catch {
+      setImportError('Netzwerkfehler beim Bild-Import.');
+    } finally {
+      setImportingBild(false);
     }
   };
 
@@ -682,6 +756,15 @@ function NewRezeptForm() {
                   }}>
                   <FileText size={13} /> Text/Caption einfügen
                 </button>
+                <button onClick={() => { setImportMode('bild'); setImportError(null); setImportSuccessMsg(null); }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                  style={{
+                    background: importMode === 'bild' ? 'rgba(107,58,75,0.1)' : 'transparent',
+                    color: importMode === 'bild' ? '#6B3A4B' : 'var(--text-muted)',
+                    border: `1px solid ${importMode === 'bild' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
+                  }}>
+                  <Images size={13} /> Bild(er) hochladen
+                </button>
               </div>
 
               {importMode === 'url' ? (
@@ -702,7 +785,7 @@ function NewRezeptForm() {
                     Funktioniert bei Seiten mit strukturierten Rezeptdaten (Chefkoch, die meisten Food-Blogs &amp; Zeitungen).
                   </p>
                 </>
-              ) : (
+              ) : importMode === 'text' ? (
                 <>
                   <label className={LC}><FileText size={10} className="inline mr-1" />Rezept-Text oder Caption einfügen</label>
                   <textarea value={importRawText} onChange={e => setImportRawText(e.target.value)}
@@ -726,6 +809,62 @@ function NewRezeptForm() {
                     ideal für Instagram-/TikTok-Captions. <strong>Text analysieren</strong> ist der schnelle, kostenlose Weg ohne KI
                     für sauber strukturierte „Zutaten:"/„Zubereitung:"-Texte. Bei beiden landet Unsicheres gesammelt in Chef-Tipps
                     statt verworfen zu werden — bitte Ergebnis immer prüfen.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <label className={LC}><Images size={10} className="inline mr-1" />Foto(s) einer Kochbuchseite, eines Reels oder handgeschriebenen Rezepts</label>
+                  <div
+                    onClick={() => document.getElementById('import-bild-input')?.click()}
+                    onDragOver={e => { e.preventDefault(); setImportDragOver(true); }}
+                    onDragLeave={() => setImportDragOver(false)}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setImportDragOver(false);
+                      if (e.dataTransfer.files.length > 0) addImportImages(e.dataTransfer.files);
+                    }}
+                    className="flex flex-col items-center justify-center gap-2 rounded-xl py-8 px-4 cursor-pointer transition-colors text-center"
+                    style={{
+                      border: `2px dashed ${importDragOver ? '#C9A84C' : 'rgba(107,58,75,0.25)'}`,
+                      background: importDragOver ? 'rgba(201,168,76,0.06)' : 'var(--bg)',
+                    }}>
+                    <input id="import-bild-input" type="file" accept="image/jpeg,image/png,image/webp" multiple
+                      className="hidden"
+                      onChange={e => { if (e.target.files) addImportImages(e.target.files); e.target.value = ''; }} />
+                    <Images size={22} style={{ color: 'rgba(107,58,75,0.5)' }} />
+                    <span className="text-[13px] text-text-secondary">
+                      Bilder hierher ziehen oder <span style={{ color: '#6B3A4B', fontWeight: 600 }}>klicken zum Auswählen</span>
+                    </span>
+                    <span className="text-[11px] text-text-muted">JPG, PNG oder WebP · max. {MAX_IMPORT_IMAGES} Bilder</span>
+                  </div>
+
+                  {importImages.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {importImages.map((file, i) => (
+                        <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-border group flex-shrink-0">
+                          <img src={importImagePreviews[i]} alt="" className="w-full h-full object-cover" />
+                          <button onClick={() => removeImportImage(i)}
+                            className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                            style={{ background: 'rgba(0,0,0,0.6)', color: '#FFFFFF' }}>
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end mt-3">
+                    <button onClick={handleImportBild} disabled={importImages.length === 0 || importingBild}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
+                      style={{ background: '#6B3A4B' }}>
+                      {importingBild ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                      {importingBild ? 'Analysiere…' : 'Mit KI analysieren'}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-text-muted mt-2">
+                    Ideal für abfotografierte Kochbuchseiten, Screenshots aus Reels, handgeschriebene Rezepte oder Rezeptkarten.
+                    Bei mehreren Bildern (z.B. mehrere Frames aus einem Video) wird alles zu einem Rezept zusammengeführt.
+                    Unleserliche Stellen landen als ehrlicher Hinweis in Chef-Tipps statt geraten zu werden.
                   </p>
                 </>
               )}
