@@ -54,13 +54,24 @@ Vollständigkeit (WICHTIG: gilt NUR für tatsächlich in der Quelle vorhandenen 
 // strikte Regel oben, unveraendert.
 const REKONSTRUKTION_REGEL = `REKONSTRUKTIONS-MODUS -- KI-Vorschlag statt Ablesen (ERSETZT bewusst die "nichts erfinden"-Regel): Du bekommst KEIN ablesbares Rezept, sondern nur Fotos/Frames des fertigen, bereits angerichteten Gerichts (z.B. Standbilder aus einem Anrichte-Video). Es gibt keinen Text zum Ablesen. Deine Aufgabe: Identifiziere, was du auf dem Teller SIEHST -- die einzelnen sichtbaren Komponenten, Techniken und Anrichteweise -- und rekonstruiere daraus ein PLAUSIBLES Rezept aus deinem Kochwissen. Das Erfinden plausibler Zutaten und Zubereitungsschritte ist hier ausdrücklich ERLAUBT und ERWÜNSCHT (anders als im normalen Ablese-Modus).
 
+- VOLLSTÄNDIGKEIT (WICHTIG, häufigster Fehler): Zähle ZUERST alle sichtbaren Elemente auf dem Teller einzeln auf -- auch Saucen, Schäume, Öle, Krümel/Streusel, Pulver, Kräuterblätter, Blüten, Micro Greens. JEDES eigenständige Element wird eine eigene Komponente. Fasse nichts als bloße "Dekoration" zusammen -- ein einzelnes Kräuterblatt oder eine Blüte ist genauso eine Komponente wie die Hauptzutat. Kontrolliere zum Schluss: Taucht wirklich JEDES Element aus deiner Aufzählung auch als eigener Eintrag in "komponenten" auf? Kleine, unscheinbare oder nur teilweise sichtbare Elemente (z.B. wenige Krümel am Bildrand) NICHT weglassen, nur weil sie klein wirken.
+- NAMENSREGEL FÜR KOMPONENTEN: Jede Komponente bekommt einen KONKRETEN, spezifischen Namen (z.B. "Essbare Blüten", "Minzblätter", "Kokos-Streusel") -- niemals einen Sammelbegriff wie "Dekoration", "Garnitur" oder "Deko-Elemente". Das gilt auch, wenn mehrere kleine, rein optisch wirkende Elemente gemeinsam auf dem Teller liegen: Blüten und Kräuterblätter sind zwei verschiedene Komponenten, nicht eine gemeinsame "Deko"-Komponente.
 - Lege für jede sichtbare Komponente (z.B. "geschmorte Rinderbäckchen", "Kartoffelpüree-Ring", "dunkle Jus", "frittierte Süßkartoffel-Fäden") einen Eintrag in "komponenten" an, mit jeweils plausiblen Zutaten und einer plausiblen Zubereitung aus deinem Kochwissen.
 - Mengen als sinnvolle Schätzung für die im Kontext angegebene bzw. übliche Portionszahl.
 - Erfinde NUR, was zum tatsächlich sichtbaren Gericht plausibel dazugehört. Dichte KEIN zusätzliches Gericht oder einen Gang dazu, den du nicht siehst -- zeigen die Bilder z.B. nur einen Hauptgang, erfinde kein Dessert oder keine Vorspeise dazu.
+- UNSICHERHEIT BEI TECHNIK/TEXTUR: Kannst du eine Zubereitungsart nicht sicher bestimmen (z.B. Gel vs. Pudding vs. Mousse, geliert vs. cremig gebunden), triff trotzdem eine plausible Festlegung in der Komponenten-Zubereitung, notiere die Unsicherheit aber zusätzlich in "chefTipps" (z.B. "Grüne Scheibe: vermutlich Agar-Gel, könnte auch Panna-Cotta-Art sein"). Nicht raten UND verschweigen -- eine Annahme treffen und die Alternative transparent machen.
 - "chefTipps" MUSS -- zusätzlich zu anderen Hinweisen -- exakt diesen Satz enthalten: "${REKONSTRUKTIONS_HINWEIS}"
 - "erkennungs_qualitaet" darf in diesem Modus NIEMALS "gut" sein, maximal "teilweise" -- selbst bei scharfen, gut erkennbaren Bildern ist das Ergebnis ein rekonstruierter Vorschlag und kein abgelesenes Rezept, das muss für den Nutzer sichtbar bleiben.`;
 
-const KOMPONENTEN = `Komponenten (nur bei mehrteiligen Gerichten): Erkennst du mehrere eigenständige Elemente mit jeweils EIGENEN Zutaten und eigener Zubereitung (z.B. "Für die Sauce: ... Für den Belag: ..." oder klar getrennte Teile wie Basis/Füllung/Topping/Sauce), trage sie strukturiert in "komponenten" ein (je ein Objekt mit "name", "zutaten", "zubereitung"). In diesem Fall bleiben die flachen Felder "zutaten" und "schritte" leere Arrays -- alles gehört dann in die jeweilige Komponente, nicht doppelt gepflegt. Bei einem normalen, einteiligen Gericht (die meisten Fälle) bleibt "komponenten" ein leeres Array und alles steht wie gewohnt in "zutaten"/"schritte".`;
+const KOMPONENTEN_ABLESEN = `Komponenten (nur bei mehrteiligen Gerichten): Erkennst du mehrere eigenständige Elemente mit jeweils EIGENEN Zutaten und eigener Zubereitung (z.B. "Für die Sauce: ... Für den Belag: ..." oder klar getrennte Teile wie Basis/Füllung/Topping/Sauce), trage sie strukturiert in "komponenten" ein (je ein Objekt mit "name", "zutaten", "zubereitung"). In diesem Fall bleiben die flachen Felder "zutaten" und "schritte" leere Arrays -- alles gehört dann in die jeweilige Komponente, nicht doppelt gepflegt. Bei einem normalen, einteiligen Gericht (die meisten Fälle) bleibt "komponenten" ein leeres Array und alles steht wie gewohnt in "zutaten"/"schritte".`;
+
+// Im Rekonstruktions-Modus ist "wie wird angerichtet" genau das, was auf dem
+// Bild/Video sichtbar ist -- anders als beim Ablesen (wo Anrichte-Schritte oft
+// gar nicht im Quelltext stehen) darf das hier NICHT in den leeren flachen
+// "schritte" untergehen. Ersetzt KOMPONENTEN_ABLESEN gezielt fuer diesen Modus.
+const KOMPONENTEN_REKONSTRUKTION = `Komponenten UND Anrichte-Schritte: Trage jede identifizierte Komponente (siehe VOLLSTÄNDIGKEIT oben) strukturiert in "komponenten" ein (je ein Objekt mit "name", "zutaten", "zubereitung" -- "zubereitung" beschreibt, wie die Komponente selbst HERGESTELLT wird, z.B. wie ein Gel angerührt/geliert wird, NICHT das Anrichten). Das flache Feld "zutaten" bleibt dabei ein leeres Array -- alle Zutaten gehören in die jeweilige Komponente.
+
+Abweichend vom normalen Ablese-Modus bleibt das flache Feld "schritte" hier aber NICHT leer: Fülle es mit den beobachteten ANRICHTE-/FINISHING-Schritten in der Reihenfolge, in der die Komponenten auf dem Teller zusammengesetzt werden (z.B. "Gelscheibe mittig auf den Teller setzen.", "Melonenkugeln am Rand verteilen.", "Sauce angießen.", "Mit Krümeln, Kräutern und Blüten abschließen."). Das ist im Rekonstruktions-Modus genau das, was im Bild/Video sichtbar ist -- nicht weglassen, auch wenn "komponenten" gefüllt ist.`;
 
 const FELDER_ABLEITEN = `Fehlende Felder intelligent ableiten (nicht leer lassen), aus dem Kontext des Gerichts:
 - "category": genau einer dieser sechs Werte: Vorspeise, Suppe, Hauptgang, Dessert, Beilage, Snack. Aus Zutaten/Charakter ableiten (z.B. "Ofengericht mit Kürbis" -> Hauptgang).
@@ -100,7 +111,8 @@ const SCHLUSS = `Verwende ausschließlich reale, tatsächlich existierende Zutat
 
 function buildSharedRules(modus: PromptModus): string {
   const modeBlock = modus === 'rekonstruktion' ? REKONSTRUKTION_REGEL : STRICT_ANTI_ERFINDEN;
-  return [BEREINIGUNG, modeBlock, KOMPONENTEN, FELDER_ABLEITEN, GETRAENKE, ERKENNUNGSQUALITAET, JSON_SCHEMA, SCHLUSS].join('\n\n');
+  const komponentenBlock = modus === 'rekonstruktion' ? KOMPONENTEN_REKONSTRUKTION : KOMPONENTEN_ABLESEN;
+  return [BEREINIGUNG, modeBlock, komponentenBlock, FELDER_ABLEITEN, GETRAENKE, ERKENNUNGSQUALITAET, JSON_SCHEMA, SCHLUSS].join('\n\n');
 }
 
 export function buildRezeptSystemPrompt(intro: string, extraRules?: string, modus: PromptModus = 'ablesen'): string {
