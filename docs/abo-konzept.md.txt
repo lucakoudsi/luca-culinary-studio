@@ -1,0 +1,191 @@
+﻿# Abo-Konzept: Öffentliches Abo-Produkt
+
+**LUCA Culinary Studio** · Stand 2026-07-10 · Next.js 14 · Supabase · Vercel
+
+> **Wichtiger Rahmen:** Dieses Dokument beschreibt die **Produkt- und Technik-Architektur**. Es ist **keine Rechts- oder Steuerberatung**. Alle mit ⚖️ markierten Punkte (AGB, Widerruf, Umsatzsteuer, Datenschutz für zahlende Kunden, Auftragsverarbeitung mit OpenAI) müssen fachlich geklärt werden, bevor echtes Geld fließt. Alle Preise sind Vorschläge auf Kostenbasis, keine Empfehlung – du legst sie selbst fest.
+
+---
+
+## 1. Der zentrale Perspektivwechsel: BYOK → Abo
+
+Bisher (BYOK) bringt **jeder Nutzer seinen eigenen OpenAI-Key** mit und zahlt selbst. Im Abo-Modell ist es umgekehrt: **Du (Betreiber) hinterlegst einen einzigen zentralen Key**, alle KI-Anfragen laufen darüber, du zahlst OpenAI – und die Nutzer zahlen **dir** ein monatliches/jährliches Abo. Deine Marge = Abo-Einnahmen − deine KI-Kosten.
+
+Das heißt konkret für den Umbau:
+
+- Der zentrale Key liegt in einer **Server-Umgebungsvariable** (z. B. `OPERATOR_OPENAI_KEY` bei Vercel), **nie** im Nutzer-Profil, **nie** im Browser.
+- Die KI-Routen (Chat, später Menügenerator, Tellerdesigner) nutzen diesen einen Key statt den entschlüsselten Nutzer-Key.
+- Statt „hat der Nutzer einen gültigen Key?" lautet die Gate-Frage jetzt: **„Hat der Nutzer ein aktives Abo der passenden Stufe, und ist sein Kontingent noch nicht aufgebraucht?"**
+
+Das bisherige BYOK-System (Key-Verschlüsselung, Nutzer-Key-Verwaltung im Profil) ist **nicht verloren**: Die Verschlüsselung, die Route-Struktur und das Rate-Limiting sind wiederverwendbar. Das Nutzer-Key-Feld im Profil wird im reinen Abo-Modell aber nicht mehr gebraucht – es bleibt als Option für dich als Admin oder für eine spätere Hybrid-Variante (siehe Abschnitt 8).
+
+---
+
+## 2. Die 4 Stufen
+
+| Stufe | Zielgruppe | KI-Sous-Chef (Text) | Tellerdesign (Bilder/Monat) | Labor-Features |
+|-------|-----------|--------------------|-----------------------------|----------------|
+| **Free** | Schaufenster, Neugierige | ❌ | ❌ | ❌ |
+| **Basic** | KI-Einstieg, Hobby-Ambitionierte | ✅ unbegrenzt (fair-use) | ❌ (0 – Tellerdesigner ist Pro-exklusiv) | Menügenerator |
+| **Pro** | Ernsthafte tägliche Nutzer | ✅ unbegrenzt (fair-use) | 150 | alle (Kreativlabor, Menügenerator, Tellerdesigner) |
+| **Team** | Restaurantküchen, mehrere Köche | ✅ unbegrenzt (fair-use) | 500 (geteilt) | alle + Mehrbenutzer |
+
+**Free** hat vollen Zugriff auf die Nicht-KI-Features (Rezeptarchiv, Zutatenbibliothek 500 Zutaten, Stammbaum, Saisonkalender, Fermentation, Projekte) – das ist dein Schaufenster, das Leute reinholt und den Wert zeigt, bevor sie zahlen.
+
+**Chat unbegrenzt (fair-use):** Der KI-Sous-Chef kostet pro Nachricht nur Bruchteile eines Cents, daher in allen Bezahlstufen großzügig. „Fair-use" heißt: das bestehende Rate-Limit (20/Min, 200/Tag) bleibt als Missbrauchsschutz aktiv, aber kein hartes Monatskontingent. So kann niemand das System leerfeuern, normale Nutzung ist aber nie eingeschränkt.
+
+**Bilder gestaffelt:** Bilder sind der eigentliche Kostentreiber (~4 Cent/Stück bei Medium-Qualität), daher das zentrale Unterscheidungsmerkmal zwischen den Stufen. Das Bildkontingent ist der Hebel, an dem der Preisunterschied hängt.
+
+**Team-Besonderheit:** Mehrere Nutzer teilen sich ein Konto und das Bildkontingent (500 geteilt). Das ist die technisch komplexeste Stufe (Team-Verwaltung, Einladungen, geteiltes Kontingent) – **empfohlen: erst später bauen**, wenn Basic/Pro laufen.
+
+---
+
+## 2a. Rollen & Rechte: sauber getrennt von der Abo-Stufe
+
+**Grundprinzip: zwei getrennte Felder pro Nutzer**, nicht eines. Das bisherige Tier-System (Gast/Einsteiger/Profi/Leitung/Admin) vermischt zwei Dinge, die getrennt gehören:
+
+- **Rolle** (Berechtigung – wer darf *verwalten*): `member` (Standard), `admin` (du – volle Verwaltung), optional später `staff` (Mitarbeiter mit eingeschränkten Rechten). Hat **nichts** mit Bezahlung zu tun.
+- **Abo-Stufe** (was gebucht/bezahlt ist): `free` / `basic` / `pro` / `team`. Steuert KI-Features und Kontingente.
+
+Beide sind unabhängig kombinierbar. So kann ein Admin vollen Zugriff haben, ohne zu zahlen; ein Beta-Tester kann kostenlos `pro` bekommen; ein Mitarbeiter kann `staff` + `pro` sein (voller Zugriff, zahlt nicht).
+
+**Mapping der alten Ränge auf das neue Modell:**
+
+| Alt (heute) | → Rolle | → Abo-Stufe |
+|-------------|---------|-------------|
+| Gast | member | free |
+| Einsteiger | member | free (oder basic) |
+| Profi | member | basic |
+| Leitung | member | pro |
+| **Admin** | **admin** | egal – Admin hat immer vollen Zugriff |
+
+**Zugriffs-Logik (entscheidend):** Ein Feature ist sichtbar/nutzbar, **wenn** `Rolle = admin` **ODER** `Abo-Stufe reicht aus`. Admin wird also über die **Rolle** freigeschaltet, nicht über eine Abo-Stufe – so brauchst du dich als Betreiber nie in eine zahlende Stufe zwängen.
+
+**Feature-Gating pro Stufe (Vorschlag – Verteilung frei justierbar):**
+
+| Feature | Free | Basic | Pro | Team | Admin |
+|---------|:----:|:-----:|:---:|:----:|:-----:|
+| Rezepte, Zutaten, Stammbaum, Saison, Fermentation, Projekte | ✅ | ✅ | ✅ | ✅ | ✅ |
+| KI-Sous-Chef (Chat) | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Menügenerator | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Kreativlabor | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Tellerdesigner (Bilder) | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Bild-Kontingent/Monat | – | – | 150 | 500 | ∞ |
+| Mehrbenutzer-Verwaltung | ❌ | ❌ | ❌ | ✅ | ✅ |
+
+**Umbau-Reihenfolge (WICHTIG – nicht nur Labels tauschen!):** Die bestehende Zugriffs-Logik hängt aktuell überall an den alten Rang-Namen (Middleware-Redirect, Rechte-Übersicht in profil/page.tsx, `NEXT_PUBLIC_AI_ENABLED`-Flag, PAGE_MIN_TIER in config/roles.ts). Deshalb:
+1. Neues Feld **Abo-Stufe** in der Nutzer-Tabelle einführen (zusätzlich zur bestehenden Rolle/Tier-Spalte).
+2. Bestehende Nutzer per Mapping-Tabelle oben migrieren.
+3. Zugriffs-Logik Stück für Stück von „alter Rang" auf „Rolle ODER Abo-Stufe" umstellen – **jeden Schritt einzeln testen**, damit keine bestehende Sperre bricht.
+4. Erst ganz am Ende die alten Rang-Bezeichnungen aus UI/Code entfernen.
+
+Das ist genau der Datenmodell- + Feature-Gating-Schritt (Abschnitt 6, Schritte 2–3).
+
+---
+
+## 3. Kostenbasis (aktuell, Juli 2026)
+
+**Text (KI-Sous-Chef, GPT-4o):** ~0,7 Cent pro Nachricht (500 Input + 600 Output Tokens). Selbst 300 Nachrichten/Monat = ~2 $. Vernachlässigbar.
+
+**Bilder (Tellerdesign):** Richtwert ~4 Cent/Bild bei Medium-Qualität auf einem aktuellen Bildmodell (Mini High ~3,6 Cent, Standard Medium ~4,2 Cent). Low-Qualität ginge ab ~0,5 Cent, High bis ~17 Cent. **Empfehlung: Medium als Standard**, Low für Vorschau/Iteration.
+
+**Kosten pro Stufe bei voller Ausschöpfung des Bildkontingents:**
+
+| Stufe | Bilder | Bildkosten (~4 ¢) | + Chat (großzügig) | ≈ Gesamt-Kosten/Monat |
+|-------|--------|-------------------|--------------------|-----------------------|
+| Basic | 0 (kein Tellerdesigner-Zugang) | – | ~1 $ | **~1 $** |
+| Pro | 150 | ~6,00 $ | ~2 $ | **~8,00 $** |
+| Team | 500 | ~20,00 $ | ~5 $ | **~25,00 $** |
+
+Das sind **Worst-Case-Kosten** (jeder Nutzer schöpft voll aus). Real nutzen die meisten deutlich weniger, die tatsächliche Marge ist also höher.
+
+> ⚠️ Bild- und Tokenpreise ändern sich häufig, und Modelle werden abgelöst (GPT Image 1 wird z. B. am 23.10.2026 abgeschaltet). Vor verbindlicher Preisfestlegung immer die Live-Preisseite prüfen und den OpenAI-Image-Kalkulator nutzen.
+
+---
+
+## 4. Preisvorschläge (auf Kostenbasis – du entscheidest final)
+
+Faustregel für gesunde Marge bei Software-Abos: **Verkaufspreis ≈ 3–5× der reinen Nutzungskosten** (deckt Kosten, Zahlungsgebühren, Ausfälle, deine Arbeit, Wachstum).
+
+| Stufe | Kosten (Worst Case) | Vorschlag monatlich | Vorschlag jährlich (~2 Monate gratis) | Marge/Monat (Worst Case) |
+|-------|--------------------:|--------------------:|--------------------------------------:|-------------------------:|
+| **Free** | 0 $ | 0 € | 0 € | — |
+| **Basic** | ~1 $ | **9,99 €** | **99 €** (statt 120 €) | ~9 € |
+| **Pro** | ~8,00 $ | **24,99 €** | **249 €** (statt 300 €) | ~17 € |
+| **Team** | ~25,00 $ | **59,99 €** | **599 €** (statt 720 €) | ~34 € |
+
+**Jahresrabatt:** „2 Monate gratis" (also ~17 % Rabatt) ist marktüblich und belohnt Vorauszahlung – gut für deinen Cashflow. Zahlen sind Vorschläge; du kannst höher/niedriger gehen je nach Zielgruppe und Positionierung.
+
+**Zahlungsgebühren nicht vergessen:** Stripe nimmt grob **1,5 % + 0,25 €** pro Transaktion (EU-Karten; genaue Konditionen prüfen). Bei 9,99 € sind das ~40 Cent – in der Marge oben noch nicht abgezogen, aber verkraftbar.
+
+---
+
+## 5. Schutz gegen Verlust: Kontingent-Logik
+
+Das Bildkontingent **muss** hart durchgesetzt werden, sonst kann ein Poweruser dich ins Minus ziehen.
+
+- **Pro Nutzer ein Zähler** (Bilder diesen Monat), der bei Erreichen des Stufen-Limits die Bildgenerierung blockiert („Monatskontingent erreicht – Upgrade oder nächsten Monat weiter").
+- **Reset monatlich zum Kalendermonat** (Umsetzung 2026-07: `month_start` = 1. des Monats, global für alle Nutzer gleich). Ein Reset zum individuellen Abrechnungsdatum wäre genauer, braucht aber ein Abo-Startdatum pro Nutzer, das erst mit Stripe (Schritt 7) entsteht — bis dahin ist der Kalendermonat die pragmatische Lösung.
+- **Zusätzliches Tageslimit** (z. B. Pro max. 20 Bilder/Tag), damit niemand 150 Bilder an einem Tag raushaut und das System belastet.
+- **Technische Basis existiert schon, aber eigene Tabelle statt Ausbau:** Analog zum Rate-Limit-Muster (`ai_rate_limits`, atomare Zähl-Funktion über Zeilensperre), aber als **eigene** Tabelle `ai_image_quota` + eigene Funktion `check_and_increment_image_quota` — andere Semantik (Produkt-Kontingent statt Missbrauchsschutz, monatliches statt Minuten-/Tages-Fenster, stufenabhängiges statt festes Limit).
+- **Optional später:** „Extra-Bilder" als Einmalkauf, wenn das Kontingent aufgebraucht ist (zusätzliche Einnahme + Ventil für Vielnutzer).
+
+---
+
+## 6. Technische Bausteine (Reihenfolge)
+
+Empfohlene Baureihenfolge – jeder Schritt einzeln, testen, committen (wie beim BYOK):
+
+1. **Zentraler Key + KI-Routen umstellen.** Chat-Route (und künftige) nutzen `OPERATOR_OPENAI_KEY` aus den Server-Env-Vars statt Nutzer-Key. Einfacher als BYOK (kein Entschlüsseln pro Nutzer).
+2. **Abo-/Stufen-Datenmodell.** Pro Nutzer: aktuelle Stufe, Abo-Status (aktiv/gekündigt/abgelaufen), Abrechnungsdatum, Bild-Zähler. Verknüpft mit dem bestehenden Tier-System (Free/Basic/Pro/Team statt Gast/Einsteiger/Profi/Leitung).
+3. **Feature-Gating pro Stufe.** Middleware/Route prüft Stufe + Kontingent statt „hat Key". Free sieht KI-Features als „Upgrade nötig".
+4. **Menügenerator** (erstes echtes Premium-Feature, zentraler Key, Datenanbindung an deine Zutaten/Rezepte). *Kann parallel zu 2/3, weil Feature-Logik unabhängig.*
+5. **Kreativlabor** (zweites Text-Feature, Muster von 4 wiederverwenden).
+6. **Tellerdesigner** (Bildgenerierung, eigenes Modell, Kontingent-Zählung, teuerster Baustein).
+7. **Stripe-Anbindung.** Checkout, Abo-Verwaltung, Webhooks (Zahlung erfolgreich → Stufe freischalten; Kündigung/Fehlschlag → herabstufen). Eigenständiger großer Block.
+8. **Team-Stufe** (Mehrbenutzer, geteiltes Kontingent) – zuletzt.
+9. **Free-Tier-Feinschliff** (Onboarding, Upgrade-Prompts an den richtigen Stellen).
+
+**Wichtiger strategischer Hinweis:** Die Features (4–6) kannst du bauen und selbst nutzen, **bevor** Stripe (7) steht – über deinen zentralen Key, für dich als Betreiber. So hast du ein funktionierendes Produkt und echte Nutzungszahlen, mit denen du die Preise final kalibrierst, bevor du die Bezahlschranke baust.
+
+---
+
+## 7. Stripe & Zahlung (Überblick, eigener großer Baustein)
+
+- **Stripe Checkout** für den Abo-Kauf (gehostete Bezahlseite, am einfachsten und sichersten – du verarbeitest nie selbst Kartendaten).
+- **Stripe Customer Portal** für Selbstverwaltung (Nutzer ändert/kündigt Abo selbst).
+- **Webhooks** synchronisieren Stripe ↔ deine Datenbank: Zahlung erfolgreich → Stufe aktiv; Kündigung → zum Periodenende herabstufen; Zahlung fehlgeschlagen → nach Kulanzfrist herabstufen.
+- **Niemals** Kartendaten selbst speichern/verarbeiten – das übernimmt komplett Stripe (auch aus Haftungs-/PCI-Gründen).
+
+> ⚖️ **Rechtlich/steuerlich zu klären, bevor du live gehst:**
+> - **AGB & Widerrufsrecht** (bei digitalen Abos in der EU gelten besondere Regeln).
+> - **Umsatzsteuer**: Kleinunternehmerregelung? Umsatzsteuer-ID? Bei Verkauf an EU-Ausland greift ggf. das OSS-Verfahren.
+> - **Datenschutz (DSGVO)**: Datenschutzerklärung, und ein **Auftragsverarbeitungsvertrag mit OpenAI** (deine Nutzer schicken Inhalte an OpenAI über deinen Key – das muss datenschutzrechtlich abgebildet sein).
+> - **Impressumspflicht**.
+> Diese Punkte gehören vor den Launch, nicht danach. Hol dir dafür fachliche Beratung.
+
+---
+
+## 8. Optional später: Hybrid (Abo + BYOK)
+
+Weil das BYOK-System schon existiert, könntest du perspektivisch beides anbieten: normale Nutzer zahlen ein Abo (bequem, du verdienst), technisch versierte Nutzer nutzen ihren **eigenen** Key (dann keine/geringere Abo-Gebühr, keine Kontingent-Kosten für dich). Mehr Komplexität, aber ein nettes Angebot für eine Nische. Kein Muss – eher eine Option, wenn das Abo läuft.
+
+---
+
+## 9. Was heute schon steht (wiederverwendbar)
+
+- ✅ Key-Verschlüsselung (`crypto.ts`) – nützlich für den zentralen Key und Hybrid.
+- ✅ Route-Struktur `/api/ki/*` – Vorlage für alle KI-Features.
+- ✅ Rate-Limiting (`ai_rate_limits` + atomare Zähl-Funktion) – Basis für die Kontingent-Zählung.
+- ✅ KI-Sous-Chef mit Streaming – muss nur von Nutzer-Key auf zentralen Key umgestellt werden.
+- ✅ Tier-System (5 Ränge) – wird zu den 4 Abo-Stufen gemappt.
+
+---
+
+## 10. Offene Entscheidungen (vor dem Bau festzurren)
+
+- Finale Preise & ob Jahresrabatt genau so.
+- Welches Bildmodell/-qualität als Standard (Kosten vs. Optik) – konkret testen, wenn der Tellerdesigner gebaut wird.
+- Reihenfolge: erst alle Features fertig (für dich nutzbar), dann Stripe? (empfohlen) Oder Stripe früher?
+- Team-Stufe von Anfang an oder nachrüsten? (empfohlen: nachrüsten)
+- ⚖️ Rechtsform / Gewerbe / Steuer-Setup – fachlich klären.
+
