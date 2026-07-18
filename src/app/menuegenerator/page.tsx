@@ -277,6 +277,9 @@ function ErrorCard({ error, onBack, onRetry }: { error: ApiError; onBack: () => 
   } else if (error.status === 400) {
     title = 'Angaben prüfen';
     message = error.error || error.message || 'Bitte die Eingaben prüfen.';
+  } else if (error.status === 504) {
+    title = 'Dauert zu lange';
+    message = error.message || 'Die Generierung hat zu lange gedauert. Bitte mit weniger Gängen erneut versuchen.';
   }
 
   return (

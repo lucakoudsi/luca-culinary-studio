@@ -3,11 +3,14 @@ import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult } from '@/lib/rezeptKiExtraktion';
+import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30; // reiner Text-Call, kuerzer als Vision/Bild
 
 const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_TEXT_LENGTH = 8000; // Captions sind normalerweise deutlich kuerzer -- grosszuegige Sicherheitsgrenze
+const UPSTREAM_TIMEOUT_MS = 24_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
 const INTRO = `Du extrahierst Rezepte aus Social-Media-Captions (Instagram/TikTok) oder kopiertem Rezepttext für LUCA Culinary Studio.
 
@@ -52,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    upstream = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -67,8 +70,15 @@ export async function POST(req: NextRequest) {
           { role: 'user', content: text },
         ],
       }),
-    });
+    }, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
+    if (e instanceof UpstreamTimeoutError) {
+      console.error('[import-ki] Timeout bei OpenAI-Anfrage.');
+      return NextResponse.json(
+        { error: 'timeout', message: 'Die Rezept-Analyse hat zu lange gedauert. Bitte erneut versuchen.' },
+        { status: 504 },
+      );
+    }
     console.error('[import-ki] Verbindung zu OpenAI fehlgeschlagen:', e instanceof Error ? e.message : e);
     return NextResponse.json({ error: 'Verbindung zur KI fehlgeschlagen.' }, { status: 502 });
   }

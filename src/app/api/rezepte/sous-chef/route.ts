@@ -4,14 +4,17 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { REZEPT_KATEGORIEN, REZEPT_SCHWIERIGKEITEN, REZEPT_SAISONS } from '@/config/rezeptFelder';
 import { isValidEnum, parseZutatenArray, parseKomponenten, parseGeschmack, type RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
+import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30; // einzelner Dialog-Turn, kein Vollrezept-Neugenerieren
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_PAYLOAD_CHARS = 30000;
 const MAX_MESSAGES = 40;
+const UPSTREAM_TIMEOUT_MS = 24_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
 const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio. Der Nutzer hat gerade ein Rezept per KI importiert (aus Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
 
@@ -126,7 +129,7 @@ export async function POST(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    upstream = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -141,8 +144,15 @@ export async function POST(req: NextRequest) {
           ...trimmedMessages.map(m => ({ role: m.role, content: m.content })),
         ],
       }),
-    });
+    }, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
+    if (e instanceof UpstreamTimeoutError) {
+      console.error('[sous-chef] Timeout bei OpenAI-Anfrage.');
+      return NextResponse.json(
+        { error: 'timeout', message: 'Die Anfrage hat zu lange gedauert. Bitte die Nachricht kürzen oder erneut versuchen.' },
+        { status: 504 },
+      );
+    }
     console.error('[sous-chef] Verbindung zu OpenAI fehlgeschlagen:', e instanceof Error ? e.message : e);
     return NextResponse.json({ error: 'Verbindung zur KI fehlgeschlagen.' }, { status: 502 });
   }

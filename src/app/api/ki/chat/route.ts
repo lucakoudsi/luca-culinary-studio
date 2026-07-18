@@ -3,8 +3,11 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { getRequestUser } from '@/lib/get-request-user';
 import { decryptKey } from '@/lib/crypto';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30; // allgemeiner Chat -- deckt Verbindungsaufbau + Streaming der Antwort
+const UPSTREAM_TIMEOUT_MS = 24_000; // gilt fuer den Verbindungsaufbau (bis die ersten Header/Tokens da sind)
 
 const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio -- ein erfahrener kulinarischer Assistent für professionelle und ambitionierte Köch:innen. Du hilfst bei Rezeptentwicklung, Kochtechniken, Fermentation sowie Wein- und Aromapairings, auf dem Niveau gehobener, professioneller Küche.
 
@@ -72,7 +75,7 @@ export async function POST(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    upstream = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -86,8 +89,15 @@ export async function POST(req: NextRequest) {
           ...messages.map(m => ({ role: m.role, content: m.content })),
         ],
       }),
-    });
+    }, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
+    if (e instanceof UpstreamTimeoutError) {
+      console.error('[ki/chat] Timeout bei OpenAI-Anfrage.');
+      return Response.json(
+        { error: 'timeout', message: 'Die Antwort hat zu lange gedauert. Bitte erneut versuchen oder die Frage kürzen.' },
+        { status: 504 },
+      );
+    }
     console.error('[ki/chat] Verbindung zu OpenAI fehlgeschlagen:', e instanceof Error ? e.message : e);
     return Response.json({ error: 'Verbindung zu OpenAI fehlgeschlagen.' }, { status: 502 });
   }

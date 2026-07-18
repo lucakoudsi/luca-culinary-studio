@@ -6,12 +6,15 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult } from '@/lib/rezeptKiExtraktion';
+import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Vision mit mehreren Bildern ist deutlich langsamer als reiner Text
 
 const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key (Vision, teurer als Text), siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_IMAGES = 5;
 const MAX_RAW_BYTES_PER_IMAGE = 15 * 1024 * 1024; // roh, vor der Komprimierung
+const UPSTREAM_TIMEOUT_MS = 50_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
 const INTRO = `Du extrahierst Rezepte aus Fotos für LUCA Culinary Studio.
 
@@ -97,7 +100,7 @@ export async function POST(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    upstream = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -118,8 +121,15 @@ export async function POST(req: NextRequest) {
           },
         ],
       }),
-    });
+    }, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
+    if (e instanceof UpstreamTimeoutError) {
+      console.error('[import-bild] Timeout bei OpenAI-Anfrage.');
+      return NextResponse.json(
+        { error: 'timeout', message: 'Die Bildanalyse hat zu lange gedauert. Bitte mit weniger oder kleineren Bildern erneut versuchen.' },
+        { status: 504 },
+      );
+    }
     console.error('[import-bild] Verbindung zu OpenAI fehlgeschlagen:', e instanceof Error ? e.message : e);
     return NextResponse.json({ error: 'Verbindung zur KI fehlgeschlagen.' }, { status: 502 });
   }

@@ -8,11 +8,14 @@ import {
   AUFWANDSSTUFEN, TECHNIKEN_NACH_AUFWAND, ZUSATZ_TECHNIKEN_NACH_AUFWAND,
   normalisiereTechnik, type Aufwandsstufe,
 } from '@/config/techniken';
+import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // ein volles Menue kann 15-25s dauern (gemessen), Vercel-Default reicht nicht
 
 const MENUEGENERATOR_MIN_TIER = 2; // Basic, siehe docs/abo-konzept.md Abschnitt 2a
 const MAX_ZUTATEN = 50; // Obergrenze fuer den Prompt-Kontext -- nicht alle 500 mitgeben
+const UPSTREAM_TIMEOUT_MS = 50_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
 type ZutatKontext = {
   id: number;
@@ -287,7 +290,7 @@ export async function POST(req: NextRequest) {
 
   let upstream: Response;
   try {
-    upstream = await fetch('https://api.openai.com/v1/chat/completions', {
+    upstream = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -302,8 +305,15 @@ export async function POST(req: NextRequest) {
           { role: 'user', content: userPrompt },
         ],
       }),
-    });
+    }, UPSTREAM_TIMEOUT_MS);
   } catch (e) {
+    if (e instanceof UpstreamTimeoutError) {
+      console.error('[menuegenerator] Timeout bei OpenAI-Anfrage.');
+      return NextResponse.json(
+        { error: 'timeout', message: 'Die Generierung hat zu lange gedauert. Bitte mit weniger Gängen erneut versuchen.' },
+        { status: 504 },
+      );
+    }
     console.error('[menuegenerator] Verbindung zu OpenAI fehlgeschlagen:', e instanceof Error ? e.message : e);
     return NextResponse.json({ error: 'Verbindung zur KI fehlgeschlagen.' }, { status: 502 });
   }
