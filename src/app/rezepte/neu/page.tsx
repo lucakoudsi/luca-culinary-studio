@@ -323,6 +323,7 @@ function NewRezeptForm() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [importingBild, setImportingBild] = useState(false);
   const [importDragOver, setImportDragOver] = useState(false);
+  const [importBildModus, setImportBildModus] = useState<'ablesen' | 'rekonstruktion'>('ablesen');
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
   const [importQualityWarning, setImportQualityWarning] = useState<string | null>(null);
@@ -571,7 +572,7 @@ function NewRezeptForm() {
       const res = await fetch('/api/rezepte/import-bild', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images }),
+        body: JSON.stringify({ images, modus: importBildModus }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok || !d.found) {
@@ -581,9 +582,13 @@ function NewRezeptForm() {
       const r = d.recipe as KiRezept & { image: string | null };
       applyKiRezept(r, r.image);
       const fotoHinweis = r.image ? ' Das fertige Gericht wurde als Rezeptfoto übernommen.' : '';
-      setImportSuccessMsg(`Rezept aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} erkannt — bitte prüfen und bei Bedarf korrigieren.${fotoHinweis}`);
+      setImportSuccessMsg(importBildModus === 'rekonstruktion'
+        ? `Rezept-Vorschlag aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} rekonstruiert — bitte prüfen und anpassen.${fotoHinweis}`
+        : `Rezept aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} erkannt — bitte prüfen und bei Bedarf korrigieren.${fotoHinweis}`);
       if (r.erkennungsQualitaet === 'schlecht' || r.erkennungsQualitaet === 'teilweise') {
-        setImportQualityWarning('Das Bild war schwer lesbar – bitte alle Felder prüfen.');
+        setImportQualityWarning(importBildModus === 'rekonstruktion'
+          ? 'KI-Rekonstruktion – kein Original-Rezept. Mengen und Schritte sind Vorschläge, bitte alle Felder prüfen.'
+          : 'Das Bild war schwer lesbar – bitte alle Felder prüfen.');
       }
     } catch {
       setImportError('Netzwerkfehler beim Bild-Import.');
@@ -940,7 +945,32 @@ function NewRezeptForm() {
                 </div>
               ) : (
                 <>
-                  <label className={LC}><Images size={10} className="inline mr-1" />Foto(s) einer Kochbuchseite, eines Reels oder handgeschriebenen Rezepts</label>
+                  <div className="flex gap-2 mb-4">
+                    <button onClick={() => setImportBildModus('ablesen')}
+                      className="px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all text-left"
+                      style={{
+                        background: importBildModus === 'ablesen' ? 'rgba(107,58,75,0.1)' : 'rgba(0,0,0,0.03)',
+                        border: `1px solid ${importBildModus === 'ablesen' ? 'rgba(107,58,75,0.25)' : 'rgba(0,0,0,0.08)'}`,
+                        color: importBildModus === 'ablesen' ? '#6B3A4B' : 'var(--text-muted)',
+                      }}>
+                      Rezept ablesen
+                    </button>
+                    <button onClick={() => setImportBildModus('rekonstruktion')}
+                      className="px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all text-left"
+                      style={{
+                        background: importBildModus === 'rekonstruktion' ? 'rgba(201,168,76,0.12)' : 'rgba(0,0,0,0.03)',
+                        border: `1px solid ${importBildModus === 'rekonstruktion' ? 'rgba(201,168,76,0.4)' : 'rgba(0,0,0,0.08)'}`,
+                        color: importBildModus === 'rekonstruktion' ? '#9B7A2A' : 'var(--text-muted)',
+                      }}>
+                      Gericht rekonstruieren (KI-Vorschlag)
+                    </button>
+                  </div>
+
+                  {importBildModus === 'ablesen' ? (
+                    <label className={LC}><Images size={10} className="inline mr-1" />Foto(s) einer Kochbuchseite, eines Reels oder handgeschriebenen Rezepts</label>
+                  ) : (
+                    <label className={LC}><Images size={10} className="inline mr-1" />Foto(s)/Frames des fertigen, angerichteten Gerichts — kein Rezepttext nötig</label>
+                  )}
                   <div
                     onClick={() => document.getElementById('import-bild-input')?.click()}
                     onDragOver={e => { e.preventDefault(); setImportDragOver(true); }}
@@ -989,15 +1019,28 @@ function NewRezeptForm() {
                   <div className="flex justify-end mt-3">
                     <button onClick={handleImportBild} disabled={importImages.length === 0 || importingBild}
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-white transition-all disabled:opacity-40 flex-shrink-0"
-                      style={{ background: '#6B3A4B' }}>
+                      style={{ background: importBildModus === 'rekonstruktion' ? 'linear-gradient(135deg, #9B7A2A, #C9A84C)' : '#6B3A4B' }}>
                       {importingBild ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                      {importingBild ? 'Analysiere…' : 'Mit KI analysieren'}
+                      {importingBild
+                        ? (importBildModus === 'rekonstruktion' ? 'Rekonstruiere…' : 'Analysiere…')
+                        : (importBildModus === 'rekonstruktion' ? 'Gericht rekonstruieren' : 'Mit KI analysieren')}
                     </button>
                   </div>
                   <p className="text-[11px] text-text-muted mt-2">
-                    Ideal für abfotografierte Kochbuchseiten, Screenshots aus Reels, handgeschriebene Rezepte oder Rezeptkarten.
-                    Bei mehreren Bildern (z.B. mehrere Frames aus einem Video) wird alles zu einem Rezept zusammengeführt.
-                    Unleserliche Stellen landen als ehrlicher Hinweis in Chef-Tipps statt geraten zu werden.
+                    {importBildModus === 'ablesen' ? (
+                      <>
+                        Ideal für abfotografierte Kochbuchseiten, Screenshots aus Reels, handgeschriebene Rezepte oder Rezeptkarten.
+                        Bei mehreren Bildern (z.B. mehrere Frames aus einem Video) wird alles zu einem Rezept zusammengeführt.
+                        Unleserliche Stellen landen als ehrlicher Hinweis in Chef-Tipps statt geraten zu werden.
+                      </>
+                    ) : (
+                      <>
+                        Für Fotos ohne ablesbares Rezept — z.B. Standbilder aus einem Anrichte-Video. Die KI erkennt die sichtbaren
+                        Komponenten (z.B. „geschmorte Rinderbäckchen", „Püree-Ring", „Jus") und schlägt dafür plausible Zutaten und
+                        Zubereitung vor. <strong>Das ist ein KI-Vorschlag, kein Original-Rezept</strong> — deutlich als solcher markiert,
+                        bitte alle Mengen und Schritte prüfen.
+                      </>
+                    )}
                   </p>
                 </>
               )}

@@ -5,7 +5,7 @@ import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
-import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult } from '@/lib/rezeptKiExtraktion';
+import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult, type PromptModus } from '@/lib/rezeptKiExtraktion';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
@@ -16,15 +16,20 @@ const MAX_IMAGES = 5;
 const MAX_RAW_BYTES_PER_IMAGE = 15 * 1024 * 1024; // roh, vor der Komprimierung
 const UPSTREAM_TIMEOUT_MS = 50_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
-const INTRO = `Du extrahierst Rezepte aus Fotos für LUCA Culinary Studio.
+const INTRO_ABLESEN = `Du extrahierst Rezepte aus Fotos für LUCA Culinary Studio.
 
 Der Nutzer lädt ein oder mehrere Fotos hoch -- z.B. eine abfotografierte Kochbuchseite, ein Screenshot aus einem Instagram-/TikTok-Reel, ein handgeschriebenes Rezept, eine Rezeptkarte oder ein Foto des fertigen Gerichts. Lies Text und Struktur aus den Bildern und extrahiere daraus ein strukturiertes Rezept. Bei mehreren Bildern (z.B. mehrere Frames aus einem Video, in denen das Rezept über die Bilder verteilt ist) führe sie zu EINEM zusammenhängenden Rezept zusammen -- nicht zu mehreren getrennten Rezepten.`;
+
+const INTRO_REKONSTRUKTION = `Du rekonstruierst ein plausibles Rezept aus Fotos des FERTIGEN, bereits angerichteten Gerichts für LUCA Culinary Studio -- z.B. Standbilder aus einem TikTok-/Instagram-Anrichte-Video, bei denen kein Rezepttext zu lesen ist, nur das fertige Gericht selbst.
+
+Der Nutzer hat KEIN ablesbares Rezept zur Verfügung -- nur Bilder des Ergebnisses. Analysiere, was auf den Bildern zu sehen ist (Komponenten, Techniken, Anrichteweise) und rekonstruiere daraus ein plausibles Rezept aus deinem Kochwissen. Bei mehreren Bildern (z.B. verschiedene Frames desselben Anrichte-Vorgangs) beziehen sich alle auf DASSELBE Gericht -- führe sie zu einer einzigen, zusammenhängenden Rekonstruktion zusammen.`;
 
 const EXTRA_RULES = `Bild-Lesbarkeit: Ist ein Bild oder ein Teil davon unleserlich, unscharf oder inhaltlich unklar, rate NICHT, was dort stehen könnte. Vermerke stattdessen ehrlich in "chefTipps", was nicht sicher lesbar war (z.B. "Ein Teil der Zutatenliste im zweiten Bild war unscharf und nicht lesbar -- bitte prüfen.").
 
 Rezeptfoto-Erkennung ("gericht_bild_index"): Unterscheide klar zwischen Bildern, die Rezept-INFORMATIONEN enthalten (Text, Zutatenliste, Kochbuchseite, handgeschriebene Notizen, Screenshot mit Anleitung) und Bildern, die das FERTIGE, servierte/angerichtete GERICHT zeigen (ein Foto des Essens selbst, keine Textseite). Setze "gericht_bild_index" auf die nullbasierte Position (0 = erstes Bild, 1 = zweites Bild, ...) desjenigen Bildes, das am besten das fertige Gericht zeigt. Zeigen mehrere Bilder das fertige Gericht, wähle das aussagekräftigste/appetitlichste aus. Zeigt KEINES der Bilder das fertige Gericht (z.B. nur Kochbuchseiten oder Zutatenlisten), setze "gericht_bild_index" auf null. Dieses Feld ist Pflicht -- vergiss es nicht in deiner Antwort.`;
 
-const SYSTEM_PROMPT = buildRezeptSystemPrompt(INTRO, EXTRA_RULES);
+const SYSTEM_PROMPT_ABLESEN = buildRezeptSystemPrompt(INTRO_ABLESEN, EXTRA_RULES, 'ablesen');
+const SYSTEM_PROMPT_REKONSTRUKTION = buildRezeptSystemPrompt(INTRO_REKONSTRUKTION, EXTRA_RULES, 'rekonstruktion');
 
 function parseDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null {
   const match = /^data:(image\/[a-zA-Z+]+);base64,(.+)$/.exec(dataUrl);
@@ -49,12 +54,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { images?: unknown };
+  let body: { images?: unknown; modus?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Ungültige Anfrage.' }, { status: 400 });
   }
+
+  const modus: PromptModus = body.modus === 'rekonstruktion' ? 'rekonstruktion' : 'ablesen';
+  const systemPrompt = modus === 'rekonstruktion' ? SYSTEM_PROMPT_REKONSTRUKTION : SYSTEM_PROMPT_ABLESEN;
 
   const rawImages = Array.isArray(body.images) ? body.images.filter((i): i is string => typeof i === 'string') : [];
   if (rawImages.length === 0) {
@@ -111,7 +119,7 @@ export async function POST(req: NextRequest) {
         temperature: 0.4,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           {
             role: 'user',
             content: [
@@ -153,7 +161,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Die KI-Antwort konnte nicht verarbeitet werden. Bitte erneut versuchen.' }, { status: 502 });
   }
 
-  const result = parseKiRezeptResponse(parsed, '[import-bild]');
+  const result = parseKiRezeptResponse(parsed, '[import-bild]', modus);
   if (!result) {
     console.error('[import-bild] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
