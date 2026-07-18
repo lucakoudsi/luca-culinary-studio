@@ -7,14 +7,21 @@ import { isValidEnum, parseZutatenArray, parseKomponenten, parseGeschmack, type 
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30; // einzelner Dialog-Turn, kein Vollrezept-Neugenerieren
+// 60 statt 30 -- diese Route kann jetzt auch mit Vision (Bilder aus der
+// Import-Sitzung) laufen, maxDuration ist ein statischer Export und kann
+// nicht pro Request umgeschaltet werden. Der interne Upstream-Timeout
+// (UPSTREAM_TIMEOUT_MS) wird dagegen pro Request passend gewaehlt.
+export const maxDuration = 60;
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
-const MAX_PAYLOAD_CHARS = 30000;
+const MAX_PAYLOAD_CHARS = 30_000; // reiner Text-Payload ohne Bilder
+const MAX_PAYLOAD_CHARS_WITH_IMAGES = 20_000_000; // grosszuegig fuer bis zu MAX_IMAGES komprimierte Fotos als Base64
 const MAX_MESSAGES = 40;
-const UPSTREAM_TIMEOUT_MS = 24_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
+const MAX_IMAGES = 5; // deckt sich mit MAX_IMAGES in import-bild -- mehr Bilder gab es in der Import-Sitzung ohnehin nie
+const UPSTREAM_TIMEOUT_MS_TEXT = 24_000; // reiner Text-Turn -- etwas unter maxDuration
+const UPSTREAM_TIMEOUT_MS_VISION = 50_000; // mit Bildern: naeher an maxDuration, Vision braucht laenger
 
 const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio. Der Nutzer hat gerade ein Rezept per KI importiert (aus Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
 
@@ -48,6 +55,12 @@ Antworte AUSSCHLIESSLICH mit JSON in exakt dieser Form, keine Erklärung davor/d
 Lass in "updatedFields" alle Felder weg, die sich nicht geändert haben -- ein leeres Objekt "{}" ist völlig normal (z.B. bei einer reinen Rückfrage).
 
 Verwende ausschließlich reale, tatsächlich existierende Zutaten und Begriffe. Erfinde niemals Wörter oder Fantasiebegriffe.`;
+
+// Nur angehaengt, wenn tatsaechlich Bilder mitgeschickt wurden (siehe POST unten)
+// -- ohne Bilder bleibt der Prompt unveraendert wie bisher.
+const IMAGE_KONTEXT_HINWEIS = `
+
+Der Nutzer hat beim Import Fotos/Frames hochgeladen -- diese werden dir mit dieser Nachricht als Bilder mitgeschickt. Nutze sie aktiv, wenn der Nutzer sich darauf bezieht (z.B. "auf Bild 3", "die weißen Krümel auf dem Teller", "ist das eher ein Gel oder ein Pudding?"). Schau dir die Bilder genau an, bevor du antwortest oder Felder änderst -- auch kleine, unscheinbare Elemente können gemeint sein, die beim ursprünglichen Import übersehen wurden.`;
 
 function parsePatch(raw: unknown, logPrefix: string): Partial<RezeptSnapshot> {
   if (!raw || typeof raw !== 'object') return {};
@@ -94,14 +107,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { rezept?: unknown; messages?: ChatMessage[] };
+  let body: { rezept?: unknown; messages?: ChatMessage[]; images?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'Ungültige Anfrage.' }, { status: 400 });
   }
 
-  if (JSON.stringify(body).length > MAX_PAYLOAD_CHARS) {
+  // Bilder nur aus der aktuellen Import-Sitzung (siehe import-bild) -- bereits
+  // dort komprimiert, hier nur noch grob validiert (Data-URL-Praefix, Anzahl),
+  // keine erneute Komprimierung noetig.
+  const rawImages = Array.isArray(body.images) ? body.images.filter((i): i is string => typeof i === 'string' && i.startsWith('data:image/')) : [];
+  if (rawImages.length > MAX_IMAGES) {
+    return NextResponse.json({ error: `Maximal ${MAX_IMAGES} Bilder.` }, { status: 400 });
+  }
+  const images = rawImages;
+  const hasImages = images.length > 0;
+
+  const maxPayloadChars = hasImages ? MAX_PAYLOAD_CHARS_WITH_IMAGES : MAX_PAYLOAD_CHARS;
+  if (JSON.stringify(body).length > maxPayloadChars) {
     return NextResponse.json({ error: 'Anfrage zu groß.' }, { status: 400 });
   }
 
@@ -125,7 +149,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Der KI-Sous-Chef ist aktuell nicht verfügbar.' }, { status: 500 });
   }
 
-  const systemMessage = `${SYSTEM_PROMPT}\n\nAktueller Stand des Rezept-Formulars (JSON):\n${JSON.stringify(body.rezept)}`;
+  const systemMessage = `${SYSTEM_PROMPT}\n\nAktueller Stand des Rezept-Formulars (JSON):\n${JSON.stringify(body.rezept)}${hasImages ? IMAGE_KONTEXT_HINWEIS : ''}`;
+
+  // Bilder nur an den NEUESTEN User-Turn haengen, nicht an die gesamte Historie --
+  // wir schicken bei jeder Anfrage die komplette Historie erneut (die API ist
+  // zustandslos), ein erneutes Anhaengen an aeltere Turns wuerde dieselben Bilder
+  // mehrfach im selben Request mitschicken und nur unnoetig Kosten/Tokens kosten.
+  type ChatContent = string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
+  const chatMessages: { role: 'user' | 'assistant'; content: ChatContent }[] =
+    trimmedMessages.map(m => ({ role: m.role, content: m.content }));
+  if (hasImages) {
+    const lastIndex = chatMessages.length - 1;
+    if (chatMessages[lastIndex]?.role === 'user') {
+      const lastText = chatMessages[lastIndex].content as string;
+      chatMessages[lastIndex] = {
+        role: 'user',
+        content: [
+          { type: 'text', text: lastText },
+          ...images.map(dataUrl => ({ type: 'image_url' as const, image_url: { url: dataUrl } })),
+        ],
+      };
+    }
+  }
 
   let upstream: Response;
   try {
@@ -141,10 +186,10 @@ export async function POST(req: NextRequest) {
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemMessage },
-          ...trimmedMessages.map(m => ({ role: m.role, content: m.content })),
+          ...chatMessages,
         ],
       }),
-    }, UPSTREAM_TIMEOUT_MS);
+    }, hasImages ? UPSTREAM_TIMEOUT_MS_VISION : UPSTREAM_TIMEOUT_MS_TEXT);
   } catch (e) {
     if (e instanceof UpstreamTimeoutError) {
       console.error('[sous-chef] Timeout bei OpenAI-Anfrage.');

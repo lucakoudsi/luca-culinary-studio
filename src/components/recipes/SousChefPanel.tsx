@@ -25,10 +25,20 @@ type SousChefPanelProps = {
   greeting: string;
   /** Abstand von oben für die sticky-Positionierung -- je nach Seite (mit/ohne eigenem sticky Header) unterschiedlich. */
   stickyTop?: number;
+  /**
+   * Komprimierte Bilder aus der aktuellen Bild-Import-Sitzung (siehe
+   * /rezepte/neu) -- werden bei jeder Chat-Nachricht als Vision-Kontext
+   * mitgeschickt, damit sich der Nutzer auf sichtbare Details beziehen kann
+   * ("die weißen Krümel auf Bild 3"). Nur innerhalb derselben Sitzung
+   * vorhanden -- beim späteren Bearbeiten eines gespeicherten Rezepts gibt es
+   * keine Bilder mehr, der Chat läuft dann rein textbasiert (Prop weglassen).
+   */
+  images?: string[];
 };
 
 /** Chat-Panel für den KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern -- sowohl direkt nach dem KI-Import als auch beim späteren Bearbeiten eines gespeicherten Rezepts. */
-export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, stickyTop = 88 }: SousChefPanelProps) {
+export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, stickyTop = 88, images }: SousChefPanelProps) {
+  const hasImages = !!images && images.length > 0;
   const [messages, setMessages] = useState<SousChefMessage[]>(() => [
     { id: Date.now(), role: 'assistant', text: greeting, time: nowTime() },
   ]);
@@ -56,6 +66,7 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
         body: JSON.stringify({
           rezept: getSnapshot(),
           messages: history.map(m => ({ role: m.role, content: m.text })),
+          ...(hasImages ? { images } : {}),
         }),
       });
       const d = await res.json().catch(() => ({}));
@@ -86,7 +97,9 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
           </div>
           <div>
             <div className="text-[13px] font-semibold text-text-primary">KI-Sous-Chef</div>
-            <div className="text-[11px] text-text-muted">Rezept korrigieren &amp; verfeinern</div>
+            <div className="text-[11px]" style={{ color: hasImages ? '#9B7A2A' : 'var(--text-muted)' }}>
+              {hasImages ? `Sieht deine ${images!.length} hochgeladenen Bilder` : 'Rezept korrigieren & verfeinern'}
+            </div>
           </div>
         </div>
 

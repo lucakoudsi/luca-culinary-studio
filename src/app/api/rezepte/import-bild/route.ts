@@ -205,5 +205,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ found: true, recipe: { ...result, image } });
+  // Komprimierte Bilder (dieselben Bytes, die an OpenAI gingen) mit zurueckgeben --
+  // der KI-Sous-Chef braucht sie spaeter in derselben Import-Sitzung fuer
+  // Vision-Rueckfragen (siehe /api/rezepte/sous-chef), ohne sie erneut
+  // hochzuladen oder serverseitig neu zu komprimieren.
+  return NextResponse.json({ found: true, recipe: { ...result, image }, images: compressed.map(c => c.dataUrl) });
 }

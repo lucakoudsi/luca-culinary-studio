@@ -330,6 +330,11 @@ function NewRezeptForm() {
 
   // ── KI-Sous-Chef (Rezept-Verfeinerung nach KI-Import) ──────────────────────
   const [sousChefActive, setSousChefActive] = useState(false);
+  // Komprimierte Bilder aus einem Bild-Import (siehe handleImportBild) -- nur
+  // fuer die Dauer dieser Sitzung im Client-State, damit der Sous-Chef-Chat
+  // Vision-Rueckfragen zu genau diesen Fotos beantworten kann. Bleibt leer bei
+  // Text-Import (keine Bilder vorhanden).
+  const [sousChefImages, setSousChefImages] = useState<string[]>([]);
 
   useEffect(() => { if (searchParams.get('import') === '1') setImportOpen(true); }, [searchParams]);
 
@@ -581,6 +586,7 @@ function NewRezeptForm() {
       }
       const r = d.recipe as KiRezept & { image: string | null };
       applyKiRezept(r, r.image);
+      if (Array.isArray(d.images) && d.images.length > 0) setSousChefImages(d.images);
       const fotoHinweis = r.image ? ' Das fertige Gericht wurde als Rezeptfoto übernommen.' : '';
       setImportSuccessMsg(importBildModus === 'rekonstruktion'
         ? `Rezept-Vorschlag aus ${importImages.length === 1 ? 'Bild' : 'Bildern'} rekonstruiert — bitte prüfen und anpassen.${fotoHinweis}`
@@ -1312,6 +1318,7 @@ function NewRezeptForm() {
           getSnapshot={getSousChefSnapshot}
           onApplyPatch={applySousChefPatch}
           greeting={`Rezept „${base.title || 'Unbenannt'}“ ist importiert. Sag mir, was ich korrigieren oder ergänzen soll — z.B. „Das sind Calamari, keine Ofenkartoffeln“ oder „Mach die Mengen für 2 Personen statt 4“.`}
+          images={sousChefImages}
         />
       )}
     </div>
