@@ -1,0 +1,126 @@
+# Offene Aufgaben & Notizen
+
+Stand: 2026-07-15
+
+## ✅ Erledigt am 2026-07-15 – Erstes Produktions-Deployment (bis Commit 67f28e2, gepusht)
+
+- **Erstmals deployed!** Alle 24 Commits dieser Session auf `origin/master` gepusht, Vercel-Build grün (`67f28e2`), live getestet – Menügenerator und KI-Rezept-Import funktionieren in Produktion.
+- **Vercel-Env-Vars vollständig:** `KEY_ENCRYPTION_SECRET`, `OPERATOR_OPENAI_KEY`, `NEXT_PUBLIC_AI_MENU_ENABLED`/`NEXT_PUBLIC_AI_LAB_ENABLED`/`NEXT_PUBLIC_AI_PLATE_ENABLED`, `NEXT_PUBLIC_APP_URL` gesetzt; alter `NEXT_PUBLIC_AI_ENABLED` gelöscht.
+- **Produktion und lokal nutzen dieselbe Supabase-Instanz** (`bredshsuqghsiaefpitk`) – bestätigt, keine Tabellen-/Spalten-Lücke zu befürchten (`user_api_keys`, `ai_rate_limits`, `zutaten.diaet_tags`).
+- **Edge-Runtime-Fix:** Middleware nutzt jetzt `createServerClient` statt `createAdminClient` für die Tier-Prüfung (RLS-Selbstzugriff auf `profiles` vorher verifiziert) – Node.js-API-Warnung im Build weg, Stufen-Sperren funktionieren unverändert.
+
+### Offen für nächste Session
+
+- **Tellerdesigner echt bauen** (Bildgenerierung, letztes Mock-Feature).
+- **KI-Sous-Chef von BYOK/`hasKey` auf Betreiber-Key + Tier 2 umstellen** (aktuell einziges KI-Feature, das noch am alten Modell hängt – nicht zu verwechseln mit dem neuen Rezept-Sous-Chef, der bereits über den Betreiber-Key + Tier 2 läuft).
+- **Kontingent-System pro Abo-Stufe.**
+- **Stripe-Anbindung.**
+- **Rechtliches:** AGB, DSGVO, Umsatzsteuer.
+- Community-Idee liegt bereit in `docs/community-konzept.md.txt` (bewusst zurückgestellt, siehe Eintrag vom 2026-07-14).
+
+## ✅ Erledigt am 2026-07-14 – Menügenerator (Commits 8b386e6, fe51b82, fa1b54b, noch nicht gepusht)
+
+- **Menügenerator fertig:** Zentraler Betreiber-Key (`OPERATOR_OPENAI_KEY`, `src/lib/operator-key.ts`), Route `/api/menuegenerator` mit Saison-/Diät-Filterung, Pflicht-Zutaten (explizit auch außerhalb der Saison geladen, harte Regel im Prompt), Ausschluss-Zutaten (aus dem Kontext gefiltert + explizit verboten), Aufwand (Bistro/Gehoben/Fine Dining) und Küchenstil (6 Werte) als Stil-Vorgaben. Zufalls-Shuffle des Zutaten-Korbs (vorher: gleiche Anfrage → immer dieselben auffälligen Zutaten wie Sudachi/Steinpilz, weil die DB-Reihenfolge stabil war) + Temperature 1.15 + Anti-Klischee-Prompt-Zeile gegen Wiederholungen.
+- **Geführter 3-Schritt-Dialog** (Basis/Zutaten/Stil, große Karten statt Dropdowns, Fortschrittsanzeige) ersetzt den alten `mockAI.ts`-Mock komplett. Ladeinszenierung statt Spinner (pulsierendes ✦-Motiv, rotierende Statuszeilen).
+- **Menükarte als geteilte Komponente** (`src/components/Menuekarte.tsx`): Playfair-Titel, Dramaturgie-Begründung, Spannungsbogen als geglättete SVG-Kurve (aus den 6 Geschmacksachsen pro Gang), römische Ziffern, Geschmacksbalken, goldene ✦-Trenner. Wird an zwei Stellen genutzt: direkt nach der Generierung UND in `/projekte/[id]`, wenn ein gespeichertes Menü aus dem Generator stammt.
+- **„Als Projekt speichern"**-Button (Schritt 9 aus dem Konzept vorgezogen, da ein nicht speicherbares Menü sich beim Neuladen einfach in Luft auflöste) legt das komplette Menü in der bestehenden `projekte`-Tabelle ab (`MenuGang` um 4 optionale KI-Felder erweitert, additiv, alte manuelle Menüs unberührt).
+- **Projekt-Ansicht erkennt KI-Menüs automatisch** (`isGeneratedMenu()`) und zeigt die volle Menükarte statt des alten „Rezept zuordnen"-Editors, mit „Bearbeiten"-Umschalter zur bestehenden editierbaren Ansicht. Dabei auch den alten Editor gefixt: Dramaturgie-Begründung und Gangtitel waren einzeilige Inputs, die längere KI-Texte mitten im Wort abgeschnitten haben — jetzt automatisch mitwachsende Textareas (`useAutoGrow`-Hook).
+- **Diät-Tags:** neues Feld `diaet_tags` in `zutaten` (SQL vom Nutzer selbst ausgeführt, wie üblich), alle 500 Zutaten per GPT-4o-Batch-Skript getaggt (vegetarisch/vegan/glutenfrei/laktosefrei), 22 Grenzfälle vom Modell selbst zur Prüfung markiert, davon 6 manuell nachkorrigiert (u. a. Shio Koji fälschlich als Fischprodukt eingestuft).
+- **Wein-Pairing pro Gang** (Commit `966eb00`): nutzt die bestehende Pairing-Engine (`weinPairing.ts`) unverändert, dasselbe 6-Achsen-Format wie `geschmacksprofil` — keine Konvertierung nötig. Empfehlung landet in den bereits vorhandenen `MenuGang`-Feldern `weinId`/`weinName` (kein neues Schema), dadurch automatisch auch in den alten Menü-Ansichten sichtbar. Dezente Anzeige in der Menükarte (kursiv, mit ✦ abgesetzt).
+- **Technik-Taxonomie an den Aufwand-Regler gekoppelt** (Commit `58eccb4`, `src/config/techniken.ts`): eigenständige, kumulative Technikliste bistro/gehoben/fine_dining (bewusst NICHT über den Zutatenstammbaum, siehe Befund unten). Aufwandsstufe schränkt im System-Prompt die erlaubten Techniken hart ein, plus Pflicht-Anteil an fortgeschrittenen Techniken je Stufe. KI-Antwort liefert strukturiertes `technik`-Feld pro Gang, serverseitig gegen die erlaubte Liste validiert und bei Abweichung auf den nächstliegenden Begriff normalisiert (Synonym-Map + sicherer Fallback „kochen"). Zusätzlich Anti-Halluzinations-Regel im Prompt (kein Erfinden von Fantasiebegriffen).
+- Konzept liegt aktuell in `docs/menuegenerator-konzept.md.txt`.
+- **Damit ist der Menügenerator inhaltlich vollständig** (Bau-Reihenfolge Schritte 1–8 aus dem Konzept erledigt).
+
+### Erkenntnis für künftige Prompts
+
+- **Der KI etwas nur zu ERLAUBEN reicht nicht.** Bei Fine Dining nutzte die KI die freigegebenen Top-Techniken (Sous-vide, Espuma, …) trotz voller Erlaubnis zunächst gar nicht — erst als der Prompt sie explizit FORDERTE („mindestens die Hälfte der Gänge MUSS…") tauchten sie zuverlässig auf. Für zukünftige Stil-/Qualitäts-Vorgaben im Prompt: als Pflicht mit konkreter Mindestmenge formulieren, nicht nur als Erlaubnis.
+
+### Stammbaum-Befund (aus der Analyse vor der Technik-Taxonomie)
+
+- Der Zutatenstammbaum (`src/lib/stammbaum/*`, hart im Code) deckt nur 6 von 500 Zutaten ab und hat keine Aufwands-/Techniken-Klassifizierung — als Steuerungs-Instrument für den Aufwand-Regler ungeeignet. Deshalb eigene, unabhängige Technik-Taxonomie gebaut statt den Stammbaum zu erweitern. Der Stammbaum bleibt als eigenständiges Nachschlagewerk bestehen und könnte später aus den generierten Gängen heraus verlinkt werden (offener Punkt, siehe unten).
+
+### Noch offen
+
+- **PDF-Export/Druck der Menükarte.**
+- **Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne Fisch") — braucht laut Konzept das gesamte Menü als Kontext, damit die Dramaturgie stimmig bleibt.
+- **Stammbaum-/Zutatenbibliothek-Verlinkung** aus den Gängen heraus.
+- **`NEXT_PUBLIC_AI_ENABLED` steht aktuell auf `true`.** Der Menügenerator ist echt, Kreativlabor und Tellerdesigner sind aber weiterhin Mocks — das eine globale Flag passt nicht mehr für alle drei Labor-Seiten. Muss vor dem nächsten Deploy entschieden werden: entweder pro Feature aufteilen (z. B. eigenes Flag je Route) oder das Flag ganz abschaffen und sich vollständig auf das Tier-System verlassen (Menügenerator ist ja bereits korrekt auf Tier 2 gesperrt, unabhängig vom Flag) — oder Kreativlabor/Tellerdesigner ebenfalls echt bauen.
+
+## 💡 Idee festgehalten am 2026-07-14 – Rezept-Community/Mediathek (bewusst NICHT jetzt bauen)
+
+- Aus `/kreativlabor` könnte eine öffentliche Rezept-Community/Mediathek werden: Rezepte teilen, stöbern, übernehmen und mit dem bestehenden Rezept-Sous-Chef weiterentwickeln. Der USP wäre die Filterung über die bereits vorhandenen strukturierten Daten (Geschmacksprofil, Diät-Tags, Technik, Saison) — kein anderes Rezeptportal kann das.
+- **Vollständiges Konzept:** `docs/community-konzept.md.txt` (Kernfunktionen, Sichtbarkeits-/Rechte-Modell, Fallstricke wie kaltes Startproblem/Moderation/Recht, Bau-Reihenfolge).
+- **Bewusst zurückgestellt:** Erst das Kernprodukt fertig (Tellerdesigner echt bauen, KI-Sous-Chef auf Betreiber-Key, Kontingent/Stripe, Launch) — dann Community, wenn es Nutzer gibt, die etwas zu teilen haben. Eine Mediathek ohne Inhalt ist eine leere Halle.
+- `/kreativlabor` bleibt bis dahin gesperrt (`NEXT_PUBLIC_AI_LAB_ENABLED=false`). Alternative zur Community-Umwidmung: **ersatzlos streichen** — Menügenerator + KI-Sous-Chef decken „kreative KI-Unterstützung" bereits ab. Entscheidung noch offen.
+
+## ✅ Erledigt am 2026-07-11 – Abo-Umbau Schritt 1+2 (Tier-Labels + Feature-Gating, Commits d14aa7a, 180f67b, noch nicht gepusht)
+
+- **Schritt 1+2 aus `docs/abo-konzept.md`, Abschnitt 2a, fertig:** Tier-Labels umbenannt Gast/Einsteiger/Profi/Leitung → **Free/Basic/Pro/Team** (Weg 1 gewählt: Zahlen 1–4 behalten, nur Bedeutung/Label geändert, Admin bleibt synthetisch Tier 99). Feature-Gating auf das neue Modell umgestellt: Nicht-KI-Features (Rezepte, Zutaten, Fermentation, Projekte, Wein & Pairing) inkl. Anlegen/Bearbeiten/Löschen jetzt ab **Free** (Tier 1) statt vorher 2–4; KI-Sous-Chef + Menügenerator ab **Basic** (Tier 2); Kreativlabor + Tellerdesigner ab **Pro** (Tier 3). Geändert in `PAGE_MIN_TIER` (roles.ts), allen 12 `requireTier()`-Aufrufen, sowie den drei zuvor hart codierten Label-Kopien (`TIER_LABEL`, `PERM_TIERS` in profil/page.tsx, `STUFE_LABEL` in apiAuth.ts).
+- **Rechte-Übersichts-Tabelle** (`PERM_ROWS` in profil/page.tsx) an die neue Verteilung angepasst — alte Sammelzeile "KI-Funktionen" durch vier einzelne Zeilen ersetzt (KI-Sous-Chef, Menügenerator, Kreativlabor, Tellerdesigner).
+- **Getestet über alle drei zahlenden Stufen** (Free/Basic/Pro, per Wegwerf-Testaccounts) — alle Tier-Grenzen korrekt, Accounts danach wieder gelöscht.
+- **`NEXT_PUBLIC_AI_ENABLED` bewusst auf `false`** (Zeile in `.env.local` entfernt, nur für die Testphase kurzzeitig auf `true` gesetzt): Die Labor-Seiten (Kreativlabor/Menügenerator/Tellerdesigner) bleiben gesperrt, bis dort echte KI statt Mock steckt — die Middleware sperrt sie unabhängig vom Tier-Check.
+
+### Wichtige Notizen für die nächste Session
+
+- **Strategie-Frage BYOK vs. Abo ist entschieden:** Abo-Modell mit zentralem Betreiber-Key (siehe `docs/abo-konzept.md`). Das bisherige BYOK-Fundament (Verschlüsselung, Route-Struktur, Rate-Limiting) bleibt wiederverwendbar, wird aber schrittweise auf den zentralen Key umgestellt.
+- **Menügenerator ist fertig** (siehe „Erledigt am 2026-07-14" oben) — war hier als nächster Schritt notiert, jetzt erledigt.
+- **Weiterhin offen:** zentralen Key auch für KI-Sous-Chef einführen (läuft aktuell noch über BYOK/`hasKey`), dann Kreativlabor, dann Tellerdesigner (inkl. eigener Bildgenerierung/Kontingent-Zählung). Danach Stripe-Anbindung.
+- **Separates `rolle`-Feld (admin/staff/member), getrennt von der Stufe:** noch offen, erst nötig sobald Mitarbeiter mit eingeschränkten Sonderrechten dazukommen (siehe Abschnitt 2a im Konzept). Aktuell reicht die E-Mail-basierte Admin-Erkennung.
+- **„Anthropic im Chat" bleibt BEWUSST zurückgestellt** – Nutzer hat aktuell keinen Anthropic-Key zum Testen. Code dafür ist noch nicht geschrieben (Chat-Route lehnt Anthropic-Keys weiterhin mit 400 ab). Aktuelles Sonnet-Modell wurde bereits verifiziert: **`claude-sonnet-5`** – diesen Namen verwenden, falls später gebaut, nicht erneut recherchieren.
+
+## ✅ Erledigt am 2026-07-11 – Rate-Limiting pro Nutzer (Commit 9472765, noch nicht gepusht)
+
+- **Rate-Limiting fertig:** Supabase-Tabelle `ai_rate_limits` (eine Zeile pro Nutzer, kein Wachstum über Zeit) + atomare Postgres-Funktion `check_and_increment_rate_limit` (Zeilensperre verhindert Race Conditions bei gleichzeitigen Anfragen). Limits als Konstanten in `src/lib/rate-limit.ts`: 20 Anfragen/Minute, 200/Tag. In `src/app/api/ki/chat/route.ts` eingebunden, greift vor dem Key-Lookup (zählt jede Anfrage, unabhängig vom Key-Status). Mit temporär abgesenktem Limit (2/Minute) live getestet – Bremse greift wie erwartet, Fehlermeldung erscheint sauber im Chat.
+
+## ✅ Erledigt am 2026-07-10 – BYOK & KI-Sous-Chef (5 Commits, noch nicht gepusht)
+
+- **BYOK-Fundament komplett:** `src/lib/crypto.ts` (AES-256-GCM Key-Verschlüsselung), `src/app/api/ki/key/route.ts` (Key speichern/validieren/löschen, echter Test-Call an OpenAI + Anthropic), Settings-UI unter /profil → Tab „KI-Funktionen". Supabase-Tabelle `user_api_keys` mit RLS (keine Client-Policies) angelegt. `KEY_ENCRYPTION_SECRET` in `.env.local` gesetzt. Konzept liegt in `docs/byok-konzept.md`.
+- **KI-Sous-Chef live:** `src/app/api/ki/chat/route.ts` (Key laden → entschlüsseln → GPT-4o mit Streaming), /ki-sous-chef mit echter KI statt Mock verbunden. Sperre hängt jetzt an „hat Nutzer einen gültigen Key" statt am alten `FEATURES.AI_ENABLED`-Flag. Mit echtem Key getestet, funktioniert.
+
+## 🔲 Offen / nächste Schritte (KI-Ausbau, Phase B/C)
+
+- **`KEY_ENCRYPTION_SECRET` bei Vercel eintragen** – MUSS vor dem nächsten Deploy passieren, sonst funktioniert die Ver-/Entschlüsselung live nicht. Auch `SUPABASE_SERVICE_ROLE_KEY` bei Vercel prüfen.
+- **Anthropic im Chat** – bewusst zurückgestellt (siehe Notiz oben unter „Erledigt am 2026-07-11"). Chat-Route akzeptiert bisher nur OpenAI (gpt-4o); Anthropic-Keys werden mit 400 abgelehnt.
+- **Premium-Features noch Mock** – Kreativlabor & Menügenerator ziehen aus `src/lib/mockAI.ts`, Tellerdesigner nutzt setTimeout. Brauchen echte Anbindung wie der Chat. Tellerdesigner zusätzlich: separate **Bildgenerierung** (DALL·E / gpt-image-1), eigene Route, eigene Kosten – nicht mit dem Text-Modell verwechseln.
+- **`NEXT_PUBLIC_AI_ENABLED`** – die drei Labor-Routen hängen noch an diesem globalen Flag (Middleware-Redirect). Sobald echte Anbindung steht, auf Pro-Nutzer-Gating umstellen (wie beim Chat) oder Flag setzen.
+- Der alte `OPENAI_API_KEY`-Stub in `.env.local` („sk-") wird nirgends mehr gebraucht (BYOK ersetzt ihn) – kann raus.
+
+## ⏳ Wartet weiter auf Entscheidung (aus vorheriger Session)
+
+- Saison-Karten Redesign: 3 Varianten (Gold Thread / Bordeaux Depth / Warm Glow), noch keine Auswahl getroffen.
+
+## Wartet auf Entscheidung
+
+- **Saison-Karten Redesign (Dashboard-Seitenleiste):** 3 Varianten als Artifact
+  gezeigt (Gold Thread / Bordeaux Depth / Warm Glow). Noch keine Auswahl
+  getroffen — danach im echten Code (`src/app/page.tsx`, `SeasonalCard`)
+  umsetzen, committen, pushen.
+
+## Ungeklärt / ggf. nochmal prüfen
+
+- **"E-Mail fehlt in der Verwaltung"** (ursprünglich gemeldet bei den
+  Admin-Anfragen): Diagnose ergab, dass die E-Mail in allen drei
+  Oberflächen (Admin-Seite, Profil-Tab "Anfragen", Profil-Tab "Verwaltung")
+  korrekt im Code gerendert wird — kein Bug gefunden. Falls das Problem in
+  der Praxis weiterhin auftritt, braucht es konkretere Reproduktionsschritte
+  (welche Anfrage genau, Screenshot) statt erneuter Code-Analyse.
+
+## Bewusst offen gelassen (kein Bug, bewusste Scope-Entscheidung)
+
+- `GET /api/zutaten` läuft weiterhin ohne Login-/Stufen-Prüfung — nur
+  `POST` wurde in der Sicherheits-Runde abgesichert (Stufe 2), da explizit
+  nur "Zutaten schreiben" im Auftrag stand. Lesen ist weiterhin offen.
+- **HTML-Fallback für Rezept-Import** (Zutaten aus `<ul>/<li>` ziehen, wenn
+  keine schema.org-Daten vorhanden sind) wurde bewusst NICHT gebaut — zu
+  hohes Risiko, Navigations-/Menü-Listen fälschlich als Rezeptinhalt zu
+  erkennen. Für diesen Fall ist Weg B (Text/Caption einfügen) der
+  vorgesehene Weg.
+
+## Technische Nebenbefunde (nicht dringend)
+
+- `npm install` meldet aktuell 4 Schwachstellen (3 moderate, 1 high) —
+  noch nicht mit `npm audit` geprüft/behoben.
+- `backend/`-Ordner, `database.sqlite`, sowie `sequelize`/`sqlite3` in
+  `package.json` sind Reste des verworfenen früheren Ansatzes (siehe
+  CLAUDE.md) — könnten bei Gelegenheit entfernt werden, werden vom
+  aktuellen Code nicht referenziert.
