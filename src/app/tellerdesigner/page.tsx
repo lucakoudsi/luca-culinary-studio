@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/lib/store';
 import { Palette, Sparkles, Loader2, Download, CheckCircle, BookOpen, PenLine, BookMarked } from 'lucide-react';
 import ImageLightbox from '@/components/ui/ImageLightbox';
+import { ADMIN_UNLIMITED_IMAGE_LIMIT } from '@/config/imageQuota';
 
 type Aufwandsstufe = 'bistro' | 'gehoben' | 'fine_dining';
 const AUFWANDSSTUFEN: Aufwandsstufe[] = ['bistro', 'gehoben', 'fine_dining'];
@@ -241,7 +242,11 @@ export default function TellerdesignerPage() {
 
           <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
             <span className="text-[12px] text-text-muted">
-              {quota ? `Noch ${quota.remaining} von ${quota.limit} Bildern diesen Monat` : ''}
+              {quota
+                ? quota.limit >= ADMIN_UNLIMITED_IMAGE_LIMIT
+                  ? 'Unbegrenztes Kontingent'
+                  : `Noch ${quota.remaining} von ${quota.limit} Bildern diesen Monat`
+                : ''}
             </span>
             <button onClick={handleGenerate} disabled={loading || !canGenerate || (quota !== null && quota.remaining <= 0)}
               className="px-6 py-2.5 rounded-lg font-semibold text-[14px] flex items-center gap-2 transition-all disabled:opacity-50 flex-shrink-0"

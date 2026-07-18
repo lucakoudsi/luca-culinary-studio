@@ -1,19 +1,10 @@
 import { createAdminClient } from './supabase-admin';
 
-// Monatliches Bild-Kontingent fuer den Tellerdesigner, gestaffelt nach
-// Abo-Stufe (docs/abo-konzept.md.txt Abschnitt 2/5). Getrennt von
-// rate-limit.ts (Missbrauchsschutz) -- hier geht es um ein Produkt-
-// Entitlement mit Kalendermonat-Fenster statt Minuten/Tag.
-export const IMAGE_QUOTA_BY_TIER: Record<number, number> = {
-  1: 0,   // Free
-  2: 0,   // Basic -- Tellerdesigner ist Pro-exklusiv
-  3: 150, // Pro
-  4: 500, // Team (aktuell pro Nutzer, nicht geteilt -- siehe TO_CHANGE.md.txt)
-};
-
-export function getMonthlyImageLimit(tier: number): number {
-  return IMAGE_QUOTA_BY_TIER[tier] ?? 0;
-}
+// Tabelle + Limit-Aufloesung liegen in src/config/imageQuota.ts (kein
+// supabase-admin-Import dort) -- so kann auch das Tellerdesigner-Frontend
+// ADMIN_UNLIMITED_IMAGE_LIMIT importieren, ohne den Admin-Client (Service-
+// Role-Key-Nutzung) in den Client-Bundle zu ziehen.
+export { IMAGE_QUOTA_BY_TIER, ADMIN_UNLIMITED_IMAGE_LIMIT, getMonthlyImageLimit } from '@/config/imageQuota';
 
 function currentMonthStart(): string {
   const now = new Date();
