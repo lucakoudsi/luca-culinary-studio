@@ -23,19 +23,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      <div className="lg:ml-60 flex-1 flex flex-col min-h-screen">
+      <div className="lg:ml-60 flex-1 flex flex-col h-screen overflow-hidden">
         {/* Mobile topbar */}
-        <div className="lg:hidden flex items-center px-5 py-3 border-b border-border bg-surface">
+        <div className="lg:hidden flex items-center px-5 py-3 border-b border-border bg-surface flex-shrink-0">
           <button onClick={() => setMobileOpen(true)} className="text-text-primary p-1">
             <Menu size={22} />
           </button>
           <span className="ml-3 font-heading text-base font-bold text-text-primary">LUCA Culinary</span>
         </div>
 
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main className="flex-1 min-h-0 overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
       </div>
