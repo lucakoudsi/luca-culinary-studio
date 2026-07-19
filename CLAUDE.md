@@ -54,10 +54,10 @@ als aktive Datenquelle behandeln.
   `supabase.auth.getUser()` im Client oder `getRequestUser()` serverseitig)
   — nicht die JSON-Antwort von `/api/profil`, die aktuell kein `user`-Feld
   zurückgibt.
-- **Drei verschiedene Supabase-Clients, nicht verwechseln:**
-  - `src/lib/supabase.ts` — anonymer Singleton-Client, **ohne** Session.
-    Nicht für authentifizierte Uploads/Schreibzugriffe verwenden (führte
-    genau deshalb zu RLS-Fehlern beim Rezept-Bild-Upload).
+- **Zwei verschiedene Supabase-Clients, nicht verwechseln:** (ein dritter,
+  `src/lib/supabase.ts` — anonymer Singleton-Client ohne Session, führte zu
+  RLS-Fehlern beim Rezept-Bild-Upload — war seit Umstellung auf die beiden
+  unten ungenutzt und wurde am 2026-07-19 entfernt)
   - `src/utils/supabase/client.ts` (`createBrowserClient`) — session-fähiger
     Client für Client-Components; für alles, was eine eingeloggte Identität
     braucht (Uploads in RLS-geschützte Storage-Buckets etc.).
