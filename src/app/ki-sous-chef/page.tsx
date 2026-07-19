@@ -1,8 +1,7 @@
 ﻿'use client';
 import PageTransition from '@/components/ui/PageTransition';
-import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { ChefHat, Send, Loader2, User, KeyRound } from 'lucide-react';
+import { ChefHat, Send, Loader2, User } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -56,34 +55,19 @@ const initial: Message[] = [{
   time: '09:00',
 }];
 
-type KeyStatus = { provider: string; key_hint: string; is_valid: boolean } | null;
-
 export default function KiSousChefPage() {
   const [messages, setMessages] = useState<Message[]>(initial);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  // undefined = wird noch geladen, null = kein Key hinterlegt, Objekt = Key vorhanden
-  const [keyStatus, setKeyStatus] = useState<KeyStatus | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const loadKeyStatus = () => {
-    fetch('/api/ki/key')
-      .then(r => r.json())
-      .then(d => setKeyStatus(d))
-      .catch(() => setKeyStatus(null));
-  };
-
-  useEffect(() => { loadKeyStatus(); }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const hasKey = !!keyStatus;
-
   const send = async (text: string) => {
-    if (!text.trim() || loading || !hasKey) return;
+    if (!text.trim() || loading) return;
     const userMsg: Message = { id: Date.now(), role: 'user', text, time: now() };
     const history = [...messages, userMsg];
     setMessages(history);
@@ -106,7 +90,6 @@ export default function KiSousChefPage() {
         const d = await res.json().catch(() => ({}));
         const errText = d.message || d.error || 'Etwas ist schiefgelaufen. Bitte versuche es erneut.';
         setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, text: errText } : m));
-        if (res.status === 402 || res.status === 401) loadKeyStatus();
         return;
       }
 
@@ -196,53 +179,31 @@ export default function KiSousChefPage() {
       <div className="flex gap-2 flex-wrap mb-3 flex-shrink-0">
         {quickPrompts.map(q => (
           <button key={q}
-            onClick={() => hasKey && send(q)}
-            disabled={!hasKey || loading}
-            title={!hasKey ? 'Erst API-Key in den Einstellungen hinterlegen' : undefined}
-            className="text-[11px] px-3 py-1.5 rounded-full bg-card border border-border text-text-muted transition-all whitespace-nowrap"
-            style={hasKey ? {} : { opacity: 0.4, cursor: 'not-allowed' }}>
+            onClick={() => send(q)}
+            disabled={loading}
+            className="text-[11px] px-3 py-1.5 rounded-full bg-card border border-border text-text-muted transition-all whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
             {q}
           </button>
         ))}
       </div>
 
       {/* Input */}
-      {keyStatus === undefined ? (
-        <div className="flex-shrink-0 flex items-center justify-center rounded-xl px-4 py-3"
-          style={{ background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)' }}>
-          <Loader2 size={16} className="animate-spin" style={{ color: '#6B3A4B' }} />
-        </div>
-      ) : !hasKey ? (
-        <div className="flex-shrink-0 flex items-center gap-3 rounded-xl px-4 py-3.5"
-          style={{ background: 'rgba(107,58,75,0.05)', border: '1px solid rgba(107,58,75,0.18)' }}>
-          <KeyRound size={16} style={{ color: '#6B3A4B', flexShrink: 0 }} />
-          <span className="flex-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-            Um den KI-Sous-Chef zu nutzen, hinterlege deinen API-Key in den Einstellungen.
-          </span>
-          <Link href="/profil"
-            className="flex-shrink-0 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
-            style={{ background: 'rgba(107,58,75,0.1)', border: '1px solid rgba(107,58,75,0.25)', color: '#6B3A4B' }}>
-            Zu den Einstellungen
-          </Link>
-        </div>
-      ) : (
-        <div className="flex gap-3 flex-shrink-0">
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
-            placeholder="Frage stellen oder Idee beschreiben…"
-            className="flex-1 bg-card border border-border-strong rounded-xl px-4 py-3 text-text-primary text-[13px] outline-none focus:border-gold/40 transition-colors" />
-          <button onClick={() => send(input)} disabled={loading || !input.trim()}
-            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)' }}>
-            {loading
-              ? <Loader2 size={18} className="animate-spin" color="#FFFFFF" />
-              : <Send size={18} color="#FFFFFF" />}
-          </button>
-        </div>
-      )}
+      <div className="flex gap-3 flex-shrink-0">
+        <input
+          ref={inputRef}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send(input)}
+          placeholder="Frage stellen oder Idee beschreiben…"
+          className="flex-1 bg-card border border-border-strong rounded-xl px-4 py-3 text-text-primary text-[13px] outline-none focus:border-gold/40 transition-colors" />
+        <button onClick={() => send(input)} disabled={loading || !input.trim()}
+          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
+          style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)' }}>
+          {loading
+            ? <Loader2 size={18} className="animate-spin" color="#FFFFFF" />
+            : <Send size={18} color="#FFFFFF" />}
+        </button>
+      </div>
     </div>
     </div>
     </PageTransition>

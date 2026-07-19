@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server';
-import { createAdminClient } from '@/lib/supabase-admin';
-import { getRequestUser } from '@/lib/get-request-user';
-import { decryptKey } from '@/lib/crypto';
+import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // allgemeiner Chat -- deckt Verbindungsaufbau + Streaming der Antwort
 const UPSTREAM_TIMEOUT_MS = 24_000; // gilt fuer den Verbindungsaufbau (bis die ersten Header/Tokens da sind)
+const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md.txt Abschnitt 2a
 
 const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio -- ein erfahrener kulinarischer Assistent für professionelle und ambitionierte Köch:innen. Du hilfst bei Rezeptentwicklung, Kochtechniken, Fermentation sowie Wein- und Aromapairings, auf dem Niveau gehobener, professioneller Küche.
 
@@ -20,10 +20,9 @@ Antworte auf Deutsch, außer die Frage wird auf Englisch gestellt.`;
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 export async function POST(req: NextRequest) {
-  const user = await getRequestUser(req);
-  if (!user) {
-    return Response.json({ error: 'Nicht eingeloggt.' }, { status: 401 });
-  }
+  const check = await requireTier(req, MIN_TIER);
+  if (!check.ok) return check.response;
+  const { user } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -44,33 +43,12 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Keine Nachricht angegeben.' }, { status: 400 });
   }
 
-  const db = createAdminClient();
-  const { data: row } = await db
-    .from('user_api_keys')
-    .select('provider, key_cipher')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (!row) {
-    return Response.json(
-      { error: 'kein_key', message: 'Bitte hinterlege deinen API-Key in den Einstellungen.' },
-      { status: 402 },
-    );
-  }
-
-  if (row.provider !== 'openai') {
-    return Response.json(
-      { error: 'anbieter_nicht_unterstuetzt', message: 'Für den Chat wird aktuell nur ein OpenAI-Key unterstützt -- bitte in den Einstellungen hinterlegen.' },
-      { status: 400 },
-    );
-  }
-
   let apiKey: string;
   try {
-    apiKey = decryptKey(row.key_cipher);
+    apiKey = getOperatorOpenAiKey();
   } catch (e) {
-    console.error('[ki/chat] Entschlüsselung fehlgeschlagen:', e instanceof Error ? e.message : e);
-    return Response.json({ error: 'Interner Fehler.' }, { status: 500 });
+    console.error('[ki/chat] Betreiber-Key fehlt:', e instanceof Error ? e.message : e);
+    return Response.json({ error: 'Der KI-Sous-Chef ist aktuell nicht verfügbar.' }, { status: 500 });
   }
 
   let upstream: Response;
@@ -102,14 +80,6 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Verbindung zu OpenAI fehlgeschlagen.' }, { status: 502 });
   }
 
-  if (upstream.status === 401) {
-    await db.from('user_api_keys').update({ is_valid: false }).eq('user_id', user.id);
-    return Response.json(
-      { error: 'key_ungueltig', message: 'Dein Key scheint nicht mehr gültig zu sein.' },
-      { status: 401 },
-    );
-  }
-
   if (!upstream.ok || !upstream.body) {
     const errText = await upstream.text().catch(() => '');
     console.error('[ki/chat] OpenAI-Fehler:', upstream.status, errText.slice(0, 300));
@@ -118,12 +88,6 @@ export async function POST(req: NextRequest) {
     }
     return Response.json({ error: 'Fehler beim Abrufen der Antwort.' }, { status: 502 });
   }
-
-  // Erfolgreicher Call: is_valid + last_used aktualisieren (best effort, blockiert das Streaming nicht)
-  db.from('user_api_keys')
-    .update({ is_valid: true, last_used: new Date().toISOString() })
-    .eq('user_id', user.id)
-    .then(() => {});
 
   // OpenAI-SSE-Stream in einen reinen Text-Stream umwandeln (nur die Content-Deltas an den Client)
   const encoder = new TextEncoder();

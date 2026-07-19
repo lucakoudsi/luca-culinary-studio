@@ -10,6 +10,8 @@ Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbei
 
 - **`NEXT_PUBLIC_AI_PLATE_ENABLED` bei Vercel auf `true` setzen** – Tellerdesigner ist inzwischen echt gebaut (kein Mock mehr), Flag stand dort noch auf dem alten Wert.
 - **`NEXT_PUBLIC_AI_LAB_ENABLED` bei Vercel löschen** – Kreativlabor wurde komplett entfernt (Seite, `mockAI.ts`, Tier-Sperre), das Flag existiert im Code nicht mehr und wird von nichts mehr gelesen.
+- **`KEY_ENCRYPTION_SECRET` bei Vercel löschen** – BYOK komplett ausgebaut (siehe Eintrag vom 2026-07-19), Secret wird von nichts mehr gelesen.
+- **`user_api_keys`-Tabelle in Supabase löschen** (`drop table if exists public.user_api_keys;`) – letzte Konsumentin (`/api/ki/chat`) läuft jetzt über den Betreiber-Key, Tabelle ist verwaist. Kein Rush, aber vor dem nächsten Datenbank-Audit erledigen.
 
 ## ✅ Erledigt am 2026-07-15 – Erstes Produktions-Deployment (bis Commit 67f28e2, gepusht)
 
