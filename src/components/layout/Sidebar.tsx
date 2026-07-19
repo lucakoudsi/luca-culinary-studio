@@ -3,8 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  LayoutDashboard, BookOpen, FlaskConical, Utensils,
+  LayoutDashboard, BookOpen, Utensils,
   Leaf, Sun, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings, GitFork,
+  Library, FolderHeart, ChefHat,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
@@ -14,10 +15,9 @@ import type { ThemeMode } from '@/lib/theme';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
-const navItems = [
+const mainNavItems = [
   { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
   { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        aiLocked: false },
-  { href: '/kreativlabor',    label: 'Kreativlabor',     icon: FlaskConical,    aiLocked: !FEATURES.AI_LAB_ENABLED   },
   { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: !FEATURES.AI_MENU_ENABLED  },
   { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: !FEATURES.AI_PLATE_ENABLED },
   { href: '/zutatenstammbaum',label: 'Stammbaum',        icon: GitFork,         aiLocked: false },
@@ -27,6 +27,16 @@ const navItems = [
   { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          aiLocked: false },
   { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      aiLocked: false },
   { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             aiLocked: false },
+];
+
+// Neuer Bereich (Ersatz fuer das gestrichene Kreativlabor, siehe
+// docs/community-konzept.md.txt) -- eigene Section mit Ueberschrift statt
+// einfach an die Hauptliste angehaengt, damit die Herkunft/Zusammengehoerigkeit
+// der drei Unterseiten in der Navigation sichtbar bleibt.
+const collectionNavItems = [
+  { href: '/collection',        label: 'LUCA Collection',   icon: Library,     aiLocked: false },
+  { href: '/collection/meine',  label: 'Meine Sammlungen',  icon: FolderHeart, aiLocked: false },
+  { href: '/collection/koeche', label: 'Gefolgte Köche',    icon: ChefHat,     aiLocked: false },
 ];
 
 type FontSize   = 'klein' | 'normal' | 'gross';
@@ -132,6 +142,53 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const displayName = fullName || user?.email?.split('@')[0] || 'Chef';
   const initials = displayName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
 
+  // Gemeinsames Rendering fuer Haupt- und Collection-Nav-Items -- vorher nur
+  // fuer eine flache Liste gebraucht, jetzt fuer zwei Gruppen wiederverwendet.
+  const renderNavItem = ({ href, label, icon: Icon, aiLocked }: typeof mainNavItems[number]) => {
+    const isActive    = href === '/' ? pathname === '/' : pathname.startsWith(href);
+    const aiBlocked   = aiLocked;
+    const minTier     = PAGE_MIN_TIER[href] ?? 1;
+    const tierBlocked = userTier < minTier;
+    const isLocked    = aiBlocked || tierBlocked;
+
+    if (isLocked) {
+      const lockColor   = aiBlocked ? '#C9A84C' : '#6B3A4B';
+      const textColor   = aiBlocked ? 'rgba(201,168,76,0.7)' : 'rgba(107,58,75,0.6)';
+      const tooltipText = aiBlocked ? 'KI-Funktion — coming soon' : 'Benötigt höheren Rang';
+      return (
+        <div key={href} title={tooltipText}
+          className="flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg select-none"
+          style={{ color: textColor, opacity: 0.6, cursor: 'not-allowed' }}>
+          <Icon size={14} strokeWidth={1.6} />
+          <span>{label}</span>
+          <Lock size={16} className="ml-auto flex-shrink-0" style={{ color: lockColor }} />
+        </div>
+      );
+    }
+
+    return (
+      <Link key={href} href={href} onClick={onClose}
+        className={cn(
+          'flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg',
+          'transition-all duration-150',
+        )}
+        style={isActive ? {
+          background: '#6B3A4B',
+          color: '#FFFFFF',
+        } : {
+          color: 'var(--text-muted, #8B7355)',
+        }}
+        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
+        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
+        <Icon size={14} strokeWidth={isActive ? 2 : 1.6} />
+        <span className={isActive ? 'font-semibold' : ''}>{label}</span>
+        {isActive && (
+          <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white/60" />
+        )}
+      </Link>
+    );
+  };
+
   return (
     <>
       {mobileOpen && (
@@ -171,50 +228,14 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 py-3 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon, aiLocked }) => {
-            const isActive    = href === '/' ? pathname === '/' : pathname.startsWith(href);
-            const aiBlocked   = aiLocked;
-            const minTier     = PAGE_MIN_TIER[href] ?? 1;
-            const tierBlocked = userTier < minTier;
-            const isLocked    = aiBlocked || tierBlocked;
+          {mainNavItems.map(renderNavItem)}
 
-            if (isLocked) {
-              const lockColor   = aiBlocked ? '#C9A84C' : '#6B3A4B';
-              const textColor   = aiBlocked ? 'rgba(201,168,76,0.7)' : 'rgba(107,58,75,0.6)';
-              const tooltipText = aiBlocked ? 'KI-Funktion — coming soon' : 'Benötigt höheren Rang';
-              return (
-                <div key={href} title={tooltipText}
-                  className="flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg select-none"
-                  style={{ color: textColor, opacity: 0.6, cursor: 'not-allowed' }}>
-                  <Icon size={14} strokeWidth={1.6} />
-                  <span>{label}</span>
-                  <Lock size={16} className="ml-auto flex-shrink-0" style={{ color: lockColor }} />
-                </div>
-              );
-            }
-
-            return (
-              <Link key={href} href={href} onClick={onClose}
-                className={cn(
-                  'flex items-center gap-2.5 px-4 py-[8px] text-[12.5px] font-medium mx-2 rounded-lg',
-                  'transition-all duration-150',
-                )}
-                style={isActive ? {
-                  background: '#6B3A4B',
-                  color: '#FFFFFF',
-                } : {
-                  color: 'var(--text-muted, #8B7355)',
-                }}
-                onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(107,58,75,0.07)'; }}
-                onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}>
-                <Icon size={14} strokeWidth={isActive ? 2 : 1.6} />
-                <span className={isActive ? 'font-semibold' : ''}>{label}</span>
-                {isActive && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white/60" />
-                )}
-              </Link>
-            );
-          })}
+          <div className="px-4 pt-4 pb-1.5 mt-2 mx-2 border-t border-border">
+            <span className="text-[10px] font-semibold uppercase tracking-[2.5px]" style={{ color: 'var(--text-muted, #B09880)' }}>
+              Collection
+            </span>
+          </div>
+          {collectionNavItems.map(renderNavItem)}
         </nav>
 
         {/* Footer */}

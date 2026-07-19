@@ -6,6 +6,11 @@ Stand: 2026-07-15
 
 Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbeitet wird: **`docs/tellerdesigner-vision.md` lesen.** Enthält Zweck, Zielgruppe, Designphilosophie und den Leitsatz für jede Entscheidung ("Macht diese Änderung den Teller zum Mittelpunkt der Seite oder lenkt sie davon ab?"). Nicht optional -- jede UI-/Prompt-Änderung an dieser Seite wird an dieser Vision gemessen.
 
+## 📌 Standing Reference: Vercel Env-Vars vor nächstem Deploy
+
+- **`NEXT_PUBLIC_AI_PLATE_ENABLED` bei Vercel auf `true` setzen** – Tellerdesigner ist inzwischen echt gebaut (kein Mock mehr), Flag stand dort noch auf dem alten Wert.
+- **`NEXT_PUBLIC_AI_LAB_ENABLED` bei Vercel löschen** – Kreativlabor wurde komplett entfernt (Seite, `mockAI.ts`, Tier-Sperre), das Flag existiert im Code nicht mehr und wird von nichts mehr gelesen.
+
 ## ✅ Erledigt am 2026-07-15 – Erstes Produktions-Deployment (bis Commit 67f28e2, gepusht)
 
 - **Erstmals deployed!** Alle 24 Commits dieser Session auf `origin/master` gepusht, Vercel-Build grün (`67f28e2`), live getestet – Menügenerator und KI-Rezept-Import funktionieren in Produktion.

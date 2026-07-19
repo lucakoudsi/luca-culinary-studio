@@ -49,20 +49,6 @@ export interface AiMessage {
   text: string;
 }
 
-// ─── Kreativlabor ────────────────────────────────────────────────────────────
-export interface CreativeResult {
-  id: number;
-  name: string;
-  concept: string;
-  ingredients: { name: string; amount: string; note: string }[];
-  techniques: string[];
-  preparation: string[];
-  plating: string;
-  inputStyle: string;
-  generatedAt: string;
-  saved: boolean;
-}
-
 // ─── Zutatenbibliothek ───────────────────────────────────────────────────────
 export interface FlavorProfile {
   acidity: number;

@@ -18,7 +18,7 @@ export const ALL_TITLES = [
 export const STUFEN = [
   { stufe: 1, label: 'Stufe 1 · Free',  desc: 'Kostenlos – ansehen, eigene Rezepte anlegen, keine KI'      },
   { stufe: 2, label: 'Stufe 2 · Basic', desc: '+ KI-Sous-Chef & Menügenerator'                             },
-  { stufe: 3, label: 'Stufe 3 · Pro',   desc: '+ Kreativlabor & Tellerdesigner, höheres Bildkontingent'    },
+  { stufe: 3, label: 'Stufe 3 · Pro',   desc: '+ Tellerdesigner, höheres Bildkontingent'                   },
   { stufe: 4, label: 'Stufe 4 · Team',  desc: '+ Mehrbenutzer'                                             },
 ];
 
@@ -34,10 +34,10 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/fermentation':  1,
   '/projekte':      1,
   '/wein-pairing':  1,
-  '/kreativlabor':  3,
   '/menuegenerator':2,
   '/tellerdesigner':    3,
   '/zutatenstammbaum':  1,
+  '/collection':        1,
 };
 
 // Tier now comes directly from profiles.stufe, not from the titel

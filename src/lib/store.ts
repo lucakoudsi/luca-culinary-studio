@@ -1,6 +1,6 @@
 'use client';
 import { create } from 'zustand';
-import type { Recipe, Idea, Ingredient, CreativeResult, GeneratedMenu, Project, ProjectNote, ProjectMenu, MenuGang } from '@/types';
+import type { Recipe, Idea, Ingredient, GeneratedMenu, Project, ProjectNote, ProjectMenu, MenuGang } from '@/types';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,6 @@ interface StoreState {
   ingredientCategoryFilter: string;
 
   // Ephemeral (not persisted)
-  creativeResults: CreativeResult[];
   generatedMenus:  GeneratedMenu[];
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -51,11 +50,6 @@ interface StoreState {
 
   // ── Ideas ─────────────────────────────────────────────────────────────────
   addIdea: (text: string, tag: string) => Promise<void>;
-
-  // ── Kreativlabor (in-memory) ──────────────────────────────────────────────
-  addCreativeResult:    (r: Omit<CreativeResult, 'id' | 'generatedAt' | 'saved'>) => void;
-  saveCreativeResult:   (id: number) => void;
-  deleteCreativeResult: (id: number) => void;
 
   // ── Zutaten ───────────────────────────────────────────────────────────────
   setIngredientSearch:         (q: string) => void;
@@ -102,7 +96,6 @@ export const useStore = create<StoreState>((set, get) => ({
   ingredientSearch:         '',
   ingredientSeasonFilter:   'Alle',
   ingredientCategoryFilter: 'Alle',
-  creativeResults: [],
   generatedMenus:  [],
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -148,11 +141,6 @@ export const useStore = create<StoreState>((set, get) => ({
     const created = await api.post('/api/ideen', { text, tag });
     set(s => ({ ideas: [created, ...s.ideas] }));
   },
-
-  // ── Kreativlabor (in-memory) ──────────────────────────────────────────────
-  addCreativeResult: r => set(s => ({ creativeResults: [{ ...r, id: Date.now(), generatedAt: new Date().toISOString().slice(0, 10), saved: false }, ...s.creativeResults] })),
-  saveCreativeResult:   id => set(s => ({ creativeResults: s.creativeResults.map(r => r.id === id ? { ...r, saved: true } : r) })),
-  deleteCreativeResult: id => set(s => ({ creativeResults: s.creativeResults.filter(r => r.id !== id) })),
 
   // ── Zutaten ───────────────────────────────────────────────────────────────
   setIngredientSearch:         q => set({ ingredientSearch: q }),

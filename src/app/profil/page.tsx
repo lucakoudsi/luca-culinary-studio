@@ -81,7 +81,7 @@ const PERM_ROWS: { label: string; minTier: number }[] = [
   { label: 'Wein & Pairing',    minTier: 1  },
   { label: 'KI-Sous-Chef',      minTier: 2  },
   { label: 'Menügenerator',     minTier: 2  },
-  { label: 'Kreativlabor',      minTier: 3  },
+  { label: 'Collection',        minTier: 1  },
   { label: 'Tellerdesigner',    minTier: 3  },
   { label: 'Titel vergeben',    minTier: 99 },
   { label: 'Nutzer verwalten',  minTier: 99 },
