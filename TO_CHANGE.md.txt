@@ -2,6 +2,10 @@
 
 Stand: 2026-07-15
 
+## 📌 Standing Reference: Tellerdesigner-Produktvision
+
+Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbeitet wird: **`docs/tellerdesigner-vision.md` lesen.** Enthält Zweck, Zielgruppe, Designphilosophie und den Leitsatz für jede Entscheidung ("Macht diese Änderung den Teller zum Mittelpunkt der Seite oder lenkt sie davon ab?"). Nicht optional -- jede UI-/Prompt-Änderung an dieser Seite wird an dieser Vision gemessen.
+
 ## ✅ Erledigt am 2026-07-15 – Erstes Produktions-Deployment (bis Commit 67f28e2, gepusht)
 
 - **Erstmals deployed!** Alle 24 Commits dieser Session auf `origin/master` gepusht, Vercel-Build grün (`67f28e2`), live getestet – Menügenerator und KI-Rezept-Import funktionieren in Produktion.

@@ -154,3 +154,52 @@ export interface Project {
   notes: ProjectNote[];
   status: 'Aktiv' | 'Abgeschlossen' | 'Pausiert';
 }
+
+// ─── Tellerdesigner ──────────────────────────────────────────────────────────
+import type { Aufwandsstufe } from '@/config/techniken';
+import type { Stilrichtung } from '@/config/tellerStilrichtung';
+import type { AnrichteFokus } from '@/config/tellerAnrichteFokus';
+
+// Eine einzelne Anrichte-Technik fuer die Label-Darstellung um den Teller:
+// "schlagwort" + "kurzsatz" bilden das dauerhaft sichtbare Label, "anleitung"
+// ist der laengere Ausfuehrungstext, der erst bei Hover/Klick erscheint.
+export interface TellerTechnik {
+  schlagwort: string;
+  kurzsatz: string;
+  anleitung: string;
+}
+
+// Eine generierte Bild-Variante innerhalb der aktuellen Sitzung (Client-State,
+// nicht persistiert -- persistiert wird erst per "Speichern" als TellerDesignRow).
+// "toured" steuert, ob TellerStage beim Mounten die gefuehrte Tour abspielt
+// (nur bei frisch generierten Varianten, nicht beim erneuten Anzeigen).
+export interface TellerVariante {
+  id: string;
+  image: string;
+  techniken: TellerTechnik[];
+  titel?: string;
+  aufwand: Aufwandsstufe;
+  stilrichtung: Stilrichtung;
+  anrichteFokus: AnrichteFokus;
+  toured: boolean;
+  /** Gesetzt nach erfolgreichem "Speichern" -- die oeffentliche Storage-URL (nicht mehr die grosse Base64-Data-URL). Praesenz = gespeichert. */
+  savedUrl?: string;
+}
+
+// Eine gespeicherte Galerie-Zeile aus public.tellerdesigns (siehe
+// GET /api/tellerdesigner/designs) -- Snapshot der Design-Parameter zum
+// Speicherzeitpunkt, nicht live aus dem Rezept nachgeladen.
+export interface TellerDesignRow {
+  id: string;
+  createdAt: string;
+  bildUrl: string;
+  rezeptId: number | null;
+  titel: string;
+  stil: string | null;
+  schwierigkeit: string | null;
+  zubereitungszeit: number | null;
+  saison: string | null;
+  anrichteFokus: string | null;
+  techniken: TellerTechnik[];
+  modus: 'rezept' | 'frei';
+}

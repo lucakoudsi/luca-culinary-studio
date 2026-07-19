@@ -1,36 +1,30 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/lib/store';
-import { Palette, Sparkles, Loader2, Download, CheckCircle, BookOpen, PenLine, BookMarked } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+import { Loader2, Bookmark, Share2, Download, CheckCircle, Plus, Images, Sparkles } from 'lucide-react';
 import ImageLightbox from '@/components/ui/ImageLightbox';
 import { ADMIN_UNLIMITED_IMAGE_LIMIT } from '@/config/imageQuota';
+import { AUFWANDSSTUFEN, type Aufwandsstufe } from '@/config/techniken';
+import { STILRICHTUNGEN, STILRICHTUNG_LABEL, DEFAULT_STILRICHTUNG, type Stilrichtung } from '@/config/tellerStilrichtung';
+import { ANRICHTE_FOKUSSE, DEFAULT_ANRICHTE_FOKUS, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
+import TellerControls from '@/components/tellerdesigner/TellerControls';
+import TellerStage from '@/components/tellerdesigner/TellerStage';
+import DesignInfoBox from '@/components/tellerdesigner/DesignInfoBox';
+import type { RecipeDifficulty, TellerVariante } from '@/types';
 
-type Aufwandsstufe = 'bistro' | 'gehoben' | 'fine_dining';
-const AUFWANDSSTUFEN: Aufwandsstufe[] = ['bistro', 'gehoben', 'fine_dining'];
-
-const AUFWAND_LABEL: Record<Aufwandsstufe, string> = {
-  bistro: 'Bistro',
-  gehoben: 'Gehoben',
-  fine_dining: 'Fine Dining',
-};
-const AUFWAND_KURZ: Record<Aufwandsstufe, string> = {
-  bistro: 'Bodenständig, großzügig, einladend.',
-  gehoben: 'Klar, ausgewogen, präzise.',
-  fine_dining: 'Kunstvoll, minimalistisch, Sterneniveau.',
-};
-const AUFWAND_AUS_SCHWIERIGKEIT: Record<string, Aufwandsstufe> = {
+const AUFWAND_AUS_SCHWIERIGKEIT: Record<RecipeDifficulty, Aufwandsstufe> = {
   Leicht: 'bistro', Mittel: 'gehoben', Schwer: 'fine_dining',
 };
 
-const LOADING_MESSAGES = [
-  'Komponiere die Anrichtung…',
-  'Stimme den Stil ab…',
-  'Male den Teller…',
-  'Feinschliff an Sauce und Garnitur…',
-];
+const MAX_VARIANTS = 5; // deckungsgleich mit der festen 5-Slot-Varianten-Leiste
 
 type Quota = { used: number; limit: number; remaining: number };
-type Result = { image: string; techniken: string[]; aufwand: Aufwandsstufe };
+
+function randomOf<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 export default function TellerdesignerPage() {
   const { recipes, fetchRecipes } = useStore();
@@ -38,17 +32,22 @@ export default function TellerdesignerPage() {
   const [mode, setMode] = useState<'rezept' | 'frei'>('rezept');
   const [selectedId, setSelectedId] = useState<number>(0);
   const [freieBeschreibung, setFreieBeschreibung] = useState('');
-  const [aufwandFrei, setAufwandFrei] = useState<Aufwandsstufe>('gehoben');
+  const [aufwand, setAufwand] = useState<Aufwandsstufe>('gehoben');
+  const [stilrichtung, setStilrichtung] = useState<Stilrichtung>(DEFAULT_STILRICHTUNG);
+  const [anrichteFokus, setAnrichteFokus] = useState<AnrichteFokus>(DEFAULT_ANRICHTE_FOKUS);
 
   const [quota, setQuota] = useState<Quota | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
-  const [result, setResult] = useState<Result | null>(null);
+  const [variants, setVariants] = useState<TellerVariante[]>([]);
+  const [currentVariantId, setCurrentVariantId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [savedUrl, setSavedUrl] = useState<string | null>(null);
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Nur fuer den Avatar oben rechts (Punkt 1) -- dieselbe Quelle wie Sidebar.tsx.
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [initials, setInitials] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -57,35 +56,57 @@ export default function TellerdesignerPage() {
     };
     load();
     fetch('/api/tellerdesigner').then(r => r.json()).then(d => { if (d.quota) setQuota(d.quota); }).catch(() => {});
+
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u) return;
+      fetch('/api/profil').then(r => r.json()).then(d => {
+        setAvatarUrl(d.profile?.avatar_url ?? null);
+        const name: string = d.profile?.full_name || u.email?.split('@')[0] || 'Chef';
+        setInitials(name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2));
+      }).catch(() => {});
+    });
   }, []);
 
   useEffect(() => {
-    if (recipes.length > 0 && !selectedId) setSelectedId(recipes[0].id);
+    if (recipes.length > 0 && !selectedId) {
+      setSelectedId(recipes[0].id);
+      setAufwand(AUFWAND_AUS_SCHWIERIGKEIT[recipes[0].difficulty] ?? 'gehoben');
+    }
   }, [recipes]);
 
+  // Wechsel von Rezept/Modus/Stilrichtung/Anrichte-Fokus macht das bisherige
+  // Ergebnis ungueltig (gehoert zu einer anderen Kombination) -- Buehne muss
+  // zurueck in den Ausgangszustand, statt das alte Bild/Labels stehen zu
+  // lassen. Als Nebeneffekt gibt das auch wieder freie Varianten-Slots frei
+  // (variantSlotsLeft), falls die vorherige Kombination schon alle 5 Slots
+  // gefuellt hatte -- sonst blieb der Generieren-Button faelschlich
+  // ausgegraut, obwohl fuer die neue Auswahl noch nichts generiert wurde.
   useEffect(() => {
-    if (loading) {
-      setLoadingMsgIdx(0);
-      loadingIntervalRef.current = setInterval(() => {
-        setLoadingMsgIdx(i => (i + 1) % LOADING_MESSAGES.length);
-      }, 1400);
-    } else if (loadingIntervalRef.current) {
-      clearInterval(loadingIntervalRef.current);
-    }
-    return () => { if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current); };
-  }, [loading]);
+    setVariants([]);
+    setCurrentVariantId(null);
+    setError(null);
+  }, [selectedId, mode, stilrichtung, anrichteFokus]);
 
   const selectedRecipe = recipes.find(r => r.id === selectedId);
-  const rezeptAufwand = selectedRecipe ? AUFWAND_AUS_SCHWIERIGKEIT[selectedRecipe.difficulty] ?? 'gehoben' : 'gehoben';
-
+  const currentVariant = variants.find(v => v.id === currentVariantId) ?? null;
+  const isUnlimitedQuota = !!quota && quota.limit >= ADMIN_UNLIMITED_IMAGE_LIMIT;
+  const quotaExhausted = !!quota && quota.remaining <= 0;
   const canGenerate = mode === 'rezept' ? !!selectedRecipe : freieBeschreibung.trim().length > 0;
+  const variantSlotsLeft = variants.length < MAX_VARIANTS;
 
-  const handleGenerate = async () => {
-    if (!canGenerate || loading) return;
+  const handleSelectedIdChange = (id: number) => {
+    setSelectedId(id);
+    const r = recipes.find(x => x.id === id);
+    if (r) setAufwand(AUFWAND_AUS_SCHWIERIGKEIT[r.difficulty] ?? 'gehoben');
+  };
+
+  const runGenerate = async (params?: { aufwand: Aufwandsstufe; stilrichtung: Stilrichtung; anrichteFokus: AnrichteFokus }) => {
+    if (!canGenerate || loading || !variantSlotsLeft) return;
+    const gen = params ?? { aufwand, stilrichtung, anrichteFokus };
     setLoading(true);
     setError(null);
-    setResult(null);
-    setSavedUrl(null);
 
     const body = mode === 'rezept'
       ? {
@@ -93,9 +114,17 @@ export default function TellerdesignerPage() {
           rezeptTitel: selectedRecipe!.title,
           rezeptZutaten: selectedRecipe!.zutaten ?? [],
           rezeptKomponenten: selectedRecipe!.komponenten ?? [],
-          rezeptSchwierigkeit: selectedRecipe!.difficulty,
+          aufwand: gen.aufwand,
+          stilrichtung: gen.stilrichtung,
+          anrichteFokus: gen.anrichteFokus,
         }
-      : { mode: 'frei', freieBeschreibung, aufwand: aufwandFrei };
+      : {
+          mode: 'frei',
+          freieBeschreibung,
+          aufwand: gen.aufwand,
+          stilrichtung: gen.stilrichtung,
+          anrichteFokus: gen.anrichteFokus,
+        };
 
     try {
       const res = await fetch('/api/tellerdesigner', {
@@ -109,7 +138,18 @@ export default function TellerdesignerPage() {
         if (d.quota) setQuota(d.quota);
         return;
       }
-      setResult({ image: d.image, techniken: d.techniken ?? [], aufwand: d.aufwand });
+      const variant: TellerVariante = {
+        id: crypto.randomUUID(),
+        image: d.image,
+        techniken: d.techniken ?? [],
+        titel: d.titel,
+        aufwand: d.aufwand,
+        stilrichtung: d.stilrichtung,
+        anrichteFokus: d.anrichteFokus,
+        toured: false,
+      };
+      setVariants(prev => [...prev, variant]);
+      setCurrentVariantId(variant.id);
       if (d.quota) setQuota(d.quota);
     } catch {
       setError('Netzwerkfehler bei der Generierung.');
@@ -118,26 +158,76 @@ export default function TellerdesignerPage() {
     }
   };
 
+  const handleRandom = () => {
+    const rnd = {
+      aufwand: randomOf(AUFWANDSSTUFEN),
+      stilrichtung: randomOf(STILRICHTUNGEN),
+      anrichteFokus: randomOf(ANRICHTE_FOKUSSE),
+    };
+    setAufwand(rnd.aufwand);
+    setStilrichtung(rnd.stilrichtung);
+    setAnrichteFokus(rnd.anrichteFokus);
+    runGenerate(rnd);
+  };
+
+  const handleNeuesDesign = () => {
+    setVariants([]);
+    setCurrentVariantId(null);
+    setError(null);
+  };
+
+  const handleTourComplete = () => {
+    if (!currentVariantId) return;
+    setVariants(prev => prev.map(v => v.id === currentVariantId ? { ...v, toured: true } : v));
+  };
+
   const handleSave = async () => {
-    if (!result || saving) return;
+    if (!currentVariant || saving) return;
     setSaving(true);
     try {
       const res = await fetch('/api/tellerdesigner/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: result.image }),
+        body: JSON.stringify({ image: currentVariant.image }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(d.message || d.error || 'Speichern fehlgeschlagen.');
         return;
       }
-      setSavedUrl(d.url);
+      setVariants(prev => prev.map(v => v.id === currentVariant.id ? { ...v, savedUrl: d.url } : v));
     } catch {
       setError('Netzwerkfehler beim Speichern.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDownload = () => {
+    if (!currentVariant) return;
+    const a = document.createElement('a');
+    a.href = currentVariant.image;
+    a.download = `tellerdesign-${currentVariant.id}.png`;
+    a.click();
+  };
+
+  const handleShare = async () => {
+    if (!currentVariant?.savedUrl) {
+      setShareMsg('Bitte zuerst speichern.');
+      setTimeout(() => setShareMsg(null), 2000);
+      return;
+    }
+    const url = currentVariant.savedUrl;
+    if (navigator.share) {
+      try { await navigator.share({ url, title: currentVariant.titel || 'Tellerdesign' }); return; } catch { /* Nutzer hat abgebrochen oder API nicht nutzbar -- Fallback unten */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareMsg('Link kopiert.');
+    } catch {
+      setShareMsg(url);
+    }
+    setTimeout(() => setShareMsg(null), 2500);
   };
 
   if (loadingRecipes) {
@@ -149,183 +239,162 @@ export default function TellerdesignerPage() {
   }
 
   return (
-    <div className="relative" style={{ background: 'var(--bg)', minHeight: '100vh', overflow: 'hidden' }}>
-      {/* Dezentes Anrichte-Motiv im Hintergrund: Teller-Silhouette + Saucenschwung */}
-      <svg className="absolute pointer-events-none" style={{ top: -60, right: -80, opacity: 0.05 }} width="640" height="640" viewBox="0 0 640 640" fill="none">
-        <circle cx="320" cy="320" r="300" stroke="#6B3A4B" strokeWidth="2" />
-        <circle cx="320" cy="320" r="220" stroke="#6B3A4B" strokeWidth="1.5" />
-        <path d="M 160 380 Q 280 460 420 380 T 520 300" stroke="#C9A84C" strokeWidth="3" fill="none" strokeLinecap="round" />
-      </svg>
-
-      <div className="relative px-8 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
-        <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Anrichte-Inspiration</div>
-        <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
-        <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>Fotorealistisches Anrichte-Bild und konkrete Plattier-Techniken für dein Gericht</p>
+    <div style={{ background: 'var(--bg)' }} className="min-h-screen">
+      {/* Header -- Sticky als Sicherheitsnetz, falls die Seite auf kleineren
+          Viewports doch scrollen muss. Bewusst mit Untertitel und etwas mehr
+          Luft statt maximal komprimiert: der Teller bleibt der Held, aber ein
+          zu knapper Header wirkte gedraengt statt ruhig (Vision: "extrem viel
+          Weissraum", "keine ueberladenen Karten"). Etwas Scrollen ist okay. */}
+      <div className="sticky top-0 z-20 px-8 py-4 flex items-center justify-between"
+        style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg)' }}>
+        <div>
+          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 20, color: 'var(--text)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>Tellerdesigner</h1>
+          <p className="mt-1.5" style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>Foto-realistische Anrichte-Techniken für dein Gericht</p>
+        </div>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <button onClick={handleNeuesDesign}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
+            style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+            <Plus size={12} /> Neues Design
+          </button>
+          <Link href="/tellerdesigner/galerie"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
+            style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+            <Images size={12} /> Meine Designs
+          </Link>
+          <Link href="/profil" title="Profil" className="flex-shrink-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" style={{ border: '1px solid var(--border)' }} />
+            ) : (
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10.5px] font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #6B3A4B, #9A5468)' }}>
+                {initials}
+              </div>
+            )}
+          </Link>
+        </div>
       </div>
 
-      <div className="relative p-8 max-w-[1100px] mx-auto">
+      <div className="px-8 py-8 max-w-[1400px] mx-auto">
+        <div className="flex gap-10 items-start">
+          <TellerControls
+            recipes={recipes}
+            mode={mode} onModeChange={setMode}
+            selectedId={selectedId} onSelectedIdChange={handleSelectedIdChange}
+            freieBeschreibung={freieBeschreibung} onFreieBeschreibungChange={setFreieBeschreibung}
+            aufwand={aufwand} onAufwandChange={setAufwand}
+            stilrichtung={stilrichtung} onStilrichtungChange={setStilrichtung}
+            anrichteFokus={anrichteFokus} onAnrichteFokusChange={setAnrichteFokus}
+            canGenerate={canGenerate} loading={loading}
+            quotaExhausted={quotaExhausted || !variantSlotsLeft} isUnlimitedQuota={isUnlimitedQuota} quota={quota}
+            onGenerate={() => runGenerate()} onRandom={handleRandom}
+          />
 
-        {recipes.length === 0 && mode === 'rezept' ? (
-          <div className="text-center py-16 border border-dashed border-border rounded-xl mb-7">
-            <BookOpen size={28} color="#6B3A4B" strokeWidth={1.5} className="mx-auto mb-3" />
-            <p className="font-heading text-lg mb-1" style={{ color: 'var(--text)' }}>Noch keine Rezepte vorhanden</p>
-            <p className="text-[13px] text-text-muted mb-4">Wähle „Frei beschreiben" oder lege zuerst ein Rezept an.</p>
-          </div>
-        ) : null}
+          <div className="flex-1 min-w-0">
+            {/* Buehne + Aktionsleiste + Thumbnail-Leiste teilen sich EXAKT
+                dieselbe fixe Breite + mx-auto -- haelt alles mittig
+                zueinander ausgerichtet statt ueber getrennte Centering-
+                Berechnungen im breiteren flex-1 zu geraten. */}
+            <div className="mx-auto" style={{ maxWidth: 920 }}>
+              {/* Speichern/Teilen/Herunterladen -- permanent sichtbar (Punkt 2),
+                  sticky direkt unter dem Seiten-Header. Reserviert die Zeile
+                  auch ohne aktuelle Variante (leer), damit die Buehne beim
+                  ersten Generieren nicht nach oben springt. */}
+              <div className="sticky z-10 flex justify-end gap-2 py-3" style={{ top: 78, background: 'var(--bg)' }}>
+                {currentVariant && (<>
+                  {currentVariant.savedUrl ? (
+                    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold" style={{ color: '#7CB87A' }}>
+                      <CheckCircle size={12} /> Gespeichert
+                    </span>
+                  ) : (
+                    <button onClick={handleSave} disabled={saving}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors disabled:opacity-50"
+                      style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+                      {saving ? <Loader2 size={12} className="animate-spin" /> : <Bookmark size={12} />} Speichern
+                    </button>
+                  )}
+                  <button onClick={handleShare}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+                    <Share2 size={12} /> Teilen
+                  </button>
+                  <button onClick={handleDownload}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+                    <Download size={12} /> Herunterladen
+                  </button>
+                </>)}
+              </div>
 
-        {/* Modus-Umschalter */}
-        <div className="flex gap-2 mb-5">
-          <button onClick={() => setMode('rezept')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
-            style={{
-              background: mode === 'rezept' ? 'rgba(107,58,75,0.1)' : 'transparent',
-              color: mode === 'rezept' ? '#6B3A4B' : 'var(--text-muted)',
-              border: `1px solid ${mode === 'rezept' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
-            }}>
-            <BookMarked size={13} /> Bestehendes Rezept
-          </button>
-          <button onClick={() => setMode('frei')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
-            style={{
-              background: mode === 'frei' ? 'rgba(107,58,75,0.1)' : 'transparent',
-              color: mode === 'frei' ? '#6B3A4B' : 'var(--text-muted)',
-              border: `1px solid ${mode === 'frei' ? 'rgba(107,58,75,0.25)' : 'transparent'}`,
-            }}>
-            <PenLine size={13} /> Frei beschreiben
-          </button>
-        </div>
+              {shareMsg && (
+                <div className="text-right text-[12px] mb-1" style={{ color: '#6B3A4B' }}>{shareMsg}</div>
+              )}
 
-        <div className="bg-card border border-border rounded-xl p-6 mb-7">
-          {mode === 'rezept' ? (
-            <>
-              <label className="block text-[11px] text-text-muted font-semibold uppercase tracking-widest mb-2">Rezept auswählen</label>
-              <select
-                value={selectedId}
-                onChange={e => { setSelectedId(Number(e.target.value)); setResult(null); }}
-                disabled={recipes.length === 0}
-                className="w-full bg-background border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40 cursor-pointer mb-3">
-                {recipes.map(r => <option key={r.id} value={r.id}>{r.title}</option>)}
-              </select>
-              {selectedRecipe && (
-                <div className="flex items-center gap-2 text-[12px] text-text-secondary">
-                  <span className="px-2.5 py-1 rounded-full font-semibold" style={{ background: 'rgba(201,168,76,0.12)', color: '#9B7A2A', border: '1px solid rgba(201,168,76,0.3)' }}>
-                    {AUFWAND_LABEL[rezeptAufwand]}
-                  </span>
-                  <span className="text-text-muted">Anrichte-Stil aus Schwierigkeit „{selectedRecipe.difficulty}" abgeleitet — {AUFWAND_KURZ[rezeptAufwand]}</span>
+              {error && (
+                <div className="mb-4 px-4 py-2.5 rounded-xl text-[13px] flex items-start gap-2"
+                  style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+                  <span className="flex-shrink-0 mt-0.5">⚠</span><span>{error}</span>
                 </div>
               )}
-            </>
-          ) : (
-            <>
-              <label className="block text-[11px] text-text-muted font-semibold uppercase tracking-widest mb-2">Gericht beschreiben</label>
-              <textarea value={freieBeschreibung} onChange={e => { setFreieBeschreibung(e.target.value); setResult(null); }}
-                placeholder="z.B. Geschmortes Rinderbäckchen mit Selleriepüree und Rotweinjus…" rows={4}
-                className="w-full bg-background border border-border-strong rounded-lg px-3.5 py-2.5 text-text-primary text-[13px] outline-none focus:border-gold/40 resize-none leading-relaxed mb-4" />
 
-              <label className="block text-[11px] text-text-muted font-semibold uppercase tracking-widest mb-2">Anrichte-Stil</label>
-              <div className="flex flex-wrap gap-2">
-                {AUFWANDSSTUFEN.map(a => (
-                  <button key={a} onClick={() => { setAufwandFrei(a); setResult(null); }}
-                    className="px-4 py-2.5 rounded-lg text-[12px] font-medium transition-all text-left"
-                    style={{
-                      background: aufwandFrei === a ? 'rgba(201,168,76,0.12)' : 'rgba(0,0,0,0.03)',
-                      border: `1px solid ${aufwandFrei === a ? 'rgba(201,168,76,0.4)' : 'rgba(0,0,0,0.08)'}`,
-                      color: aufwandFrei === a ? '#9B7A2A' : 'var(--text-muted)',
-                    }}>
-                    <div className="font-semibold">{AUFWAND_LABEL[a]}</div>
-                    <div className="text-[10.5px] opacity-80 mt-0.5">{AUFWAND_KURZ[a]}</div>
-                  </button>
-                ))}
+              {/* Der Teller ist der Held -- bekommt bewusst Luft ueber und
+                  unter sich statt direkt an Aktionsleiste/Thumbnails zu
+                  stossen (Vision: "Der Teller bekommt Platz zum Atmen"). */}
+              <div className={`py-4 ${currentVariant && !loading ? 'cursor-zoom-in' : ''}`} onClick={() => currentVariant && !loading && setLightboxOpen(true)}>
+                <TellerStage key={currentVariant?.id ?? 'empty'} loading={loading} variant={currentVariant} onTourComplete={handleTourComplete} />
               </div>
-            </>
-          )}
 
-          <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-            <span className="text-[12px] text-text-muted">
-              {quota
-                ? quota.limit >= ADMIN_UNLIMITED_IMAGE_LIMIT
-                  ? 'Unbegrenztes Kontingent'
-                  : `Noch ${quota.remaining} von ${quota.limit} Bildern diesen Monat`
-                : ''}
-            </span>
-            <button onClick={handleGenerate} disabled={loading || !canGenerate || (quota !== null && quota.remaining <= 0)}
-              className="px-6 py-2.5 rounded-lg font-semibold text-[14px] flex items-center gap-2 transition-all disabled:opacity-50 flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
-              {loading ? <><Loader2 size={16} className="animate-spin" /> Generiere…</> : <><Sparkles size={16} /> Generieren</>}
-            </button>
+              {/* Varianten-Leiste + Design-Informationen in EINER Zeile statt
+                  zwei gestapelten Bloecken. items-center statt items-end: die
+                  Design-Informationen-Box ist hoeher als die Thumbnail-Leiste,
+                  mit items-end richteten sich beide an ihrer UNTERKANTE aus --
+                  die Box klebte dadurch am unteren Rand statt optisch zur
+                  Thumbnail-Leiste ausbalanciert zu sein. */}
+              <div className="flex items-center justify-between gap-6 mt-6">
+                <div className="flex-1 flex justify-center">
+                  <div className="inline-flex gap-2 p-2 bg-card border border-border rounded-xl">
+                    {variants.map(v => (
+                      <button key={v.id} onClick={() => setCurrentVariantId(v.id)}
+                        className="w-[58px] h-[58px] rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 hover:-translate-y-1"
+                        style={{
+                          border: v.id === currentVariantId ? '2px solid #6B3A4B' : '1px solid transparent',
+                          boxShadow: v.id === currentVariantId ? '0 6px 16px rgba(107,58,75,0.22)' : '0 1px 3px rgba(0,0,0,0.08)',
+                        }}>
+                        <img src={v.image} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                    {Array.from({ length: MAX_VARIANTS - variants.length }).map((_, i) => (
+                      <button key={`empty-${i}`} onClick={() => runGenerate()} disabled={loading || !canGenerate}
+                        title="Weitere Variante generieren (~4ct)"
+                        className="w-[58px] h-[58px] rounded-lg flex-shrink-0 flex items-center justify-center transition-all duration-300 hover:-translate-y-1 disabled:opacity-40 disabled:hover:translate-y-0"
+                        style={{ border: '1px dashed var(--border)' }}>
+                        <Sparkles size={13} style={{ color: 'var(--text-muted)', opacity: 0.5 }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {currentVariant && (
+                  <div className="w-[230px] flex-shrink-0">
+                    <DesignInfoBox
+                      stil={STILRICHTUNG_LABEL[currentVariant.stilrichtung]}
+                      schwierigkeit={{ bistro: 'Einfach', gehoben: 'Mittel', fine_dining: 'Profi' }[currentVariant.aufwand]}
+                      zubereitungszeit={mode === 'rezept' ? selectedRecipe?.time ?? null : null}
+                      saison={mode === 'rezept' ? selectedRecipe?.season ?? null : null}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
-        {error && (
-          <div className="mb-7 px-4 py-3 rounded-xl text-[13px] flex items-start gap-2"
-            style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
-            <span className="flex-shrink-0 mt-0.5">⚠</span><span>{error}</span>
-          </div>
-        )}
-
-        {loading && (
-          <div className="bg-card border border-border rounded-xl py-16 flex flex-col items-center justify-center gap-4 mb-7">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border animate-pulse" style={{ borderColor: 'rgba(201,168,76,0.3)' }} />
-              <Palette size={26} style={{ color: '#C9A84C' }} strokeWidth={1.5} />
-            </div>
-            <p className="text-[13px] text-text-muted italic transition-opacity">{LOADING_MESSAGES[loadingMsgIdx]}</p>
-          </div>
-        )}
-
-        {result && !loading && (
-          <div className="grid grid-cols-[1.2fr_1fr] gap-6">
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className="relative cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
-                <img src={result.image} alt="Generierte Anrichtung" className="w-full block" />
-              </div>
-              <div className="p-4 flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold" style={{ background: 'rgba(201,168,76,0.12)', color: '#9B7A2A', border: '1px solid rgba(201,168,76,0.3)' }}>
-                  {AUFWAND_LABEL[result.aufwand]}
-                </span>
-                {savedUrl ? (
-                  <span className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: '#7CB87A' }}>
-                    <CheckCircle size={14} /> Gespeichert
-                  </span>
-                ) : (
-                  <button onClick={handleSave} disabled={saving}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all disabled:opacity-50"
-                    style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
-                    {saving ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Bild speichern
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-card border border-border rounded-xl p-6">
-              <h2 className="font-heading font-bold text-[16px] mb-1 flex items-center gap-2" style={{ color: 'var(--text)' }}>
-                <Palette size={16} color="#6B3A4B" /> Anrichte-Muster
-              </h2>
-              <p className="text-[12px] text-text-muted mb-4 leading-relaxed">Konkrete Plattier-/Saucentechniken für dieses Gericht.</p>
-              <div className="space-y-3">
-                {result.techniken.map((t, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold mt-0.5"
-                      style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
-                      {i + 1}
-                    </div>
-                    <p className="text-[12.5px] text-text-secondary leading-relaxed">{t}</p>
-                  </div>
-                ))}
-                {result.techniken.length === 0 && (
-                  <p className="text-[12.5px] text-text-muted italic">Keine Anrichte-Muster verfügbar.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       <ImageLightbox
-        images={result ? [result.image] : []}
-        index={lightboxOpen ? 0 : null}
+        images={variants.map(v => v.image)}
+        index={lightboxOpen && currentVariant ? variants.findIndex(v => v.id === currentVariant.id) : null}
         onClose={() => setLightboxOpen(false)}
-        onNavigate={() => {}}
+        onNavigate={i => setCurrentVariantId(variants[i]?.id ?? null)}
       />
     </div>
   );

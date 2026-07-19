@@ -4,6 +4,9 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
 import { getMonthlyImageLimit, getImageQuotaStatus, incrementImageQuota } from '@/lib/image-quota';
 import { AUFWANDSSTUFEN, type Aufwandsstufe } from '@/config/techniken';
+import { STILRICHTUNGEN, STILRICHTUNG_LABEL, STILRICHTUNG_PROMPT, type Stilrichtung } from '@/config/tellerStilrichtung';
+import { ANRICHTE_FOKUSSE, ANRICHTE_FOKUS_LABEL, ANRICHTE_FOKUS_PROMPT, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
+import { technikenFuer, formatTechnikenKontext } from '@/config/anrichteTechniken';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
@@ -21,18 +24,10 @@ type Body = {
   rezeptTitel?: string;
   rezeptZutaten?: Zutat[];
   rezeptKomponenten?: Komponente[];
-  rezeptSchwierigkeit?: 'Leicht' | 'Mittel' | 'Schwer';
   freieBeschreibung?: string;
   aufwand?: Aufwandsstufe;
-};
-
-// Rezepte haben keine eigene "Aufwand"-Einstufung (das ist eine Menuegenerator-
-// Taxonomie) -- Mapping von der vorhandenen Schwierigkeit, am naechsten
-// liegende Zuordnung. Bei "frei" waehlt der Nutzer den Aufwand direkt.
-const AUFWAND_AUS_SCHWIERIGKEIT: Record<'Leicht' | 'Mittel' | 'Schwer', Aufwandsstufe> = {
-  Leicht: 'bistro',
-  Mittel: 'gehoben',
-  Schwer: 'fine_dining',
+  stilrichtung?: Stilrichtung;
+  anrichteFokus?: AnrichteFokus;
 };
 
 const AUFWAND_STIL: Record<Aufwandsstufe, string> = {
@@ -59,20 +54,61 @@ function buildDishDescription(body: Body): string | null {
   return text ? text.slice(0, MAX_DESCRIPTION_LENGTH) : null;
 }
 
+// Aufwand kommt in BEIDEN Modi direkt vom Client (Schwierigkeits-Slider) --
+// im Rezept-Modus setzt das Frontend nur die Ausgangsposition aus der
+// Rezept-Schwierigkeit, der Nutzer kann sie danach frei uebersteuern. Die
+// frueher hier serverseitige Ableitung aus rezeptSchwierigkeit ist damit
+// obsolet, siehe TellerControls.tsx.
 function resolveAufwand(body: Body): Aufwandsstufe | null {
-  if (body.mode === 'rezept') {
-    const schwierigkeit = body.rezeptSchwierigkeit;
-    if (schwierigkeit && schwierigkeit in AUFWAND_AUS_SCHWIERIGKEIT) return AUFWAND_AUS_SCHWIERIGKEIT[schwierigkeit];
-    return 'gehoben'; // Fallback, falls Schwierigkeit fehlt
-  }
   return body.aufwand && AUFWANDSSTUFEN.includes(body.aufwand) ? body.aufwand : null;
 }
 
-const TECHNIK_SYSTEM_PROMPT = (aufwand: Aufwandsstufe) => `Du bist ein erfahrener Chef de Cuisine und gibst konkrete Anrichte-/Plattier-Empfehlungen für ein Gericht, im Anrichte-Stil "${aufwand}": ${AUFWAND_STIL[aufwand]}
+function resolveStilrichtung(body: Body): Stilrichtung | null {
+  return body.stilrichtung && STILRICHTUNGEN.includes(body.stilrichtung) ? body.stilrichtung : null;
+}
 
-Schlage 3-4 konkrete, direkt umsetzbare Anrichte-/Saucentechniken vor -- kurze, klare Anweisungen, wie ein Koch sie am Teller ausführen würde (z.B. "Saucenspiegel mit dem Löffelrücken ziehen", "Punkt-Reihe abnehmend anordnen", "Wischer diagonal über den Teller ziehen", "Komponente leicht schräg anlehnen für Höhe"). Beziehe dich konkret auf das genannte Gericht, nicht generisch. Verwende ausschließlich reale, tatsächlich existierende Techniken und Begriffe -- erfinde keine Fantasiebegriffe.
+function resolveAnrichteFokus(body: Body): AnrichteFokus | null {
+  return body.anrichteFokus && ANRICHTE_FOKUSSE.includes(body.anrichteFokus) ? body.anrichteFokus : null;
+}
 
-Antworte AUSSCHLIESSLICH mit JSON in exakt dieser Form: { "techniken": string[] }`;
+const MAX_TECHNIKEN = 6; // deckungsgleich mit den 6 festen Label-Positionen im Frontend (TellerStage)
+
+// Ein Systemprompt-Baustein pro Dimension (Aufwand/Stilrichtung/Anrichte-Fokus),
+// dieselben drei Texte fliessen sowohl in den Bild-Prompt als auch hier ein --
+// die vorgeschlagenen Techniken sollen zur GESAMTEN Kombination passen, nicht
+// nur zum Aufwand.
+function buildTechnikSystemPrompt(
+  aufwand: Aufwandsstufe,
+  stilrichtung: Stilrichtung,
+  anrichteFokus: AnrichteFokus,
+  wantsTitel: boolean,
+  technikenKontext: string,
+): string {
+  const titelAnweisung = wantsTitel
+    ? `\n\nDas Gericht wurde frei beschrieben, ohne eigenen Namen. Erfinde zusätzlich einen kurzen, appetitlichen Gerichtnamen (2-5 Wörter, wie auf einer Menükarte formuliert) und gib ihn im Feld "titel" zurück.`
+    : '';
+  const jsonSchema = wantsTitel
+    ? '{ "techniken": [{ "schlagwort": string, "kurzsatz": string, "anleitung": string }], "titel": string }'
+    : '{ "techniken": [{ "schlagwort": string, "kurzsatz": string, "anleitung": string }] }';
+
+  return `Du bist ein erfahrener Chef de Cuisine und gibst konkrete Anrichte-/Plattier-Empfehlungen für ein Gericht, aufbereitet als Bild-Labels (wie Beschriftungen auf einer Menükarten-Illustration).
+
+Stilrichtung "${STILRICHTUNG_LABEL[stilrichtung]}": ${STILRICHTUNG_PROMPT[stilrichtung]}
+Anrichte-Fokus "${ANRICHTE_FOKUS_LABEL[anrichteFokus]}": ${ANRICHTE_FOKUS_PROMPT[anrichteFokus]}
+Aufwandsstufe "${aufwand}": ${AUFWAND_STIL[aufwand]}
+
+Zu dieser Kombination passende, real existierende Plattier-Techniken aus unserer kuratierten Sammlung (bevorzugt hieraus schöpfen, nicht zwingend alle verwenden):
+${technikenKontext}
+
+Schlage 4-${MAX_TECHNIKEN} konkrete Anrichte-/Saucentechniken oder auffällige Komponenten vor, JEWEILS mit drei Feldern:
+- "schlagwort": EIN bis maximal zwei Wörter, GROSSGESCHRIEBEN als Label gedacht (z.B. "SAUCENSPIEGEL", "PUNKT-REIHE", "FISCHHAUT", "NORI"). Kein ganzer Satz.
+- "kurzsatz": maximal 8 Wörter, knapp und konkret, was diese Technik/Komponente bewirkt (z.B. "Bringt eine feine Umami-Note.", "Sorgt für Textur und Kontrast."). Wird permanent unter dem Schlagwort angezeigt.
+- "anleitung": der ausführliche, direkt umsetzbare Handgriff, wie ein Koch ihn am Teller ausführen würde (z.B. "Saucenspiegel mit dem Löffelrücken in einer fließenden Bewegung ziehen, dabei den Teller leicht kippen."). Wird erst bei Klick/Hover angezeigt.
+
+Beziehe dich konkret auf das genannte Gericht UND auf die gewählte Stilrichtung/den Anrichte-Fokus, nicht generisch. Verwende ausschließlich reale, tatsächlich existierende Techniken/Zutaten/Begriffe -- orientiere dich bevorzugt an der obigen Sammlung, ergänze bei Bedarf um weitere reale Techniken, aber erfinde keine Fantasiebegriffe. Liefere NIEMALS mehr als ${MAX_TECHNIKEN} Einträge -- die Labels haben nur ${MAX_TECHNIKEN} feste Positionen im Bild.${titelAnweisung}
+
+Antworte AUSSCHLIESSLICH mit JSON in exakt dieser Form: ${jsonSchema}`;
+}
 
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MIN_TIER);
@@ -105,6 +141,14 @@ export async function POST(req: NextRequest) {
   if (!aufwand) {
     return NextResponse.json({ error: 'Ungültiger oder fehlender Aufwand.' }, { status: 400 });
   }
+  const stilrichtung = resolveStilrichtung(body);
+  if (!stilrichtung) {
+    return NextResponse.json({ error: 'Ungültige oder fehlende Stilrichtung.' }, { status: 400 });
+  }
+  const anrichteFokus = resolveAnrichteFokus(body);
+  if (!anrichteFokus) {
+    return NextResponse.json({ error: 'Ungültiger oder fehlender Anrichte-Fokus.' }, { status: 400 });
+  }
 
   // Bild-Kontingent zuerst NUR pruefen (kein Verbrauch) -- so wird der teure
   // Bild-Call gar nicht erst ausgeloest, wenn das Kontingent schon leer ist.
@@ -129,7 +173,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Der Tellerdesigner ist aktuell nicht verfügbar.' }, { status: 500 });
   }
 
-  const imagePrompt = `Professionelle, fotorealistische Food-Fotografie: ${dishDescription} ${AUFWAND_STIL[aufwand]} Aufnahme von schräg oben (ca. 45 Grad), natürliches Licht, scharfer Fokus auf dem Teller, dezent unscharfer Hintergrund, keine Personen, kein Text, kein Wasserzeichen, kein Logo. Wirkt wie ein professionelles Foto aus einem Restaurant-Portfolio.`;
+  // Kuratierte Anrichte-Techniken (src/config/anrichteTechniken.ts) passend
+  // zu Aufwandsstufe + Anrichte-Fokus -- Grundlage fuer BEIDE Prompts unten,
+  // damit Bild UND Techniken-Labels aus echtem Handwerk statt freier
+  // Erfindung kommen.
+  const passendeTechniken = technikenFuer(aufwand, anrichteFokus);
+  const technikenKontext = formatTechnikenKontext(passendeTechniken);
+  const technikenNamenListe = passendeTechniken.map(t => t.name).join(', ');
+
+  // "Freigestellt" statt Restaurant-Ambiente: der Teller soll im Frontend frei
+  // auf der Creme-Seite schweben (kein Rahmen/Kasten), dafür muss das Bild
+  // selbst schon isoliert und schattenfrei-flach vom Hintergrund kommen --
+  // exakte Vorgabe (Englisch, wirkt bei gpt-image-1 zuverlaessiger als eine
+  // deutsche Umschreibung fuer diese Art Produktfotografie-Anweisung).
+  // WICHTIG: "dramatic lighting"/"michelin-star presentation" allein liess
+  // gpt-image-1 wiederholt einen dunklen Restaurant-Hintergrund rendern statt
+  // des isolierten Creme-Hintergrunds -- die Hintergrund-Vorgabe muss deshalb
+  // explizit gegen die Stimmungs-Zusaetze verteidigt werden (Klammerzusatz),
+  // sonst bricht die freischwebende Teller-Optik im Frontend. Zusaetzlich
+  // "no vignette, no shadow edges, no visible frame" -- die CSS-Radialmaske
+  // (teller-image-mask) blendet die Bildkante zwar weich aus, aber ein vom
+  // Modell selbst erzeugter Vignetten-/Schatten-/Rahmenrand blieb davon
+  // unabhaengig als sichtbarer Kreis um den Teller stehen.
+  const imagePrompt = `Professionelle, fotorealistische Food-Fotografie: ${dishDescription} ${STILRICHTUNG_PROMPT[stilrichtung]} ${ANRICHTE_FOKUS_PROMPT[anrichteFokus]} ${AUFWAND_STIL[aufwand]} Verwende dabei bevorzugt reale Plattier-Techniken aus dieser Auswahl, soweit zum Gericht passend: ${technikenNamenListe}. Top-down view, plate isolated on a plain light cream/off-white seamless background, no table, no props, no texture. Seamless plain background, no vignette, no shadow edges, no visible frame -- the background must be perfectly flat and uniform all the way to the image edges, with no darkening, no gradient, and no soft shadow ring around the plate. Professional editorial food photography, soft directional studio lighting on the dish itself only (not on the background) bringing out texture and height, elegant plating with height and dimension, michelin-star plating precision. The background must stay plain, bright, light cream/off-white throughout -- never dark, never a moody restaurant backdrop. No people, no text, no watermark, no logo.`;
+
+  const wantsTitel = body.mode === 'frei';
 
   const [imageResult, techniquesResult] = await Promise.allSettled([
     fetchWithTimeout('https://api.openai.com/v1/images/generations', {
@@ -151,7 +219,7 @@ export async function POST(req: NextRequest) {
         temperature: 0.7,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: TECHNIK_SYSTEM_PROMPT(aufwand) },
+          { role: 'system', content: buildTechnikSystemPrompt(aufwand, stilrichtung, anrichteFokus, wantsTitel, technikenKontext) },
           { role: 'user', content: dishDescription },
         ],
       }),
@@ -183,15 +251,28 @@ export async function POST(req: NextRequest) {
   const outputFormat = imageData.output_format ?? 'png';
   const image = `data:image/${outputFormat};base64,${b64}`;
 
-  // Anrichte-Muster sind eine Ergaenzung, kein kritischer Teil -- schlaegt der
-  // Text-Call fehl, liefern wir das (teure, bereits generierte) Bild trotzdem aus.
-  let techniken: string[] = [];
+  // Anrichte-Muster (+ Titel im frei-Modus) sind eine Ergaenzung, kein
+  // kritischer Teil -- schlaegt der Text-Call fehl, liefern wir das (teure,
+  // bereits generierte) Bild trotzdem aus.
+  let techniken: { schlagwort: string; kurzsatz: string; anleitung: string }[] = [];
+  let titel: string | undefined;
   if (techniquesResult.status === 'fulfilled' && techniquesResult.value.ok) {
     try {
       const data = await techniquesResult.value.json();
       const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? '{}');
       if (Array.isArray(parsed.techniken)) {
-        techniken = parsed.techniken.filter((t: unknown): t is string => typeof t === 'string' && t.trim().length > 0).map((t: string) => t.trim());
+        techniken = parsed.techniken
+          .filter((t: unknown): t is Record<string, unknown> => !!t && typeof t === 'object')
+          .map((t: Record<string, unknown>) => ({
+            schlagwort: typeof t.schlagwort === 'string' ? t.schlagwort.trim().toUpperCase() : '',
+            kurzsatz: typeof t.kurzsatz === 'string' ? t.kurzsatz.trim() : '',
+            anleitung: typeof t.anleitung === 'string' ? t.anleitung.trim() : '',
+          }))
+          .filter((t: { schlagwort: string; kurzsatz: string; anleitung: string }) => t.schlagwort && t.kurzsatz)
+          .slice(0, MAX_TECHNIKEN);
+      }
+      if (wantsTitel && typeof parsed.titel === 'string' && parsed.titel.trim()) {
+        titel = parsed.titel.trim();
       }
     } catch (e) {
       console.error('[tellerdesigner] Anrichte-Muster konnten nicht verarbeitet werden:', e instanceof Error ? e.message : e);
@@ -207,7 +288,7 @@ export async function POST(req: NextRequest) {
     ? { used: quotaBefore.used + 1, limit: monthlyLimit, remaining: Math.max(0, monthlyLimit - quotaBefore.used - 1) }
     : quotaBefore;
 
-  return NextResponse.json({ image, techniken, aufwand, quota: quotaAfter });
+  return NextResponse.json({ image, techniken, titel, aufwand, stilrichtung, anrichteFokus, quota: quotaAfter });
 }
 
 // Leichter Statusabruf fuer die Kontingent-Anzeige im Frontend (kein Verbrauch, kein OpenAI-Call).

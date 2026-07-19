@@ -140,6 +140,72 @@
   box-shadow: 0 0 0 1.5px var(--accent), 0 0 20px rgba(201,168,76,0.15);
 }
 
+/* ── Tellerdesigner: Schwierigkeits-Slider (nativer Range-Input, Bordeaux) ──── */
+.teller-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #6B3A4B 0%, #6B3A4B calc(var(--slider-pct, 50%)), var(--border) calc(var(--slider-pct, 50%)), var(--border) 100%);
+  outline: none;
+}
+.teller-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #6B3A4B;
+  border: 2px solid var(--card);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+.teller-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #6B3A4B;
+  border: 2px solid var(--card);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+.teller-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.teller-slider::-moz-range-progress {
+  height: 3px;
+  border-radius: 2px;
+  background: #6B3A4B;
+}
+
+/* ── Tellerdesigner: weiche Ausblendung der Bildkante ───────────────────────
+   Als eigene CSS-Klasse statt Inline-Style-Objekt -- vermeidet jede
+   Unklarheit ueber React's camelCase->CSS-Konvertierung fuer maskImage/
+   WebkitMaskImage und ist direkt im kompilierten CSS nachpruefbar.
+   "closest-side" statt der impliziten farthest-corner-Standardgroesse macht
+   die Prozentzahlen eindeutig: 55%/85% sind Bruchteile der halben Bildbreite,
+   nicht der (laengeren) Eckdistanz. */
+.teller-image-mask {
+  /* Kein explizites mask-mode setzen: der CSS-Default fuer einen Gradient
+     ist alpha-basiert (schwarz = voll sichtbar, transparent = ausgeblendet).
+     mask-mode: luminance wuerde "black" UND "transparent" beide auf
+     Luminanz 0 abbilden -- das Bild waere dann komplett unsichtbar.
+     Start bei 55% schnitt frueher in den echten Teller hinein (der auf dem
+     generierten Bild einen Grossteil des Frames fuellt) und sprang danach in
+     nur 30 Prozentpunkten auf transparent -- das ergab einen deutlich
+     sichtbaren kreisrunden Rand. Jetzt: Start erst bei 72% (ausserhalb des
+     Tellers, auf dem Hintergrund), mit zwischen Zwischenstopps ein deutlich
+     laengerer, weicherer Verlauf bis 100% (= closest-side-Rand des Bild-
+     Elements) statt eines harten 85%-Cutoffs. */
+  mask-image: radial-gradient(circle closest-side at center, black 72%, rgba(0,0,0,0.85) 82%, rgba(0,0,0,0.35) 92%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle closest-side at center, black 72%, rgba(0,0,0,0.85) 82%, rgba(0,0,0,0.35) 92%, transparent 100%);
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+}
+
 /* ── Saison-Marquee: kontinuierliches, nahtloses Durchlaufen ────────────────── */
 /* Track enthaelt die Liste zweimal hintereinander; -50% entspricht exakt der
    Hoehe EINER Kopie, daher ist der Loop-Punkt unsichtbar (klassischer
