@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, Loader2, Shuffle, BookMarked, PenLine, Target, LayoutGrid, Wand2, Contrast, ChevronDown } from 'lucide-react';
+import { Sparkles, Loader2, Shuffle, BookMarked, PenLine, Target, LayoutGrid, Wand2, Contrast, ChevronDown, Info } from 'lucide-react';
 import type { Recipe } from '@/types';
 import { AUFWANDSSTUFEN, type Aufwandsstufe } from '@/config/techniken';
 import { STILRICHTUNGEN, STILRICHTUNG_LABEL, type Stilrichtung } from '@/config/tellerStilrichtung';
@@ -38,6 +38,10 @@ type TellerControlsProps = {
   canGenerate: boolean;
   loading: boolean;
   quotaExhausted: boolean;
+  /** Alle 5 Varianten-Slots belegt -- separat von quotaExhausted, damit der
+   * Hinweistext erklaeren kann WARUM der Generieren-Button gesperrt ist,
+   * statt beides in ein undurchsichtiges "ausgegraut" zu verschmelzen. */
+  slotsFull: boolean;
   isUnlimitedQuota: boolean;
   quota: Quota;
   onGenerate: () => void;
@@ -112,7 +116,7 @@ export default function TellerControls({
   freieBeschreibung, onFreieBeschreibungChange,
   aufwand, onAufwandChange, stilrichtung, onStilrichtungChange,
   anrichteFokus, onAnrichteFokusChange,
-  canGenerate, loading, quotaExhausted, isUnlimitedQuota, quota, onGenerate, onRandom,
+  canGenerate, loading, quotaExhausted, slotsFull, isUnlimitedQuota, quota, onGenerate, onRandom,
 }: TellerControlsProps) {
   const aufwandIndex = AUFWANDSSTUFEN.indexOf(aufwand);
 
@@ -220,19 +224,28 @@ export default function TellerControls({
       </div>
 
       <div className="space-y-2">
-        <button onClick={onGenerate} disabled={loading || !canGenerate || quotaExhausted}
+        <button onClick={onGenerate} disabled={loading || !canGenerate || quotaExhausted || slotsFull}
           className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[14px] transition-all disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
           {loading ? <><Loader2 size={16} className="animate-spin" /> Generiere…</> : <><Sparkles size={16} /> Generieren</>}
         </button>
-        <button onClick={onRandom} disabled={loading}
+        <button onClick={onRandom} disabled={loading || slotsFull}
           className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-[13px] transition-all disabled:opacity-50"
           style={{ background: 'transparent', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
           <Shuffle size={14} /> Zufälliges Design
         </button>
-        <p className="text-[11px] text-center" style={{ color: 'var(--text-muted)' }}>
-          {quota ? (isUnlimitedQuota ? 'Unbegrenztes Kontingent' : `Noch ${quota.remaining} von ${quota.limit} Bildern diesen Monat`) : ''}
-        </p>
+        {/* slotsFull erklaert explizit WARUM generieren gerade nicht geht --
+            vorher war das nur ein stummes "ausgegraut", ohne dass klar war,
+            dass alle 5 Varianten-Plaetze belegt sind statt z.B. das Kontingent. */}
+        {slotsFull ? (
+          <p className="text-[11px] text-center flex items-center justify-center gap-1.5" style={{ color: '#9B7A2A' }}>
+            <Info size={11} className="flex-shrink-0" /> Alle 5 Plätze belegt — „Neues Design" für einen frischen Start
+          </p>
+        ) : (
+          <p className="text-[11px] text-center" style={{ color: 'var(--text-muted)' }}>
+            {quota ? (isUnlimitedQuota ? 'Unbegrenztes Kontingent' : `Noch ${quota.remaining} von ${quota.limit} Bildern diesen Monat`) : ''}
+          </p>
+        )}
       </div>
     </div>
   );

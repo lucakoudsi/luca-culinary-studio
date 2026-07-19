@@ -76,18 +76,17 @@ export default function TellerdesignerPage() {
     }
   }, [recipes]);
 
-  // Wechsel von Rezept/Modus/Stilrichtung/Anrichte-Fokus macht das bisherige
-  // Ergebnis ungueltig (gehoert zu einer anderen Kombination) -- Buehne muss
-  // zurueck in den Ausgangszustand, statt das alte Bild/Labels stehen zu
-  // lassen. Als Nebeneffekt gibt das auch wieder freie Varianten-Slots frei
-  // (variantSlotsLeft), falls die vorherige Kombination schon alle 5 Slots
-  // gefuellt hatte -- sonst blieb der Generieren-Button faelschlich
-  // ausgegraut, obwohl fuer die neue Auswahl noch nichts generiert wurde.
+  // Nur ein Wechsel von Rezept oder Modus (Rezept<->Frei) macht die
+  // bisherigen Varianten wirklich ungueltig -- die Labels/das Bild gehoeren
+  // dann zu einem komplett anderen Gericht. Stilrichtung/Anrichte-Fokus
+  // NICHT mit zuruecksetzen: genau das Sammeln mehrerer Stile fuer dasselbe
+  // Rezept in den 5 Slots ist der Vergleichs-Anwendungsfall, den die
+  // Varianten-Leiste eigentlich ermoeglichen soll.
   useEffect(() => {
     setVariants([]);
     setCurrentVariantId(null);
     setError(null);
-  }, [selectedId, mode, stilrichtung, anrichteFokus]);
+  }, [selectedId, mode]);
 
   const selectedRecipe = recipes.find(r => r.id === selectedId);
   const currentVariant = variants.find(v => v.id === currentVariantId) ?? null;
@@ -302,7 +301,7 @@ export default function TellerdesignerPage() {
             stilrichtung={stilrichtung} onStilrichtungChange={setStilrichtung}
             anrichteFokus={anrichteFokus} onAnrichteFokusChange={setAnrichteFokus}
             canGenerate={canGenerate} loading={loading}
-            quotaExhausted={quotaExhausted || !variantSlotsLeft} isUnlimitedQuota={isUnlimitedQuota} quota={quota}
+            quotaExhausted={quotaExhausted} slotsFull={!variantSlotsLeft} isUnlimitedQuota={isUnlimitedQuota} quota={quota}
             onGenerate={() => runGenerate()} onRandom={handleRandom}
           />
 
@@ -371,12 +370,21 @@ export default function TellerdesignerPage() {
                   <div className="inline-flex gap-2 p-2 bg-card border border-border rounded-xl">
                     {variants.map(v => (
                       <button key={v.id} onClick={() => setCurrentVariantId(v.id)}
-                        className="w-[58px] h-[58px] rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 hover:-translate-y-1"
+                        title={STILRICHTUNG_LABEL[v.stilrichtung]}
+                        className="group relative w-[58px] h-[58px] rounded-lg overflow-hidden flex-shrink-0 transition-all duration-300 hover:-translate-y-1"
                         style={{
                           border: v.id === currentVariantId ? '2px solid #6B3A4B' : '1px solid transparent',
                           boxShadow: v.id === currentVariantId ? '0 6px 16px rgba(107,58,75,0.22)' : '0 1px 3px rgba(0,0,0,0.08)',
                         }}>
                         <img src={v.image} alt="" className="w-full h-full object-cover" />
+                        {/* Stil-Beschriftung nur bei Hover -- mehrere Varianten
+                            desselben Rezepts in verschiedenen Stilen sollen
+                            sich unterscheiden lassen, ohne die kleine
+                            Thumbnail-Leiste dauerhaft mit Text zu ueberladen. */}
+                        <span className="absolute inset-x-0 bottom-0 px-1 py-0.5 text-[6.5px] font-semibold uppercase tracking-wide leading-tight text-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78), transparent)' }}>
+                          {STILRICHTUNG_LABEL[v.stilrichtung]}
+                        </span>
                       </button>
                     ))}
                     {Array.from({ length: MAX_VARIANTS - variants.length }).map((_, i) => (
