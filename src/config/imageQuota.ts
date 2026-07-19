@@ -12,7 +12,9 @@ export const IMAGE_QUOTA_BY_TIER: Record<number, number> = {
   1: 0,   // Free
   2: 0,   // Basic -- Tellerdesigner ist Pro-exklusiv
   3: 150, // Pro
-  4: 500, // Team (aktuell pro Nutzer, nicht geteilt -- siehe TO_CHANGE.md.txt)
+  4: 350, // Team (gesenkt von 500 -- Marge fiel bei voller Ausschoepfung auf ~44%,
+          // siehe abo-konzept.md.txt Abschnitt 11. Aktuell pro Nutzer, nicht
+          // geteilt -- siehe TO_CHANGE.md.txt und die offene Team-Frage ebenda.)
 };
 
 const TEAM_TIER = 4;

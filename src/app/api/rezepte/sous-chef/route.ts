@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { getMonthlyTextLimit, getTextQuotaStatus, incrementTextQuota, TEXT_QUOTA_WEIGHTS } from '@/lib/text-quota';
 import { REZEPT_KATEGORIEN, REZEPT_SCHWIERIGKEITEN, REZEPT_SAISONS } from '@/config/rezeptFelder';
 import { isValidEnum, parseZutatenArray, parseKomponenten, parseGeschmack, type RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
@@ -97,7 +98,7 @@ function parsePatch(raw: unknown, logPrefix: string): Partial<RezeptSnapshot> {
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
-  const { user } = check;
+  const { user, tier } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -123,6 +124,7 @@ export async function POST(req: NextRequest) {
   }
   const images = rawImages;
   const hasImages = images.length > 0;
+  const textQuotaWeight = hasImages ? TEXT_QUOTA_WEIGHTS.vision : TEXT_QUOTA_WEIGHTS.sousChefText;
 
   const maxPayloadChars = hasImages ? MAX_PAYLOAD_CHARS_WITH_IMAGES : MAX_PAYLOAD_CHARS;
   if (JSON.stringify(body).length > maxPayloadChars) {
@@ -140,6 +142,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Keine Nachricht angegeben.' }, { status: 400 });
   }
   const trimmedMessages = messages.slice(-MAX_MESSAGES);
+
+  // Gewichtung haengt davon ab, ob dieser Turn Bilder mitschickt (Vision ist
+  // spuerbar teurer, siehe docs/text-quota.sql) -- Vorab-Pruefung, kein
+  // Verbrauch, bevor der teure Call ausgeloest wird.
+  const monthlyTextLimit = getMonthlyTextLimit(tier);
+  const textQuotaBefore = await getTextQuotaStatus(user.id, monthlyTextLimit);
+  if (textQuotaBefore.remaining < textQuotaWeight) {
+    return NextResponse.json(
+      {
+        error: 'quota_exceeded',
+        message: 'Monatskontingent für Text-KI-Funktionen erreicht -- nächsten Monat geht es weiter.',
+        quota: textQuotaBefore,
+      },
+      { status: 429 },
+    );
+  }
 
   let apiKey: string;
   try {
@@ -226,6 +244,9 @@ export async function POST(req: NextRequest) {
     console.error('[sous-chef] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
   }
+
+  incrementTextQuota(user.id, monthlyTextLimit, textQuotaWeight).catch(() => {});
+
   const p = parsed as Record<string, unknown>;
   const reply = typeof p.reply === 'string' && p.reply.trim() ? p.reply.trim() : 'Verstanden.';
   const updatedFields = parsePatch(p.updatedFields, '[sous-chef]');

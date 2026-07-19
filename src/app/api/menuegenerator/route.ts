@@ -3,6 +3,7 @@ import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { getMonthlyTextLimit, getTextQuotaStatus, incrementTextQuota, TEXT_QUOTA_WEIGHTS } from '@/lib/text-quota';
 import { matchWeine, type Wein, type FoodProfile } from '@/lib/weinPairing';
 import {
   AUFWANDSSTUFEN, TECHNIKEN_NACH_AUFWAND, ZUSATZ_TECHNIKEN_NACH_AUFWAND,
@@ -133,7 +134,7 @@ function spreadAcrossCategories(items: ZutatKontext[], max: number): ZutatKontex
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MENUEGENERATOR_MIN_TIER);
   if (!check.ok) return check.response;
-  const { user } = check;
+  const { user, tier } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -248,6 +249,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Monatliches Text-Kontingent zuerst NUR pruefen (kein Verbrauch) -- ein
+  // Menue kostet 3 Einheiten (siehe docs/text-quota.sql), der teure Call
+  // wird gar nicht erst ausgeloest, wenn das Restkontingent nicht reicht.
+  const monthlyTextLimit = getMonthlyTextLimit(tier);
+  const textQuotaBefore = await getTextQuotaStatus(user.id, monthlyTextLimit);
+  if (textQuotaBefore.remaining < TEXT_QUOTA_WEIGHTS.menue) {
+    return NextResponse.json(
+      {
+        error: 'quota_exceeded',
+        message: 'Monatskontingent für Text-KI-Funktionen erreicht -- nächsten Monat geht es weiter.',
+        quota: textQuotaBefore,
+      },
+      { status: 429 },
+    );
+  }
+
   let apiKey: string;
   try {
     apiKey = getOperatorOpenAiKey();
@@ -342,6 +359,10 @@ export async function POST(req: NextRequest) {
     console.error('[menuegenerator] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
   }
+
+  // Erst JETZT, nach erfolgreicher Generierung, das Kontingent tatsaechlich
+  // verbrauchen -- ein fehlgeschlagener Call oben verbrennt kein Kontingent.
+  incrementTextQuota(user.id, monthlyTextLimit, TEXT_QUOTA_WEIGHTS.menue).catch(() => {});
 
   // Technik-Feld serverseitig gegen die erlaubte Liste der Aufwandsstufe
   // absichern -- der Prompt verlangt woertliche Uebernahme, aber die KI weicht

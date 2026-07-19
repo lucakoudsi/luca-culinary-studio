@@ -5,6 +5,7 @@ import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { getMonthlyTextLimit, getTextQuotaStatus, incrementTextQuota, TEXT_QUOTA_WEIGHTS } from '@/lib/text-quota';
 import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult, type PromptModus } from '@/lib/rezeptKiExtraktion';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
@@ -44,7 +45,7 @@ function parseDataUrl(dataUrl: string): { mime: string; buffer: Buffer } | null 
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
-  const { user } = check;
+  const { user, tier } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -96,6 +97,19 @@ export async function POST(req: NextRequest) {
       console.error('[import-bild] Bildkomprimierung fehlgeschlagen:', e instanceof Error ? e.message : e);
       return NextResponse.json({ error: 'Ein Bild konnte nicht verarbeitet werden. Bitte ein anderes Format versuchen.' }, { status: 400 });
     }
+  }
+
+  const monthlyTextLimit = getMonthlyTextLimit(tier);
+  const textQuotaBefore = await getTextQuotaStatus(user.id, monthlyTextLimit);
+  if (textQuotaBefore.remaining < TEXT_QUOTA_WEIGHTS.vision) {
+    return NextResponse.json(
+      {
+        error: 'quota_exceeded',
+        message: 'Monatskontingent für Text-KI-Funktionen erreicht -- nächsten Monat geht es weiter.',
+        quota: textQuotaBefore,
+      },
+      { status: 429 },
+    );
   }
 
   let apiKey: string;
@@ -166,6 +180,8 @@ export async function POST(req: NextRequest) {
     console.error('[import-bild] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
   }
+
+  incrementTextQuota(user.id, monthlyTextLimit, TEXT_QUOTA_WEIGHTS.vision).catch(() => {});
 
   if (isEmptyRezeptResult(result)) {
     return NextResponse.json(

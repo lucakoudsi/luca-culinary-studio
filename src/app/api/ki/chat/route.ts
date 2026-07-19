@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { getMonthlyTextLimit, getTextQuotaStatus, incrementTextQuota, TEXT_QUOTA_WEIGHTS } from '@/lib/text-quota';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +23,7 @@ type ChatMessage = { role: 'user' | 'assistant'; content: string };
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
-  const { user } = check;
+  const { user, tier } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -41,6 +42,22 @@ export async function POST(req: NextRequest) {
   const messages = Array.isArray(body.messages) ? body.messages : [];
   if (messages.length === 0) {
     return Response.json({ error: 'Keine Nachricht angegeben.' }, { status: 400 });
+  }
+
+  // Monatliches Text-Kontingent zuerst NUR pruefen (kein Verbrauch) -- so wird
+  // der Chat-Call gar nicht erst ausgeloest, wenn das Kontingent schon leer
+  // ist (siehe docs/text-quota.sql).
+  const monthlyTextLimit = getMonthlyTextLimit(tier);
+  const textQuotaBefore = await getTextQuotaStatus(user.id, monthlyTextLimit);
+  if (textQuotaBefore.remaining < TEXT_QUOTA_WEIGHTS.chat) {
+    return Response.json(
+      {
+        error: 'quota_exceeded',
+        message: 'Monatskontingent für Text-KI-Funktionen erreicht -- nächsten Monat geht es weiter.',
+        quota: textQuotaBefore,
+      },
+      { status: 429 },
+    );
   }
 
   let apiKey: string;
@@ -88,6 +105,12 @@ export async function POST(req: NextRequest) {
     }
     return Response.json({ error: 'Fehler beim Abrufen der Antwort.' }, { status: 502 });
   }
+
+  // Erst JETZT, nach erfolgreichem Verbindungsaufbau zu OpenAI, das
+  // Kontingent tatsaechlich verbrauchen (best effort, blockiert das
+  // Streaming nicht) -- ein oben bereits abgefangener Fehler verbrennt
+  // kein Kontingent.
+  incrementTextQuota(user.id, monthlyTextLimit, TEXT_QUOTA_WEIGHTS.chat).catch(() => {});
 
   // OpenAI-SSE-Stream in einen reinen Text-Stream umwandeln (nur die Content-Deltas an den Client)
   const encoder = new TextEncoder();

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireTier } from '@/lib/apiAuth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { getOperatorOpenAiKey } from '@/lib/operator-key';
+import { getMonthlyTextLimit, getTextQuotaStatus, incrementTextQuota, TEXT_QUOTA_WEIGHTS } from '@/lib/text-quota';
 import { buildRezeptSystemPrompt, parseKiRezeptResponse, isEmptyRezeptResult } from '@/lib/rezeptKiExtraktion';
 import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 
@@ -21,7 +22,7 @@ const SYSTEM_PROMPT = buildRezeptSystemPrompt(INTRO);
 export async function POST(req: NextRequest) {
   const check = await requireTier(req, MIN_TIER);
   if (!check.ok) return check.response;
-  const { user } = check;
+  const { user, tier } = check;
 
   const rateLimit = await checkRateLimit(user.id);
   if (!rateLimit.allowed) {
@@ -43,6 +44,19 @@ export async function POST(req: NextRequest) {
   }
   if (text.length > MAX_TEXT_LENGTH) {
     return NextResponse.json({ error: `Text ist zu lang (max. ${MAX_TEXT_LENGTH} Zeichen).` }, { status: 400 });
+  }
+
+  const monthlyTextLimit = getMonthlyTextLimit(tier);
+  const textQuotaBefore = await getTextQuotaStatus(user.id, monthlyTextLimit);
+  if (textQuotaBefore.remaining < TEXT_QUOTA_WEIGHTS.importText) {
+    return NextResponse.json(
+      {
+        error: 'quota_exceeded',
+        message: 'Monatskontingent für Text-KI-Funktionen erreicht -- nächsten Monat geht es weiter.',
+        quota: textQuotaBefore,
+      },
+      { status: 429 },
+    );
   }
 
   let apiKey: string;
@@ -108,6 +122,11 @@ export async function POST(req: NextRequest) {
     console.error('[import-ki] KI-Antwort hat unerwartete Struktur.');
     return NextResponse.json({ error: 'Die KI-Antwort hatte eine unerwartete Struktur. Bitte erneut versuchen.' }, { status: 502 });
   }
+
+  // Kontingent wird verbraucht, sobald der Call erfolgreich war -- unabhaengig
+  // davon, ob die KI ein Rezept fand (isEmptyRezeptResult unten): die Kosten
+  // sind in beiden Faellen bereits entstanden.
+  incrementTextQuota(user.id, monthlyTextLimit, TEXT_QUOTA_WEIGHTS.importText).catch(() => {});
 
   if (isEmptyRezeptResult(result)) {
     return NextResponse.json(

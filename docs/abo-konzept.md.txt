@@ -1,6 +1,6 @@
 ﻿# Abo-Konzept: Öffentliches Abo-Produkt
 
-**LUCA Culinary Studio** · Stand 2026-07-10 · Next.js 14 · Supabase · Vercel
+**LUCA Culinary Studio** · Stand 2026-07-19 (siehe Abschnitt 11 für die letzte inhaltliche Aktualisierung) · Next.js 14 · Supabase · Vercel
 
 > **Wichtiger Rahmen:** Dieses Dokument beschreibt die **Produkt- und Technik-Architektur**. Es ist **keine Rechts- oder Steuerberatung**. Alle mit ⚖️ markierten Punkte (AGB, Widerruf, Umsatzsteuer, Datenschutz für zahlende Kunden, Auftragsverarbeitung mit OpenAI) müssen fachlich geklärt werden, bevor echtes Geld fließt. Alle Preise sind Vorschläge auf Kostenbasis, keine Empfehlung – du legst sie selbst fest.
 
@@ -27,15 +27,15 @@ Das bisherige BYOK-System (Key-Verschlüsselung, Nutzer-Key-Verwaltung im Profil
 | **Free** | Schaufenster, Neugierige | ❌ | ❌ | ❌ |
 | **Basic** | KI-Einstieg, Hobby-Ambitionierte | ✅ unbegrenzt (fair-use) | ❌ (0 – Tellerdesigner ist Pro-exklusiv) | Menügenerator |
 | **Pro** | Ernsthafte tägliche Nutzer | ✅ unbegrenzt (fair-use) | 150 | alle (Kreativlabor, Menügenerator, Tellerdesigner) |
-| **Team** | Restaurantküchen, mehrere Köche | ✅ unbegrenzt (fair-use) | 500 (geteilt) | alle + Mehrbenutzer |
+| **Team** | Restaurantküchen, mehrere Köche | ✅ unbegrenzt (fair-use) | 350 (aktuell pro Nutzer, nicht geteilt -- siehe Abschnitt 11) | alle + Mehrbenutzer |
 
 **Free** hat vollen Zugriff auf die Nicht-KI-Features (Rezeptarchiv, Zutatenbibliothek 500 Zutaten, Stammbaum, Saisonkalender, Fermentation, Projekte) – das ist dein Schaufenster, das Leute reinholt und den Wert zeigt, bevor sie zahlen.
 
-**Chat unbegrenzt (fair-use):** Der KI-Sous-Chef kostet pro Nachricht nur Bruchteile eines Cents, daher in allen Bezahlstufen großzügig. „Fair-use" heißt: das bestehende Rate-Limit (20/Min, 200/Tag) bleibt als Missbrauchsschutz aktiv, aber kein hartes Monatskontingent. So kann niemand das System leerfeuern, normale Nutzung ist aber nie eingeschränkt.
+**Chat/Text-KI (überholt, siehe Abschnitt 11):** Ursprünglich hier als "unbegrenzt (fair-use)" geplant -- nur durch das bestehende Rate-Limit (20/Min, 200/Tag) geschützt, kein Monatskontingent. Das galt nur für Chat allein; als klar wurde, dass ein Basic-Nutzer damit theoretisch 200 Menüs/Tag generieren könnte (viel teurer als eine Chat-Nachricht), wurde stattdessen ein **gewichtetes monatliches Text-Kontingent** gebaut (`docs/text-quota.sql`, Basic 150 / Pro 375 / Team 900 Einheiten, siehe dort für die Gewichtung). Das Rate-Limit bleibt zusätzlich bestehen.
 
 **Bilder gestaffelt:** Bilder sind der eigentliche Kostentreiber (~4 Cent/Stück bei Medium-Qualität), daher das zentrale Unterscheidungsmerkmal zwischen den Stufen. Das Bildkontingent ist der Hebel, an dem der Preisunterschied hängt.
 
-**Team-Besonderheit:** Mehrere Nutzer teilen sich ein Konto und das Bildkontingent (500 geteilt). Das ist die technisch komplexeste Stufe (Team-Verwaltung, Einladungen, geteiltes Kontingent) – **empfohlen: erst später bauen**, wenn Basic/Pro laufen.
+**Team-Besonderheit:** Gedacht als mehrere Nutzer, die sich ein Konto und das Bildkontingent teilen -- **aktuell aber nicht so gebaut** (siehe die offene Grundsatzfrage in Abschnitt 10): Jeder Nutzer mit Team-Stufe bekommt sein eigenes 350er-Bildkontingent, nichts wird geteilt. Team ist ohnehin die technisch komplexeste Stufe (Team-Verwaltung, Einladungen, geteiltes Kontingent) – **empfohlen: erst später bauen**, wenn Basic/Pro laufen.
 
 ---
 
@@ -69,7 +69,7 @@ Beide sind unabhängig kombinierbar. So kann ein Admin vollen Zugriff haben, ohn
 | Menügenerator | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Kreativlabor | ❌ | ❌ | ✅ | ✅ | ✅ |
 | Tellerdesigner (Bilder) | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Bild-Kontingent/Monat | – | – | 150 | 500 | ∞ |
+| Bild-Kontingent/Monat | – | – | 150 | 350 | ∞ |
 | Mehrbenutzer-Verwaltung | ❌ | ❌ | ❌ | ✅ | ✅ |
 
 **Umbau-Reihenfolge (WICHTIG – nicht nur Labels tauschen!):** Die bestehende Zugriffs-Logik hängt aktuell überall an den alten Rang-Namen (Middleware-Redirect, Rechte-Übersicht in profil/page.tsx, `NEXT_PUBLIC_AI_ENABLED`-Flag, PAGE_MIN_TIER in config/roles.ts). Deshalb:
@@ -100,6 +100,8 @@ Das sind **Worst-Case-Kosten** (jeder Nutzer schöpft voll aus). Real nutzen die
 
 > ⚠️ Bild- und Tokenpreise ändern sich häufig, und Modelle werden abgelöst (GPT Image 1 wird z. B. am 23.10.2026 abgeschaltet). Vor verbindlicher Preisfestlegung immer die Live-Preisseite prüfen und den OpenAI-Image-Kalkulator nutzen.
 
+> 📌 **Veraltet, nur als historischer Ausgangspunkt stehen gelassen:** Diese Tabelle stammt aus der Zeit vor dem echten, gewichteten Text-Kontingent (Chat war noch "großzügig/fair-use" ohne harte Zahl) und vor dem 350er-Bildkontingent für Team. Für die aktuelle, vollständige Rechnung -- inkl. Stripe-Gebühren, Infrastruktur und Netto/MwSt -- siehe **Abschnitt 11**.
+
 ---
 
 ## 4. Preisvorschläge (auf Kostenbasis – du entscheidest final)
@@ -116,6 +118,8 @@ Faustregel für gesunde Marge bei Software-Abos: **Verkaufspreis ≈ 3–5× der
 **Jahresrabatt:** „2 Monate gratis" (also ~17 % Rabatt) ist marktüblich und belohnt Vorauszahlung – gut für deinen Cashflow. Zahlen sind Vorschläge; du kannst höher/niedriger gehen je nach Zielgruppe und Positionierung.
 
 **Zahlungsgebühren nicht vergessen:** Stripe nimmt grob **1,5 % + 0,25 €** pro Transaktion (EU-Karten; genaue Konditionen prüfen). Bei 9,99 € sind das ~40 Cent – in der Marge oben noch nicht abgezogen, aber verkraftbar.
+
+> 📌 **Veraltet, siehe Abschnitt 11:** "Marge/Monat" hier ist Bruttopreis minus reiner $-Kosten, ohne MwSt-Abzug, Stripe-Gebühren oder Infrastruktur -- und Team rechnet noch mit dem inzwischen auf 350 gesenkten Bildkontingent. Abschnitt 11 hat die vollständige Nettorechnung, die den Team-Fall (Marge fiel bei 500 Bildern auf ~44 %) tatsächlich aufgedeckt hat.
 
 ---
 
@@ -187,5 +191,43 @@ Weil das BYOK-System schon existiert, könntest du perspektivisch beides anbiete
 - Welches Bildmodell/-qualität als Standard (Kosten vs. Optik) – konkret testen, wenn der Tellerdesigner gebaut wird.
 - Reihenfolge: erst alle Features fertig (für dich nutzbar), dann Stripe? (empfohlen) Oder Stripe früher?
 - Team-Stufe von Anfang an oder nachrüsten? (empfohlen: nachrüsten)
+- **Grundsatzfrage, was "Team" überhaupt ist -- MUSS vor dem Stripe-Baustein (Abschnitt 7) geklärt sein** (siehe Abschnitt 11 für Kontext): Aktuell ist "Team" nur eine Stufennummer auf einem Einzelprofil -- kein Mehrbenutzer-Konzept, keine Einladungen, kein geteiltes Kontingent. Zwei Modelle stehen im Raum:
+  1. **Team = Einzelkonto mit größerem Kontingent.** Einfach (nichts zu bauen), aber der Name "Team" wäre irreführend -- niemand teilt sich hier etwas.
+  2. **Team = echtes Mehrbenutzer-Konto mit geteiltem Kontingent.** Entspricht dem ursprünglichen Versprechen ("mehrere Köche teilen sich ein Konto"), braucht aber Organisationen, Einladungen, Rollen -- ein eigener Baustein, vermutlich vergleichbar aufwendig wie Stripe selbst.
+  Ohne diese Entscheidung baut Stripe eine Abo-Stufe, deren Produktversprechen nicht eingelöst wird. Noch nicht gebaut, bewusst offen gelassen.
 - ⚖️ Rechtsform / Gewerbe / Steuer-Setup – fachlich klären.
+
+---
+
+## 11. Update 2026-07-19: Vollständige Margenrechnung + Team-Bildkontingent gesenkt
+
+Nachdem das Text-Kontingent (`docs/text-quota.sql`, gewichtet, Basic 150 / Pro 375 / Team 900 Einheiten) real gebaut war, wurde erstmals die **vollständige** Kostenrechnung pro Stufe gemacht -- nicht nur Bildkosten wie in Abschnitt 3, sondern Text-Kontingent + Bild-Kontingent + Stripe-Gebühren + anteilige Infrastruktur, netto (Bruttopreis ÷ 1,19 für 19 % MwSt).
+
+**Annahmen:** $ und € 1:1 behandelt (wie im übrigen Dokument, Kursabweichung bei diesen Beträgen vernachlässigbar). Infrastruktur: Vercel Pro (~20 $) + Supabase Pro (~25 $) + Domain (~1 €/Monat) ≈ 46 €/Monat gesamt, angenommen auf ~50 zahlende Nutzer verteilt ≈ **1,00 € pro Nutzer/Monat** (tier-unabhängig, schrumpft mit jedem weiteren Abonnenten -- der unsicherste Posten dieser Rechnung, aber auch der kleinste). Stripe: 1,4 % + 0,25 € auf den Bruttopreis.
+
+**Ergebnis bei voller Ausschöpfung (Team noch mit dem alten 500er-Bildkontingent):**
+
+| Stufe | Netto-Erlös | Text-Kontingent | Bild-Kontingent | Stripe | Infra | **Kosten gesamt** | **Marge** | **Marge %** |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Basic | 8,39 € | 1,05 $ | 0,00 $ | 0,39 € | 1,00 € | **2,44** | **5,96 €** | **70,9 %** |
+| Pro | 21,00 € | 2,63 $ | 6,00 $ | 0,60 € | 1,00 € | **10,22** | **10,78 €** | **51,3 %** |
+| Team (500 Bilder) | 50,41 € | 6,30 $ | 20,00 $ | 1,09 € | 1,00 € | **28,39** | **22,02 €** | **43,7 %** |
+
+Team fiel damit unter 50 % Marge -- Pro lag mit 51,3 % ebenfalls schon hauchdünn über der Linie. Zusätzlicher Fund: Das Bildkontingent wird aktuell **pro Nutzer, nicht geteilt** vergeben (siehe TO_CHANGE.md.txt) -- bei einem echten Mehrbenutzer-Team (siehe die offene Frage in Abschnitt 10) hätte sich das Kontingent potenziell vervielfacht statt geteilt, was das reale Risiko über diese Einzelnutzer-Rechnung hinaus vergrößert.
+
+**Geprüfte Optionen für Team:**
+
+- **(a) Bildkontingent senken.** Break-even für exakt 50 % Marge liegt bei ~420 Bildern. 350 Bilder geben spürbaren Puffer.
+- **(b) Preis anheben, 500 Bilder behalten.** Break-even bei ~67,99 € brutto; ein runder Preis mit Puffer wäre 69,99 € (Marge ~51,5 %).
+- **(c) Bewusst akzeptieren.** Solange die kombinierte Ausschöpfung von Text- und Bild-Kontingent unter ~88 % bleibt, ist die Marge noch ≥ 50 %. Erst darüber kippt es.
+
+**Entscheidung: Option (a).** Team-Bildkontingent von 500 auf **350** gesenkt (`src/config/imageQuota.ts`). Grund: senkt das Risiko direkt an der Quelle, ohne eine Preiserhöhung zu brauchen (die für ein noch nicht verkauftes Produkt schwerer zu widerrufen wäre) oder sich auf eine Ausschöpfungs-Annahme zu verlassen, die durch das Pro-Nutzer-statt-geteilt-Verhalten ohnehin unsicher ist.
+
+**Ergebnis nach der Senkung:**
+
+| Stufe | Kosten gesamt | Marge | Marge % |
+|---|---:|---:|---:|
+| Team (350 Bilder) | 22,39 | 28,02 € | **55,6 %** |
+
+Optionen (b) und (c) sind damit nicht vom Tisch, falls sich die Annahmen (z. B. Bildkosten, Ausschöpfungsverhalten in der Praxis) später ändern -- diese Rechnung ist der Ausgangspunkt für eine Neubewertung, keine endgültige Antwort.
 
