@@ -184,11 +184,27 @@ export default function TellerdesignerPage() {
   const handleSave = async () => {
     if (!currentVariant || saving) return;
     setSaving(true);
+    // Titel: im "frei"-Modus liefert die API bereits einen erfundenen
+    // Gerichtnamen (variant.titel); im "rezept"-Modus gibt es keinen -- dort
+    // faellt es auf den Rezepttitel zurueck (siehe Buehnen-Ueberschrift in
+    // TellerStage, die aus demselben Grund nur im "frei"-Modus etwas anzeigt).
+    const titel = currentVariant.titel || (mode === 'rezept' ? selectedRecipe?.title : undefined) || 'Anrichte-Design';
     try {
       const res = await fetch('/api/tellerdesigner/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: currentVariant.image }),
+        body: JSON.stringify({
+          image: currentVariant.image,
+          modus: mode,
+          titel,
+          rezeptId: mode === 'rezept' ? selectedId : null,
+          stilrichtung: currentVariant.stilrichtung,
+          aufwand: currentVariant.aufwand,
+          anrichteFokus: currentVariant.anrichteFokus,
+          zubereitungszeit: mode === 'rezept' ? selectedRecipe?.time ?? null : null,
+          saison: mode === 'rezept' ? selectedRecipe?.season ?? null : null,
+          techniken: currentVariant.techniken,
+        }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
