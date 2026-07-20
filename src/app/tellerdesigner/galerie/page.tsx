@@ -28,8 +28,7 @@ export default function TellerdesignerGaleriePage() {
       .catch(() => setError('Netzwerkfehler beim Laden.'))
       .finally(() => setLoading(false));
 
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().then((supabase) => supabase.auth.getUser()).then(({ data }) => {
       const u = data.user;
       if (!u) return;
       fetch('/api/profil').then(r => r.json()).then(d => {
@@ -37,7 +36,7 @@ export default function TellerdesignerGaleriePage() {
         const name: string = d.profile?.full_name || u.email?.split('@')[0] || 'Chef';
         setInitials(name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2));
       }).catch(() => {});
-    });
+    }).catch((e) => console.warn('[Tellerdesigner-Galerie] Auth-Check fehlgeschlagen:', e));
   }, []);
 
   return (

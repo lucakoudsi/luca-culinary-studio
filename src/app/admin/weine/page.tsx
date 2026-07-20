@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { ADMIN_EMAIL } from '@/config/roles';
-import { submitGlow } from '@/lib/utils';
-import { Plus, Pencil, Trash2, X, Save, Loader2, ShieldOff, ChevronLeft } from 'lucide-react';
+import { submitGlow, isChunkLoadError } from '@/lib/utils';
+import { Plus, Pencil, Trash2, X, Save, Loader2, ShieldOff, ChevronLeft, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import type { Wein, WeinProfil } from '@/lib/weinPairing';
 
@@ -116,6 +116,7 @@ export default function AdminWeinePage() {
   const router = useRouter();
 
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [authError,  setAuthError]  = useState('');
   const [weine,      setWeine]      = useState<Wein[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [filter,     setFilter]     = useState<Wein['typ'] | 'alle'>('alle');
@@ -134,14 +135,20 @@ export default function AdminWeinePage() {
   // ── Auth check ────────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== ADMIN_EMAIL) {
-        setAuthorized(false);
-        setTimeout(() => router.push('/'), 2000);
-        return;
+      try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || user.email !== ADMIN_EMAIL) {
+          setAuthorized(false);
+          setTimeout(() => router.push('/'), 2000);
+          return;
+        }
+        setAuthorized(true);
+      } catch (e) {
+        setAuthError(isChunkLoadError(e)
+          ? 'Die Anwendung wurde aktualisiert – bitte Seite neu laden.'
+          : 'Zugriffsprüfung fehlgeschlagen. Bitte erneut versuchen.');
       }
-      setAuthorized(true);
     })();
   }, [router]);
 
@@ -213,6 +220,20 @@ export default function AdminWeinePage() {
   };
 
   // ── Guard states ───────────────────────────────────────────────────────────
+  if (authError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>
+        <ShieldOff size={40} color="#f87171" />
+        <p className="text-[#f87171] font-semibold text-[15px]">{authError}</p>
+        <button onClick={() => window.location.reload()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold"
+          style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+          <RefreshCw size={14} /> Neu laden
+        </button>
+      </div>
+    );
+  }
+
   if (authorized === false) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>

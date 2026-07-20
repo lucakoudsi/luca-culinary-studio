@@ -279,13 +279,12 @@ function NewRezeptForm() {
   // Free nutzbar. Server erzwingt das ohnehin (requireTier), hier nur UI.
   const [userTier, setUserTier] = useState<number | null>(null);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().then((supabase) => supabase.auth.getUser()).then(({ data }) => {
       const email = data.user?.email ?? null;
       fetch('/api/profil').then(r => r.json()).then(d => {
         setUserTier(getUserTier(email, d.profile?.stufe));
       }).catch(() => setUserTier(1));
-    });
+    }).catch((e) => { console.warn('[Rezept-Neu] Tier-Check fehlgeschlagen:', e); setUserTier(1); });
   }, []);
   const kiLocked = userTier !== null && userTier < 2;
 
@@ -658,7 +657,7 @@ function NewRezeptForm() {
         return null;
       }
       const path = `${crypto.randomUUID()}.jpg`;
-      const sb = createClient();
+      const sb = await createClient();
       const { error } = await sb.storage.from('rezept-bilder').upload(path, blob, {
         contentType: 'image/jpeg',
         cacheControl: '31536000',
@@ -1158,7 +1157,11 @@ function NewRezeptForm() {
         <div className={SEC}>
           <h2 className={STL}><Tag size={16} color="#6B3A4B" /> Zutaten</h2>
           {zutaten.length === 0 && (
-            <p className="text-[13px] text-text-muted mb-3">Noch keine Zutaten hinzugefügt.</p>
+            <p className="text-[13px] text-text-muted mb-3">
+              {komponenten.length > 0
+                ? `Dieses Rezept ist in ${komponenten.length} Komponenten gegliedert – die Zutaten stehen dort ↓`
+                : 'Noch keine Zutaten hinzugefügt.'}
+            </p>
           )}
           <div className="space-y-2">
             {zutaten.map((z, i) => (

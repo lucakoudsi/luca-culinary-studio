@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
-import { cn } from '@/lib/utils';
+import { cn, isChunkLoadError } from '@/lib/utils';
 import { applyTheme } from '@/lib/theme';
 import type { ThemeMode } from '@/lib/theme';
 import { createClient } from '@/utils/supabase/client';
@@ -57,6 +57,8 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  const [logoutNeedsReload, setLogoutNeedsReload] = useState(false);
   const [avatarUrl, setAvatarUrl]   = useState<string | null>(null);
   const [profileName, setProfileName] = useState('');
   const [fullName, setFullName]     = useState('');
@@ -73,8 +75,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().then((supabase) => supabase.auth.getUser()).then(({ data }) => {
       const u = data.user ?? null;
       setUser(u);
       if (u) {
@@ -88,7 +89,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
           setStandort(d.profile?.standort ?? 'Mainz');
         }).catch(() => setUserTier(1));
       }
-    });
+    }).catch((e) => { console.warn('[Sidebar] Auth-Check fehlgeschlagen:', e); setUserTier(1); });
     // Read theme + font from localStorage
     const t = localStorage.getItem('theme') as ThemeMode | null;
     if (t === 'light' || t === 'dark' || t === 'auto') setTheme(t);
@@ -121,10 +122,22 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
 
   const handleLogout = async () => {
     setLoggingOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    setLogoutError('');
+    setLogoutNeedsReload(false);
+    try {
+      const supabase = await createClient();
+      await supabase.auth.signOut();
+      router.push('/login');
+      router.refresh();
+    } catch (e) {
+      setLoggingOut(false);
+      if (isChunkLoadError(e)) {
+        setLogoutError('Anwendung aktualisiert – bitte neu laden.');
+        setLogoutNeedsReload(true);
+      } else {
+        setLogoutError('Abmelden fehlgeschlagen.');
+      }
+    }
   };
 
   const saveDbSettings = async (patch: Record<string, unknown>) => {
@@ -445,6 +458,19 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
             <LogOut size={14} />
             {loggingOut ? 'Abmelden…' : 'Abmelden'}
           </button>
+          {logoutError && (
+            <div className="px-3 py-2 rounded-lg text-[11px] flex items-center justify-between gap-2"
+              style={{ background: 'rgba(192,80,80,0.08)', color: '#C05050' }}>
+              <span>{logoutError}</span>
+              {logoutNeedsReload && (
+                <button type="button" onClick={() => window.location.reload()}
+                  className="shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold"
+                  style={{ background: 'rgba(192,80,80,0.15)' }}>
+                  Neu laden
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </aside>
     </>

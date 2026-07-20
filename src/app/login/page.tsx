@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
+import { isChunkLoadError } from '@/lib/utils';
 import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const BlobBackground = dynamic(() => import('@/components/ui/BlobBackground'), { ssr: false });
@@ -68,20 +69,32 @@ export default function LoginPage() {
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const [needsReload, setNeedsReload] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    if (err) {
-      setError(err.message === 'Invalid login credentials' ? 'E-Mail oder Passwort ist falsch.' : err.message);
+    setNeedsReload(false);
+    try {
+      const supabase = await createClient();
+      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+      if (err) {
+        setError(err.message === 'Invalid login credentials' ? 'E-Mail oder Passwort ist falsch.' : err.message);
+        setLoading(false);
+        return;
+      }
+      router.push('/');
+      router.refresh();
+    } catch (e) {
+      if (isChunkLoadError(e)) {
+        setError('Die Anwendung wurde aktualisiert – bitte Seite neu laden.');
+        setNeedsReload(true);
+      } else {
+        setError('Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
+      }
       setLoading(false);
-      return;
     }
-    router.push('/');
-    router.refresh();
   };
 
   const fieldCls = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]";
@@ -197,9 +210,16 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div className="rounded-xl px-4 py-3 text-[12px]"
+              <div className="rounded-xl px-4 py-3 text-[12px] flex items-center justify-between gap-3"
                 style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)', color: '#FCA5A5' }}>
-                {error}
+                <span>{error}</span>
+                {needsReload && (
+                  <button type="button" onClick={() => window.location.reload()}
+                    className="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold"
+                    style={{ background: 'rgba(239,68,68,0.15)', color: '#FCA5A5' }}>
+                    Neu laden
+                  </button>
+                )}
               </div>
             )}
 

@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { CheckCircle, XCircle, Clock, Loader2, ShieldOff, Wine } from 'lucide-react';
+import { isChunkLoadError } from '@/lib/utils';
+import { CheckCircle, XCircle, Clock, Loader2, ShieldOff, Wine, RefreshCw } from 'lucide-react';
 import { ADMIN_EMAIL } from '@/config/roles';
 
 type Request = {
@@ -20,29 +21,51 @@ export default function AdminPage() {
   const [requests, setRequests]   = useState<Request[]>([]);
   const [loading, setLoading]     = useState(true);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [authError, setAuthError]   = useState('');
   const [acting, setActing]       = useState<string | null>(null);
   const [error, setError]         = useState('');
 
   useEffect(() => {
     (async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user || user.email !== ADMIN_EMAIL) {
-        setAuthorized(false);
-        setTimeout(() => router.push('/'), 2000);
-        return;
+        if (!user || user.email !== ADMIN_EMAIL) {
+          setAuthorized(false);
+          setTimeout(() => router.push('/'), 2000);
+          return;
+        }
+
+        setAuthorized(true);
+        const { data } = await supabase
+          .from('access_requests')
+          .select('id, name, email, grund, status, created_at')
+          .order('created_at', { ascending: false });
+        setRequests(data ?? []);
+        setLoading(false);
+      } catch (e) {
+        setAuthError(isChunkLoadError(e)
+          ? 'Die Anwendung wurde aktualisiert – bitte Seite neu laden.'
+          : 'Zugriffsprüfung fehlgeschlagen. Bitte erneut versuchen.');
+        setLoading(false);
       }
-
-      setAuthorized(true);
-      const { data } = await supabase
-        .from('access_requests')
-        .select('id, name, email, grund, status, created_at')
-        .order('created_at', { ascending: false });
-      setRequests(data ?? []);
-      setLoading(false);
     })();
   }, [router]);
+
+  if (authError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4" style={{ background: 'var(--bg)' }}>
+        <ShieldOff size={40} color="#f87171" />
+        <p className="text-[#f87171] font-semibold text-[15px]">{authError}</p>
+        <button onClick={() => window.location.reload()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold"
+          style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+          <RefreshCw size={14} /> Neu laden
+        </button>
+      </div>
+    );
+  }
 
   if (authorized === false) {
     return (
@@ -55,7 +78,7 @@ export default function AdminPage() {
   }
 
   const reloadRequests = async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data } = await supabase
       .from('access_requests')
       .select('id, name, email, grund, status, created_at')

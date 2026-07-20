@@ -42,13 +42,12 @@ export default function RezeptBearbeitenPage() {
   // freigeschaltet -- Server erzwingt das ohnehin (requireTier), hier nur UI.
   const [userTier, setUserTier] = useState<number | null>(null);
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().then((supabase) => supabase.auth.getUser()).then(({ data }) => {
       const email = data.user?.email ?? null;
       fetch('/api/profil').then(r => r.json()).then(d => {
         setUserTier(getUserTier(email, d.profile?.stufe));
       }).catch(() => setUserTier(1));
-    });
+    }).catch((e) => { console.warn('[Rezept-Bearbeiten] Tier-Check fehlgeschlagen:', e); setUserTier(1); });
   }, []);
   const kiLocked = userTier !== null && userTier < 2;
 
@@ -202,7 +201,7 @@ export default function RezeptBearbeitenPage() {
         return null;
       }
       const path = `${crypto.randomUUID()}.jpg`;
-      const sb = createClient();
+      const sb = await createClient();
       const { error } = await sb.storage.from('rezept-bilder').upload(path, blob, {
         contentType: 'image/jpeg',
         cacheControl: '31536000',
@@ -447,7 +446,11 @@ export default function RezeptBearbeitenPage() {
             <span className="flex items-center gap-1.5"><Tag size={10} /> Zutaten</span>
           </label>
           {zutaten.length === 0 && (
-            <p className="text-[13px] mb-3" style={{ color: 'var(--text-muted)' }}>Noch keine Zutaten hinzugefügt.</p>
+            <p className="text-[13px] mb-3" style={{ color: 'var(--text-muted)' }}>
+              {komponenten.length > 0
+                ? `Dieses Rezept ist in ${komponenten.length} Komponenten gegliedert – die Zutaten stehen dort ↓`
+                : 'Noch keine Zutaten hinzugefügt.'}
+            </p>
           )}
           <div className="space-y-2">
             {zutaten.map((z, i) => (

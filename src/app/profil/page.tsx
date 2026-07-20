@@ -4,14 +4,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
+import { isChunkLoadError } from '@/lib/utils';
 import type { User } from '@supabase/supabase-js';
 import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles, Star,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
-  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2,
+  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2, Layers,
 } from 'lucide-react';
 import { ADMIN_EMAIL, ALL_TITLES, STUFEN, getUserTier } from '@/config/roles';
+import { FEATURE_GATES } from '@/config/featureGates';
+import PlanTab, { type QuotaResponse } from '@/components/profil/PlanTab';
 
 const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
 
@@ -41,7 +44,7 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'verwaltung' | 'anfragen';
+type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'plan' | 'verwaltung' | 'anfragen';
 
 type AccessRequest = {
   id: string;
@@ -70,21 +73,9 @@ const TIER_COLOR: Record<number, { bg: string; text: string }> = {
   99: { bg: 'rgba(86,46,60,0.18)',    text: '#562E3C' },
 };
 
-const PERM_ROWS: { label: string; minTier: number }[] = [
-  { label: 'Dashboard',         minTier: 1  },
-  { label: 'Rezepte ansehen',   minTier: 1  },
-  { label: 'Zutatenbibliothek', minTier: 1  },
-  { label: 'Fermentation',      minTier: 1  },
-  { label: 'Projekte',          minTier: 1  },
-  { label: 'Mein Stil',         minTier: 1  },
-  { label: 'Wein & Pairing',    minTier: 1  },
-  { label: 'KI-Sous-Chef',      minTier: 2  },
-  { label: 'Menügenerator',     minTier: 2  },
-  { label: 'Collection',        minTier: 1  },
-  { label: 'Tellerdesigner',    minTier: 3  },
-  { label: 'Titel vergeben',    minTier: 99 },
-  { label: 'Nutzer verwalten',  minTier: 99 },
-];
+// Feature-Zeilen kommen jetzt aus src/config/featureGates.ts -- dieselbe
+// Quelle wie der oeffentliche Stufenvergleich im Tab "Mein Plan"
+// (PlanTab.tsx), nicht mehr lokal dupliziert.
 const PERM_TIERS = [
   { tier: 1, label: 'Free' },
   { tier: 2, label: 'Basic' },
@@ -121,11 +112,18 @@ function SuccessBanner({ message = 'Gespeichert!' }: { message?: string }) {
   );
 }
 
-function ErrorBanner({ message }: { message: string }) {
+function ErrorBanner({ message, onReload }: { message: string; onReload?: boolean }) {
   return (
-    <div className="rounded-xl px-4 py-3 text-[12px]"
+    <div className="rounded-xl px-4 py-3 text-[12px] flex items-center justify-between gap-3"
       style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#E06B6B' }}>
-      {message}
+      <span>{message}</span>
+      {onReload && (
+        <button type="button" onClick={() => window.location.reload()}
+          className="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-semibold"
+          style={{ background: 'rgba(239,68,68,0.15)', color: '#E06B6B' }}>
+          Neu laden
+        </button>
+      )}
     </div>
   );
 }
@@ -237,15 +235,27 @@ export default function ProfilPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pwSaving, setPwSaving]       = useState(false);
   const [pwSuccess, setPwSuccess]     = useState(false);
+  const [pwNeedsReload, setPwNeedsReload] = useState(false);
+
+  // Logout (Sidebar hat einen eigenen Logout-Button/-Handler, siehe Sidebar.tsx)
+  const [logoutSaving, setLogoutSaving]         = useState(false);
+  const [logoutError, setLogoutError]           = useState('');
+  const [logoutNeedsReload, setLogoutNeedsReload] = useState(false);
   const [pwError, setPwError]         = useState('');
 
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarError, setAvatarError]     = useState('');
 
+  // Tab "Mein Plan"
+  const [quota, setQuota]             = useState<QuotaResponse | null>(null);
+  const [quotaLoading, setQuotaLoading] = useState(false);
+  const [quotaLoaded, setQuotaLoaded]   = useState(false);
+  const [initialLoadError, setInitialLoadError]           = useState('');
+  const [initialLoadNeedsReload, setInitialLoadNeedsReload] = useState(false);
+
   // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    createClient().then((supabase) => supabase.auth.getUser()).then(({ data }) => {
       if (!data.user) { router.push('/login'); return; }
       setUser(data.user);
       fetch('/api/profil').then(r => r.json()).then(d => {
@@ -291,6 +301,12 @@ export default function ProfilPage() {
 
         setLoading(false);
       }).catch(() => setLoading(false));
+    }).catch((e) => {
+      setLoading(false);
+      setInitialLoadError(isChunkLoadError(e)
+        ? 'Die Anwendung wurde aktualisiert – bitte Seite neu laden.'
+        : 'Profil konnte nicht geladen werden. Bitte erneut versuchen.');
+      setInitialLoadNeedsReload(isChunkLoadError(e));
     });
   }, []);
 
@@ -378,17 +394,29 @@ export default function ProfilPage() {
 
   const changePassword = async () => {
     setPwError('');
+    setPwNeedsReload(false);
     if (newPw !== confirmPw) { setPwError('Passwörter stimmen nicht überein.'); return; }
     if (newPw.length < 6)    { setPwError('Mindestens 6 Zeichen erforderlich.'); return; }
     if (!user?.email) return;
     setPwSaving(true);
-    const supabase = createClient();
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPw });
-    if (signInErr) { setPwError('Aktuelles Passwort ist falsch.'); setPwSaving(false); return; }
-    const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
-    console.log('[passwort] change result:', updateErr ? updateErr.message : 'success');
-    setPwSaving(false);
-    if (updateErr) { setPwError(updateErr.message); return; }
+    try {
+      const supabase = await createClient();
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email: user.email, password: currentPw });
+      if (signInErr) { setPwError('Aktuelles Passwort ist falsch.'); setPwSaving(false); return; }
+      const { error: updateErr } = await supabase.auth.updateUser({ password: newPw });
+      console.log('[passwort] change result:', updateErr ? updateErr.message : 'success');
+      setPwSaving(false);
+      if (updateErr) { setPwError(updateErr.message); return; }
+    } catch (e) {
+      setPwSaving(false);
+      if (isChunkLoadError(e)) {
+        setPwError('Die Anwendung wurde aktualisiert – bitte Seite neu laden.');
+        setPwNeedsReload(true);
+      } else {
+        setPwError('Passwort konnte nicht geändert werden. Bitte erneut versuchen.');
+      }
+      return;
+    }
     setPwSuccess(true); setCurrentPw(''); setNewPw(''); setConfirmPw('');
     setTimeout(() => setPwSuccess(false), 3000);
   };
@@ -401,6 +429,19 @@ export default function ProfilPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, user?.email]);
+
+  // "Mein Plan"-Tab: Kontingent-Status erst laden, wenn der Tab tatsaechlich
+  // geoeffnet wird (gleiches Muster wie vormals beim KI-Funktionen-Tab).
+  useEffect(() => {
+    if (activeTab === 'plan' && !quotaLoaded) {
+      setQuotaLoading(true);
+      fetch('/api/profil/kontingent')
+        .then(r => r.json())
+        .then(d => setQuota(d))
+        .catch(() => setQuota(null))
+        .finally(() => { setQuotaLoading(false); setQuotaLoaded(true); });
+    }
+  }, [activeTab, quotaLoaded]);
 
   const loadAnfragen = async () => {
     setAnfragenLoading(true);
@@ -573,8 +614,21 @@ export default function ProfilPage() {
   };
 
   const handleLogout = async () => {
-    await createClient().auth.signOut();
-    router.push('/login');
+    setLogoutSaving(true);
+    setLogoutError('');
+    setLogoutNeedsReload(false);
+    try {
+      await (await createClient()).auth.signOut();
+      router.push('/login');
+    } catch (e) {
+      setLogoutSaving(false);
+      if (isChunkLoadError(e)) {
+        setLogoutError('Die Anwendung wurde aktualisiert – bitte Seite neu laden.');
+        setLogoutNeedsReload(true);
+      } else {
+        setLogoutError('Abmelden fehlgeschlagen. Bitte erneut versuchen.');
+      }
+    }
   };
 
   const addTag = () => {
@@ -584,6 +638,21 @@ export default function ProfilPage() {
   };
 
   // ── Loading ────────────────────────────────────────────────────────────────
+  if (initialLoadError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--bg)' }}>
+        <p style={{ color: '#E06B6B', fontSize: 13, fontWeight: 600 }}>{initialLoadError}</p>
+        {initialLoadNeedsReload && (
+          <button onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-lg text-[13px] font-semibold"
+            style={{ background: 'rgba(239,68,68,0.1)', color: '#E06B6B' }}>
+            Neu laden
+          </button>
+        )}
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
@@ -600,6 +669,7 @@ export default function ProfilPage() {
     { id: 'mein-stil',   label: 'Küche & Stil', sublabel: 'Dein Küchenprofil', Icon: Star      },
     { id: 'social',      label: 'Social Media', sublabel: 'Deine Links',     Icon: Share2    },
     { id: 'sicherheit',  label: 'Sicherheit',   sublabel: 'Passwort',        Icon: Shield    },
+    { id: 'plan',        label: 'Mein Plan',    sublabel: 'Stufe & Kontingent', Icon: Layers  },
     ...(isAdmin ? [
       { id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users    },
       { id: 'anfragen'   as Tab, label: 'Anfragen',   sublabel: 'Registrierungen', Icon: UserPlus, badge: pendingCount || undefined },
@@ -710,14 +780,15 @@ export default function ProfilPage() {
           </div>
 
           {/* Logout */}
-          <button onClick={handleLogout}
-            className="flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold transition-all"
+          <button onClick={handleLogout} disabled={logoutSaving}
+            className="flex items-center justify-center gap-2 rounded-xl py-3 text-[13px] font-semibold transition-all disabled:opacity-50"
             style={{ background: 'rgba(192,80,80,0.07)', border: '1px solid rgba(192,80,80,0.2)', color: '#C05050', width: '100%' }}
             onMouseEnter={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.13)')}
             onMouseLeave={e => (e.currentTarget.style.background = 'rgba(192,80,80,0.07)')}>
             <LogOut size={14} />
-            Abmelden
+            {logoutSaving ? 'Abmelden…' : 'Abmelden'}
           </button>
+          {logoutError && <ErrorBanner message={logoutError} onReload={logoutNeedsReload} />}
         </div>
 
         {/* ── Right content card ───────────────────────────────────────────── */}
@@ -1193,11 +1264,16 @@ export default function ProfilPage() {
                   </div>
                 </div>
 
-                {pwError && <ErrorBanner message={pwError} />}
+                {pwError && <ErrorBanner message={pwError} onReload={pwNeedsReload} />}
                 {pwSuccess && <SuccessBanner message="Passwort erfolgreich geändert!" />}
                 <SaveButton onClick={changePassword} loading={pwSaving} label="Passwort ändern" />
               </div>
             </div>
+          )}
+
+          {/* ── Tab: Mein Plan ────────────────────────────────────────── */}
+          {activeTab === 'plan' && (
+            <PlanTab currentTier={currentTier} quota={quota} quotaLoading={quotaLoading} />
           )}
 
           {/* ── Tab 5: Verwaltung (Admin only) ─────────────────────────── */}
@@ -1415,7 +1491,7 @@ export default function ProfilPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {PERM_ROWS.map(({ label, minTier }, i) => (
+                      {FEATURE_GATES.map(({ label, minTier }, i) => (
                         <tr key={label} style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', borderBottom: '1px solid #F0EAE4' }}>
                           <td style={{ padding: '9px 12px', color: 'var(--text)', fontWeight: 500 }}>{label}</td>
                           {PERM_TIERS.map(({ tier }) => (
