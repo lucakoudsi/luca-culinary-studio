@@ -1,6 +1,7 @@
 'use client';
-import { CheckCircle2, Loader2, Mail, HelpCircle } from 'lucide-react';
-import { ADMIN_EMAIL, STUFEN } from '@/config/roles';
+import { useState } from 'react';
+import { CheckCircle2, Loader2, CreditCard, HelpCircle } from 'lucide-react';
+import { STUFEN } from '@/config/roles';
 import { FEATURE_GATES } from '@/config/featureGates';
 import { STUFE_PREIS_BRUTTO, formatPreis } from '@/config/pricing';
 import { TEXT_QUOTA_BY_TIER, TEXT_QUOTA_WEIGHTS } from '@/config/textQuota';
@@ -113,6 +114,49 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
   quotaLoading: boolean;
 }) {
   const isAdminTier = currentTier >= 99;
+  const [pendingTier, setPendingTier] = useState<number | null>(null);
+  const [pendingPortal, setPendingPortal] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+
+  const handleUpgrade = async (tier: number) => {
+    setCheckoutError('');
+    setPendingTier(tier);
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier }),
+      });
+      const body = await res.json();
+      if (!res.ok || !body.url) {
+        setCheckoutError(body.error ?? 'Checkout konnte nicht gestartet werden.');
+        setPendingTier(null);
+        return;
+      }
+      window.location.href = body.url;
+    } catch {
+      setCheckoutError('Netzwerkfehler beim Starten des Checkouts.');
+      setPendingTier(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setCheckoutError('');
+    setPendingPortal(true);
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok || !body.url) {
+        setCheckoutError(body.error ?? 'Abo-Verwaltung konnte nicht geöffnet werden.');
+        setPendingPortal(false);
+        return;
+      }
+      window.location.href = body.url;
+    } catch {
+      setCheckoutError('Netzwerkfehler beim Öffnen der Abo-Verwaltung.');
+      setPendingPortal(false);
+    }
+  };
 
   return (
     <div>
@@ -244,12 +288,14 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
                     <CheckCircle2 size={13} /> Aktueller Plan
                   </div>
                 ) : canUpgrade ? (
-                  <a
-                    href={`mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(`Upgrade-Anfrage: ${TIER_SHORT[s.stufe]}`)}&body=${encodeURIComponent(`Hallo,\n\nich möchte gerne auf die Stufe ${TIER_SHORT[s.stufe]} upgraden.\n\nDanke!`)}`}
-                    className="flex items-center gap-1.5 justify-center py-2 rounded-lg transition-colors"
+                  <button
+                    onClick={() => handleUpgrade(s.stufe)}
+                    disabled={pendingTier !== null}
+                    className="w-full flex items-center gap-1.5 justify-center py-2 rounded-lg transition-colors disabled:opacity-50"
                     style={{ fontSize: 11.5, fontWeight: 600, color: '#FFFFFF', background: 'linear-gradient(135deg, #562E3C, #6B3A4B)' }}>
-                    <Mail size={12} /> Upgrade auf Anfrage
-                  </a>
+                    {pendingTier === s.stufe ? <Loader2 size={12} className="animate-spin" /> : <CreditCard size={12} />}
+                    {pendingTier === s.stufe ? 'Weiterleitung…' : `Auf ${TIER_SHORT[s.stufe]} upgraden`}
+                  </button>
                 ) : (
                   <div className="text-center py-2" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     In deinem Plan enthalten
@@ -260,9 +306,20 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
           );
         })}
       </div>
-      <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 12, lineHeight: 1.6 }}>
-        Es gibt noch keine automatische Zahlungsabwicklung — ein Upgrade wird aktuell manuell freigeschaltet. „Upgrade auf Anfrage" öffnet eine vorausgefüllte E-Mail.
-      </p>
+      {checkoutError && (
+        <p style={{ fontSize: 11.5, color: '#C05050', marginTop: 12 }}>{checkoutError}</p>
+      )}
+
+      {!isAdminTier && currentTier > 1 && (
+        <button
+          onClick={handleManageSubscription}
+          disabled={pendingPortal}
+          className="flex items-center gap-1.5 mt-4 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+          style={{ fontSize: 11.5, fontWeight: 600, color: '#6B3A4B', background: 'rgba(107,58,75,0.08)' }}>
+          {pendingPortal ? <Loader2 size={13} className="animate-spin" /> : <CreditCard size={13} />}
+          {pendingPortal ? 'Öffne Abo-Verwaltung…' : 'Abo verwalten (kündigen, Rechnungen, Zahlungsmethode)'}
+        </button>
+      )}
     </div>
   );
 }

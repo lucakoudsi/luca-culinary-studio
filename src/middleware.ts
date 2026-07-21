@@ -28,7 +28,11 @@ export async function middleware(request: NextRequest) {
   const isAuthPage  = pathname.startsWith('/login') || pathname.startsWith('/register');
   const isPublicApi = pathname.startsWith('/api/register-request')
                    || pathname.startsWith('/api/admin/approve')
-                   || pathname.startsWith('/api/admin/reject');
+                   || pathname.startsWith('/api/admin/reject')
+                   // Kommt von Stripes Servern, nie mit Supabase-Session --
+                   // Auth laeuft ueber die Signaturpruefung (STRIPE_WEBHOOK_SECRET)
+                   // in der Route selbst, nicht ueber eingeloggte Nutzer.
+                   || pathname.startsWith('/api/stripe/webhook');
 
   // ── Not logged in → login ─────────────────────────────────────────────────
   if (!user && !isAuthPage && !isPublicApi) {
