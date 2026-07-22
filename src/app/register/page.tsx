@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle, MessageSquare } from 'lucide-react';
+import { Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 
 const BlobBackground = dynamic(() => import('@/components/ui/BlobBackground'), { ssr: false });
 
@@ -61,28 +62,42 @@ export default function RegisterPage() {
     };
   }, []);
   const [confirm, setConfirm]   = useState('');
-  const [grund, setGrund]       = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPw, setShowPw]     = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent]     = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) { setError('Passwörter stimmen nicht überein.'); return; }
     if (password.length < 6)  { setError('Passwort muss mindestens 6 Zeichen lang sein.'); return; }
-    if (grund.trim().length < 10) { setError('Bitte erkläre kurz warum du Zugang möchtest.'); return; }
+    if (!termsAccepted) { setError('Bitte AGB und Datenschutzerklärung akzeptieren.'); return; }
     setLoading(true);
     setError('');
-    const res = await fetch('/api/register-request', {
+    const res = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, grund }),
+      body: JSON.stringify({ name, email, password, termsAccepted }),
     });
     const json = await res.json();
-    if (!res.ok) { setError(json.error || 'Fehler beim Senden.'); setLoading(false); return; }
+    if (!res.ok) { setError(json.error || 'Fehler beim Registrieren.'); setLoading(false); return; }
     setSuccess(true);
     setLoading(false);
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      const supabase = await createClient();
+      await supabase.auth.resend({ type: 'signup', email });
+      setResent(true);
+    } catch {
+      setError('Bestätigungsmail konnte nicht erneut gesendet werden.');
+    }
+    setResending(false);
   };
 
   const fieldCls   = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]";
@@ -151,19 +166,25 @@ export default function RegisterPage() {
                   <CheckCircle size={32} color="#6B3A4B" />
                 </div>
               </div>
-              <h2 className="font-heading text-[22px] font-bold text-[#2C2420] mb-3">Anfrage eingereicht!</h2>
+              <h2 className="font-heading text-[22px] font-bold text-[#2C2420] mb-3">Bestätigungsmail verschickt!</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.8 }}>
-                Deine Anfrage wurde eingereicht.<br />
-                Du erhältst eine Email sobald<br />
-                dein Zugang genehmigt wurde.
+                Wir haben eine Email an<br />
+                <strong style={{ color: '#2C2420' }}>{email}</strong><br />
+                geschickt. Bitte klicke auf den Link darin,<br />
+                um deinen Account zu bestätigen.
               </p>
+              <button type="button" onClick={handleResend} disabled={resending || resent}
+                className="mt-6 text-[12px] font-semibold transition-colors disabled:opacity-50"
+                style={{ color: '#6B3A4B' }}>
+                {resending ? 'Wird gesendet…' : resent ? 'Erneut gesendet ✓' : 'Keine Mail erhalten? Erneut senden'}
+              </button>
             </div>
           ) : (
             <>
               <div className="mb-6 text-center">
-                <h2 className="font-heading text-[24px] font-bold text-[#2C2420]">Zugang anfragen</h2>
+                <h2 className="font-heading text-[24px] font-bold text-[#2C2420]">Account erstellen</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
-                  Deine Anfrage wird manuell geprüft.
+                  Kostenlos starten, jederzeit upgraden.
                 </p>
               </div>
 
@@ -234,22 +255,18 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Grund */}
-                <div>
-                  <label style={{ display: 'block', fontSize: 10, color: 'var(--text-muted)', marginBottom: 6, letterSpacing: '3px', textTransform: 'uppercase' }}>
-                    Warum möchtest du Zugang?
-                  </label>
-                  <div className="relative">
-                    <MessageSquare size={14} color="#B09880" className="absolute left-3.5 top-3.5 pointer-events-none" />
-                    <textarea
-                      value={grund} onChange={e => setGrund(e.target.value)}
-                      placeholder="Kurze Erklärung…" required rows={3}
-                      className="w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8] resize-none"
-                      style={{ ...fieldStyle, lineHeight: 1.6 }}
-                      onFocus={onFocus} onBlur={onBlur}
-                    />
-                  </div>
-                </div>
+                {/* AGB / Datenschutz */}
+                <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                  <input type="checkbox" checked={termsAccepted}
+                    onChange={e => setTermsAccepted(e.target.checked)}
+                    className="mt-0.5 shrink-0" style={{ width: 15, height: 15, accentColor: '#6B3A4B' }} />
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    Ich akzeptiere die{' '}
+                    <Link href="/agb" target="_blank" className="font-semibold" style={{ color: '#6B3A4B' }}>AGB</Link>
+                    {' '}und{' '}
+                    <Link href="/datenschutz" target="_blank" className="font-semibold" style={{ color: '#6B3A4B' }}>Datenschutzerklärung</Link>.
+                  </span>
+                </label>
 
                 {error && (
                   <div className="rounded-xl px-4 py-3 text-[12px]"
@@ -258,17 +275,17 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                <button type="submit" disabled={loading || !name || !email || !password || !confirm || !grund}
+                <button type="submit" disabled={loading || !name || !email || !password || !confirm || !termsAccepted}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-[14px] font-semibold transition-all disabled:opacity-40 mt-1"
                   style={{
                     background: 'linear-gradient(135deg, #562E3C 0%, #6B3A4B 40%, #7D4558 70%, #6B3A4B 100%)',
                     color: '#FFFFFF',
-                    boxShadow: (!loading && name && email && password && confirm && grund)
+                    boxShadow: (!loading && name && email && password && confirm && termsAccepted)
                       ? '0 0 0 1px rgba(107,58,75,0.35), 0 4px 24px rgba(107,58,75,0.4), 0 1px 0 rgba(255,255,255,0.15) inset'
                       : '0 1px 0 rgba(255,255,255,0.15) inset',
                     letterSpacing: '0.5px',
                   }}>
-                  {loading ? <><Loader2 size={15} className="animate-spin" /> Sende Anfrage…</> : 'Zugang anfragen'}
+                  {loading ? <><Loader2 size={15} className="animate-spin" /> Account wird erstellt…</> : 'Account erstellen'}
                 </button>
               </form>
             </>

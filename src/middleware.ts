@@ -26,16 +26,23 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage  = pathname.startsWith('/login') || pathname.startsWith('/register');
-  const isPublicApi = pathname.startsWith('/api/register-request')
+  // Oeffentlich einsehbar unabhaengig vom Login-Status (kein Redirect in
+  // beide Richtungen, anders als isAuthPage) -- AGB/Datenschutz muessen
+  // z.B. auch aus der Checkbox auf /register heraus lesbar sein.
+  const isPublicPage = pathname.startsWith('/agb') || pathname.startsWith('/datenschutz');
+  const isPublicRoute = pathname.startsWith('/api/register')
                    || pathname.startsWith('/api/admin/approve')
                    || pathname.startsWith('/api/admin/reject')
+                   // Ziel des Supabase-Bestaetigungslinks -- Session existiert
+                   // erst NACH dem Code-Tausch in dieser Route selbst.
+                   || pathname.startsWith('/auth/callback')
                    // Kommt von Stripes Servern, nie mit Supabase-Session --
                    // Auth laeuft ueber die Signaturpruefung (STRIPE_WEBHOOK_SECRET)
                    // in der Route selbst, nicht ueber eingeloggte Nutzer.
                    || pathname.startsWith('/api/stripe/webhook');
 
   // ── Not logged in → login ─────────────────────────────────────────────────
-  if (!user && !isAuthPage && !isPublicApi) {
+  if (!user && !isAuthPage && !isPublicPage && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
