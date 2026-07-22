@@ -31,8 +31,6 @@ export async function middleware(request: NextRequest) {
   // z.B. auch aus der Checkbox auf /register heraus lesbar sein.
   const isPublicPage = pathname.startsWith('/agb') || pathname.startsWith('/datenschutz');
   const isPublicRoute = pathname.startsWith('/api/register')
-                   || pathname.startsWith('/api/admin/approve')
-                   || pathname.startsWith('/api/admin/reject')
                    // Ziel des Supabase-Bestaetigungslinks -- Session existiert
                    // erst NACH dem Code-Tausch in dieser Route selbst.
                    || pathname.startsWith('/auth/callback')

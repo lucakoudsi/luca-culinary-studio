@@ -20,26 +20,12 @@ export async function DELETE(
   try {
     const admin = createAdminClient();
 
-    // Fetch email before deleting (for access_requests soft-delete)
-    const { data: authUser } = await admin.auth.admin.getUserById(params.id);
-    const email = authUser?.user?.email;
-
     // Delete Supabase Auth account (profiles cascade via ON DELETE CASCADE)
     const { error: deleteErr } = await admin.auth.admin.deleteUser(params.id);
     console.log('[delete user]', params.id, deleteErr ? deleteErr.message : 'ok');
 
     if (deleteErr) {
       return NextResponse.json({ error: deleteErr.message }, { status: 500 });
-    }
-
-    // Hard-delete from access_requests so the email is immediately free for re-registration
-    if (email) {
-      const { error: arErr } = await admin
-        .from('access_requests')
-        .delete()
-        .eq('email', email);
-      if (arErr) console.warn('[delete user] access_requests cleanup failed:', arErr.message);
-      else console.log('[delete user] access_requests entry removed for', email);
     }
 
     return NextResponse.json({ success: true });

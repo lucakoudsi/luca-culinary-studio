@@ -2,6 +2,7 @@
 import PageTransition from '@/components/ui/PageTransition';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/utils/supabase/client';
 import { isChunkLoadError } from '@/lib/utils';
@@ -10,7 +11,7 @@ import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles, Star,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
-  Users, Search, UserPlus, ChevronDown, ChevronUp, X as XIcon, Trash2, Layers,
+  Users, Search, X as XIcon, Trash2, Layers, Wine,
 } from 'lucide-react';
 import { ADMIN_EMAIL, ALL_TITLES, STUFEN, getUserTier } from '@/config/roles';
 import { FEATURE_GATES } from '@/config/featureGates';
@@ -44,16 +45,7 @@ type Profile = {
 };
 
 type Stats = { rezepte: number; projekte: number; fermente: number };
-type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'plan' | 'verwaltung' | 'anfragen';
-
-type AccessRequest = {
-  id: string;
-  name: string;
-  email: string;
-  grund: string;
-  status: string;
-  created_at: string;
-};
+type Tab = 'profil' | 'mein-stil' | 'social' | 'sicherheit' | 'plan' | 'verwaltung';
 
 type AdminUser = {
   id: string;
@@ -214,18 +206,6 @@ export default function ProfilPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteActing, setDeleteActing]       = useState<string | null>(null);
 
-  // Tab 6 – Anfragen (Admin only)
-  const [anfragen, setAnfragen]             = useState<AccessRequest[]>([]);
-  const [anfragenLoaded, setAnfragenLoaded] = useState(false);
-  const [anfragenLoading, setAnfragenLoading] = useState(false);
-  const [anfragenTitels, setAnfragenTitels] = useState<Record<string, string>>({});
-  const [anfragenStufen, setAnfragenStufen] = useState<Record<string, number>>({});
-  const [anfragenActing, setAnfragenActing] = useState<string | null>(null);
-  const [anfragenSuccessMsg, setAnfragenSuccessMsg] = useState<string | null>(null);
-  const [anfragenError, setAnfragenError]   = useState('');
-  const [showProcessed, setShowProcessed]   = useState(false);
-  const [pendingCount, setPendingCount]     = useState(0);
-
   // Tab 4 – Sicherheit
   const [currentPw, setCurrentPw]     = useState('');
   const [newPw, setNewPw]             = useState('');
@@ -290,14 +270,6 @@ export default function ProfilPage() {
         }
         if (d.stats) setStats(d.stats);
         if (d.userCreatedAt) setUserCreatedAt(d.userCreatedAt);
-
-        // Pending-Count-Badge für Admin vorab laden
-        if (data.user.email === ADMIN_EMAIL) {
-          fetch('/api/admin/requests').then(r => r.json()).then(rd => {
-            const count = (rd.requests ?? []).filter((r: AccessRequest) => r.status === 'pending').length;
-            setPendingCount(count);
-          }).catch(() => {});
-        }
 
         setLoading(false);
       }).catch(() => setLoading(false));
@@ -421,15 +393,6 @@ export default function ProfilPage() {
     setTimeout(() => setPwSuccess(false), 3000);
   };
 
-  // Anfragen-Tab: neu laden wenn Tab aktiv wird ODER wenn user sich ändert (Auth-Timing-Fix)
-  // user?.email statt isAdmin (abgeleitet nach diesem Hook) um TDZ zu vermeiden
-  useEffect(() => {
-    if (activeTab === 'anfragen' && user?.email === ADMIN_EMAIL) {
-      loadAnfragen();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user?.email]);
-
   // "Mein Plan"-Tab: Kontingent-Status erst laden, wenn der Tab tatsaechlich
   // geoeffnet wird (gleiches Muster wie vormals beim KI-Funktionen-Tab).
   useEffect(() => {
@@ -442,91 +405,6 @@ export default function ProfilPage() {
         .finally(() => { setQuotaLoading(false); setQuotaLoaded(true); });
     }
   }, [activeTab, quotaLoaded]);
-
-  const loadAnfragen = async () => {
-    setAnfragenLoading(true);
-    setAnfragenError('');
-    try {
-      console.log('[anfragen] fetching /api/admin/requests ...');
-      const res = await fetch('/api/admin/requests');
-      console.log('[anfragen] response status:', res.status, '| ok:', res.ok);
-      // res.json() wirft wenn der Server HTML statt JSON zurückgibt (z.B. bei Route-Crash)
-      let d: { requests?: AccessRequest[]; error?: string };
-      try {
-        d = await res.json();
-      } catch {
-        const text = await res.text().catch(() => '');
-        console.error('[anfragen] non-JSON response:', res.status, text.slice(0, 200));
-        setAnfragenError(`Server-Fehler ${res.status}: Route gibt kein JSON zurück. Vercel Logs prüfen.`);
-        return;
-      }
-      console.log('[anfragen] response data:', JSON.stringify(d));
-      if (!res.ok) { setAnfragenError(d.error || 'Laden fehlgeschlagen.'); return; }
-      const reqs: AccessRequest[] = d.requests ?? [];
-      console.log('[anfragen] alle einträge:', JSON.stringify(reqs));
-      console.log('[anfragen] pending filter:', reqs.filter(r => r.status === 'pending').map(r => r.email));
-      console.log('[anfragen] bearbeitet filter:', reqs.filter(r => r.status && r.status !== 'pending').map(r => ({ email: r.email, status: r.status })));
-      setAnfragen(reqs);
-      setAnfragenLoaded(true);
-      setPendingCount(reqs.filter(r => r.status === 'pending').length);
-      // Jeden pending Request mit Standard-Titel vorbelegen
-      const initTitels: Record<string, string> = {};
-      reqs.forEach(r => { if (r.status === 'pending') initTitels[r.id] = 'Hobbykoch'; });
-      setAnfragenTitels(initTitels);
-    } catch (e) {
-      console.error('[anfragen] fetch error:', e);
-      setAnfragenError('Netzwerkfehler.');
-    } finally {
-      setAnfragenLoading(false);
-    }
-  };
-
-  const approveAnfrage = async (id: string) => {
-    setAnfragenActing(id);
-    setAnfragenError('');
-    try {
-      const name = anfragen.find(r => r.id === id)?.name ?? '';
-      const res = await fetch(`/api/admin/requests/${id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titel: anfragenTitels[id] || null, stufe: anfragenStufen[id] ?? 2 }),
-      });
-      const d = await res.json();
-      if (!res.ok) {
-        setAnfragenError(d.error || 'Annehmen fehlgeschlagen.');
-        // 409 = anderswo bereits bearbeitet → echten Stand nachladen statt Karte blind entfernen
-        if (res.status === 409) await loadAnfragen();
-        return;
-      }
-      setAnfragenSuccessMsg(`${name} wurde angenommen und die Willkommens-Email wurde versendet.`);
-      setTimeout(() => setAnfragenSuccessMsg(null), 4000);
-      // Liste immer vom Server neu laden, damit die Anzeige garantiert dem echten DB-Stand entspricht
-      await loadAnfragen();
-    } catch {
-      setAnfragenError('Netzwerkfehler.');
-    } finally {
-      setAnfragenActing(null);
-    }
-  };
-
-  const rejectAnfrage = async (id: string) => {
-    setAnfragenActing(id);
-    setAnfragenError('');
-    try {
-      const res = await fetch(`/api/admin/requests/${id}/reject`, { method: 'POST' });
-      const d = await res.json();
-      if (!res.ok) {
-        setAnfragenError(d.error || 'Ablehnen fehlgeschlagen.');
-        if (res.status === 409) await loadAnfragen();
-        return;
-      }
-      await loadAnfragen();
-    } catch {
-      setAnfragenError('Netzwerkfehler.');
-    } finally {
-      setAnfragenActing(null);
-    }
-  };
 
   const loadAdminUsers = async () => {
     setAdminLoading(true);
@@ -672,7 +550,6 @@ export default function ProfilPage() {
     { id: 'plan',        label: 'Mein Plan',    sublabel: 'Stufe & Kontingent', Icon: Layers  },
     ...(isAdmin ? [
       { id: 'verwaltung' as Tab, label: 'Verwaltung', sublabel: 'Nutzer & Rechte', Icon: Users    },
-      { id: 'anfragen'   as Tab, label: 'Anfragen',   sublabel: 'Registrierungen', Icon: UserPlus, badge: pendingCount || undefined },
     ] : []),
   ];
 
@@ -1279,9 +1156,18 @@ export default function ProfilPage() {
           {/* ── Tab 5: Verwaltung (Admin only) ─────────────────────────── */}
           {activeTab === 'verwaltung' && isAdmin && (
             <div>
-              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1.75rem' }}>
+              <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1rem' }}>
                 Nutzerverwaltung
               </h3>
+
+              {/* Admin-Schnelllinks */}
+              <div className="flex gap-3 mb-6">
+                <Link href="/admin/weine"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                  style={{ background: 'rgba(201,168,76,0.1)', color: '#C9A84C', border: '1px solid rgba(201,168,76,0.25)' }}>
+                  <Wine size={14} /> Wein-Datenbank
+                </Link>
+              </div>
 
               {/* Search + Load */}
               <div style={{ display: 'flex', gap: 10, marginBottom: '1.25rem', alignItems: 'center' }}>
@@ -1509,181 +1395,6 @@ export default function ProfilPage() {
                   </table>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* ── Tab 6: Anfragen (Admin only) ───────────────────────────── */}
-          {activeTab === 'anfragen' && isAdmin && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
-                  Registrierungsanfragen
-                </h3>
-                <button onClick={loadAnfragen} disabled={anfragenLoading}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold transition-all disabled:opacity-40"
-                  style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.2)', color: '#6B3A4B' }}>
-                  {anfragenLoading ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
-                  Aktualisieren
-                </button>
-              </div>
-
-              {anfragenError && (
-                <div className="flex items-center gap-2 rounded-xl px-4 py-3 text-[12px] mb-4"
-                  style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', color: '#E06B6B' }}>
-                  {anfragenError}
-                  <button onClick={() => setAnfragenError('')} style={{ marginLeft: 'auto' }}><XIcon size={13} /></button>
-                </div>
-              )}
-
-              {anfragenSuccessMsg && (
-                <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-[12px] mb-4"
-                  style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#3A7A38' }}>
-                  <CheckCircle size={13} style={{ flexShrink: 0 }} />
-                  {anfragenSuccessMsg}
-                </div>
-              )}
-
-              {anfragenLoading && anfragen.length === 0 && (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
-                </div>
-              )}
-
-              {/* Pending */}
-              {(() => {
-                const pending = anfragen.filter(r => !r.status || r.status === 'pending');
-                if (!anfragenLoading && anfragenLoaded && pending.length === 0) {
-                  return (
-                    <div className="flex flex-col items-center justify-center py-12 text-center" style={{ color: '#C0B5A8' }}>
-                      <CheckCircle size={32} style={{ marginBottom: 10, opacity: 0.4 }} />
-                      <p style={{ fontSize: 14, fontWeight: 500, margin: 0 }}>Keine offenen Anfragen</p>
-                      <p style={{ fontSize: 12, marginTop: 4 }}>Alle erledigt!</p>
-                    </div>
-                  );
-                }
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: '1.5rem' }}>
-                    {pending.map(req => (
-                      <div key={req.id} style={{
-                        background: 'var(--surface)', borderRadius: 14, border: '1px solid var(--border)',
-                        padding: '16px 18px', boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                      }}>
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                          {/* Initials */}
-                          <div style={{
-                            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                            background: 'linear-gradient(135deg,#6B3A4B,#C9A84C)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 13, color: 'white', fontWeight: 700,
-                          }}>
-                            {req.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                          </div>
-
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{req.name}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{req.email}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                              {new Date(req.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Grund */}
-                        <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'var(--bg)', border: '1px solid #EEE8E2' }}>
-                          <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 4 }}>Warum möchtest du Zugang?</div>
-                          <p style={{ fontSize: 13, color: 'var(--text)', margin: 0, lineHeight: 1.55 }}>{req.grund}</p>
-                        </div>
-
-                        {/* Titel + Stufe + Buttons */}
-                        <div style={{ marginTop: 12, display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                          <div>
-                            <label style={{ ...labelStyle, marginBottom: 4 }}>Titel (Anzeigename)</label>
-                            <select
-                              value={anfragenTitels[req.id] ?? 'Hobbykoch'}
-                              onChange={e => setAnfragenTitels(prev => ({ ...prev, [req.id]: e.target.value }))}
-                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none' }}>
-                              {ALL_TITLES.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                          </div>
-                          <div>
-                            <label style={{ ...labelStyle, marginBottom: 4 }}>Stufe (Berechtigung)</label>
-                            <select
-                              value={anfragenStufen[req.id] ?? 2}
-                              onChange={e => setAnfragenStufen(prev => ({ ...prev, [req.id]: Number(e.target.value) }))}
-                              style={{ padding: '7px 10px', borderRadius: 8, fontSize: 12, background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text)', outline: 'none' }}>
-                              {STUFEN.map(s => <option key={s.stufe} value={s.stufe}>{s.label}</option>)}
-                            </select>
-                          </div>
-
-                          <div style={{ display: 'flex', gap: 6, marginTop: 18 }}>
-                            <button
-                              onClick={() => approveAnfrage(req.id)}
-                              disabled={anfragenActing === req.id}
-                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
-                              style={{ background: 'linear-gradient(135deg,#3A7A38,#4A9A47)', color: '#fff', border: 'none' }}>
-                              {anfragenActing === req.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-                              Annehmen
-                            </button>
-                            <button
-                              onClick={() => rejectAnfrage(req.id)}
-                              disabled={anfragenActing === req.id}
-                              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold transition-all disabled:opacity-40"
-                              style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
-                              {anfragenActing === req.id ? <Loader2 size={12} className="animate-spin" /> : <XIcon size={12} />}
-                              Ablehnen
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              {/* Bearbeitet toggle */}
-              {anfragenLoaded && anfragen.some(r => r.status && r.status !== 'pending') && (
-                <div>
-                  <button
-                    onClick={() => setShowProcessed(p => !p)}
-                    className="flex items-center gap-2 text-[12px] font-medium mb-3 transition-colors"
-                    style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    {showProcessed ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    Bearbeitet ({anfragen.filter(r => r.status && r.status !== 'pending').length})
-                  </button>
-
-                  {showProcessed && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {anfragen.filter(r => r.status && r.status !== 'pending').map(req => (
-                        <div key={req.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '10px 14px', borderRadius: 10,
-                          background: 'var(--bg)', border: '1px solid #EEE8E2', opacity: 0.8,
-                        }}>
-                          <div style={{
-                            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                            background: req.status === 'approved' ? 'rgba(90,154,88,0.15)' : 'rgba(192,80,80,0.12)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 11, color: req.status === 'approved' ? '#5A9A58' : '#C05050', fontWeight: 700,
-                          }}>
-                            {req.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{req.name}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.email}</div>
-                          </div>
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, letterSpacing: 0.5, padding: '3px 8px', borderRadius: 999,
-                            background: req.status === 'approved' ? 'rgba(90,154,88,0.1)' : 'rgba(192,80,80,0.08)',
-                            color: req.status === 'approved' ? '#5A9A58' : '#C05050',
-                          }}>
-                            {req.status === 'approved' ? 'Angenommen' : 'Abgelehnt'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
