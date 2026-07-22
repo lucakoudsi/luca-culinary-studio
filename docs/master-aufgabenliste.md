@@ -8,6 +8,20 @@
 > Legende: [ ] offen · [~] teilweise/unklar · [x] erledigt (zur Info gelistet)
 
 ═══════════════════════════════════════════════════════════════════════
+## ⚠️ WARNHINWEIS: KEIN GEWERBE, KEIN VERKAUF
+═══════════════════════════════════════════════════════════════════════
+
+**Es existiert aktuell noch KEIN Gewerbe/keine Firma.** Damit dürfen
+aktuell **keine kostenpflichtigen Produkte verkauft werden** — unabhängig
+davon, wie weit Stripe technisch fertig ist.
+
+**Strategie:** Alle Features inklusive Stripe fertig bauen, aber die
+Kauffunktion gesperrt halten, bis Gewerbe/Rechtsform/Impressum/
+Rechtstexte stehen (siehe Teil 2 — die Rechtsform-/Gewerbe-/
+Steuer-Klärung dort ist die Voraussetzung fürs Freischalten). Konkrete
+Sperr-Aufgabe siehe Teil 1A.
+
+═══════════════════════════════════════════════════════════════════════
 ## TEIL 1 — WEG ZUM LAUNCH (das eigentliche Ziel)
 ═══════════════════════════════════════════════════════════════════════
 
@@ -31,6 +45,13 @@
 
 **Build-Check**
 - [ ] `npx tsc --noEmit` + `npm run build` sauber, `git status` gesichtet.
+
+**Kaufsperre (siehe Warnhinweis ganz oben — kein Gewerbe, kein Verkauf)**
+- [ ] **Kauffunktion serverseitig sperren** — Feature-Flag
+  `NEXT_PUBLIC_PAYMENTS_ENABLED` (default aus), das (a) alle Upgrade-/
+  Checkout-Buttons ausblendet UND (b) die Route `/api/stripe/checkout`
+  hart mit 403 blockiert, damit auch direkte API-Aufrufe scheitern. Erst
+  scharf schalten, wenn Gewerbe + Rechtstexte stehen (Teil 2).
 
 ### 1B. MIT / NACH DEM PUSH — braucht Deploy oder Produktionsumgebung
 
