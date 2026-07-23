@@ -57,7 +57,7 @@ export async function safeFetch(
       res = await fetch(currentUrl, {
         signal: controller.signal,
         redirect: 'manual',
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LucaCulinaryStudio-RecipeImport/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CulinaryStudio-RecipeImport/1.0)' },
       });
     } catch {
       throw new SafeFetchError('Seite konnte nicht erreicht werden (Timeout oder Netzwerkfehler).');

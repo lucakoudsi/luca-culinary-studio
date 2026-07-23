@@ -43,7 +43,7 @@ export default function MenuCardView({ menu, recipes, onClose }: { menu: Project
           )}
 
           <div className="w-16 h-px mx-auto my-8" style={{ background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)' }} />
-          <div className="text-[10px] tracking-[3px] uppercase" style={{ color: 'rgba(107,58,75,0.4)' }}>LUCA Culinary Studio</div>
+          <div className="text-[10px] tracking-[3px] uppercase" style={{ color: 'rgba(107,58,75,0.4)' }}>Culinary Studio</div>
         </div>
       </div>
     </div>

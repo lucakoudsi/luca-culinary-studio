@@ -251,7 +251,7 @@ export default function LoginPage() {
 
           {/* Version */}
           <p className="text-center mt-10" style={{ fontSize: 10, color: 'rgba(var(--text-rgb), 0.2)', letterSpacing: '3px', textTransform: 'uppercase' }}>
-            Luca Culinary Studio
+            Culinary Studio
           </p>
         </div>
       </div>

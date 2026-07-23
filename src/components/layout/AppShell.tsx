@@ -32,7 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <button onClick={() => setMobileOpen(true)} className="text-text-primary p-1">
             <Menu size={22} />
           </button>
-          <span className="ml-3 font-heading text-base font-bold text-text-primary">LUCA Culinary</span>
+          <span className="ml-3 font-heading text-base font-bold text-text-primary">Culinary Studio</span>
         </div>
 
         <main className="flex-1 min-h-0 overflow-y-auto pb-16 md:pb-0">

@@ -34,7 +34,7 @@ const mainNavItems = [
 // einfach an die Hauptliste angehaengt, damit die Herkunft/Zusammengehoerigkeit
 // der drei Unterseiten in der Navigation sichtbar bleibt.
 const collectionNavItems = [
-  { href: '/collection',        label: 'LUCA Collection',   icon: Library,     aiLocked: false },
+  { href: '/collection',        label: 'Collection',        icon: Library,     aiLocked: false },
   { href: '/collection/meine',  label: 'Meine Sammlungen',  icon: FolderHeart, aiLocked: false },
   { href: '/collection/koeche', label: 'Gefolgte Köche',    icon: ChefHat,     aiLocked: false },
 ];
@@ -248,7 +248,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                 {profileName || 'CULINARY'}
               </div>
               <div className="tracking-[2px] uppercase mt-0.5"
-                style={{ fontSize: 8, color: 'var(--text-muted, #B09880)' }}>Culinary Creator</div>
+                style={{ fontSize: 8, color: 'var(--text-muted, #B09880)' }}>Culinary Studio</div>
             </div>
             {mobileOpen && (
               <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: 'var(--text-muted)' }}>

@@ -17,11 +17,11 @@ const MAX_IMAGES = 5;
 const MAX_RAW_BYTES_PER_IMAGE = 15 * 1024 * 1024; // roh, vor der Komprimierung
 const UPSTREAM_TIMEOUT_MS = 50_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
-const INTRO_ABLESEN = `Du extrahierst Rezepte aus Fotos für LUCA Culinary Studio.
+const INTRO_ABLESEN = `Du extrahierst Rezepte aus Fotos für Culinary Studio.
 
 Der Nutzer lädt ein oder mehrere Fotos hoch -- z.B. eine abfotografierte Kochbuchseite, ein Screenshot aus einem Instagram-/TikTok-Reel, ein handgeschriebenes Rezept, eine Rezeptkarte oder ein Foto des fertigen Gerichts. Lies Text und Struktur aus den Bildern und extrahiere daraus ein strukturiertes Rezept. Bei mehreren Bildern (z.B. mehrere Frames aus einem Video, in denen das Rezept über die Bilder verteilt ist) führe sie zu EINEM zusammenhängenden Rezept zusammen -- nicht zu mehreren getrennten Rezepten.`;
 
-const INTRO_REKONSTRUKTION = `Du rekonstruierst ein plausibles Rezept aus Fotos des FERTIGEN, bereits angerichteten Gerichts für LUCA Culinary Studio -- z.B. Standbilder aus einem TikTok-/Instagram-Anrichte-Video, bei denen kein Rezepttext zu lesen ist, nur das fertige Gericht selbst.
+const INTRO_REKONSTRUKTION = `Du rekonstruierst ein plausibles Rezept aus Fotos des FERTIGEN, bereits angerichteten Gerichts für Culinary Studio -- z.B. Standbilder aus einem TikTok-/Instagram-Anrichte-Video, bei denen kein Rezepttext zu lesen ist, nur das fertige Gericht selbst.
 
 Der Nutzer hat KEIN ablesbares Rezept zur Verfügung -- nur Bilder des Ergebnisses. Analysiere, was auf den Bildern zu sehen ist (Komponenten, Techniken, Anrichteweise) und rekonstruiere daraus ein plausibles Rezept aus deinem Kochwissen. Bei mehreren Bildern (z.B. verschiedene Frames desselben Anrichte-Vorgangs) beziehen sich alle auf DASSELBE Gericht -- führe sie zu einer einzigen, zusammenhängenden Rekonstruktion zusammen.`;
 

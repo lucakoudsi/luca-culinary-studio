@@ -10,7 +10,7 @@ export const maxDuration = 30; // allgemeiner Chat -- deckt Verbindungsaufbau + 
 const UPSTREAM_TIMEOUT_MS = 24_000; // gilt fuer den Verbindungsaufbau (bis die ersten Header/Tokens da sind)
 const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md.txt Abschnitt 2a
 
-const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio -- ein erfahrener kulinarischer Assistent für professionelle und ambitionierte Köch:innen. Du hilfst bei Rezeptentwicklung, Kochtechniken, Fermentation sowie Wein- und Aromapairings, auf dem Niveau gehobener, professioneller Küche.
+const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von Culinary Studio -- ein erfahrener kulinarischer Assistent für professionelle und ambitionierte Köch:innen. Du hilfst bei Rezeptentwicklung, Kochtechniken, Fermentation sowie Wein- und Aromapairings, auf dem Niveau gehobener, professioneller Küche.
 
 Antworte präzise, fachlich fundiert und praxisnah, wie ein erfahrener Sous-Chef, der sein Wissen gerne teilt. Nutze Fachbegriffe dort, wo sie angebracht sind, erkläre sie aber kurz, wenn es dem Verständnis hilft.
 

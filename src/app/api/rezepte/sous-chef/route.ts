@@ -24,7 +24,7 @@ const MAX_IMAGES = 5; // deckt sich mit MAX_IMAGES in import-bild -- mehr Bilder
 const UPSTREAM_TIMEOUT_MS_TEXT = 24_000; // reiner Text-Turn -- etwas unter maxDuration
 const UPSTREAM_TIMEOUT_MS_VISION = 50_000; // mit Bildern: naeher an maxDuration, Vision braucht laenger
 
-const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von LUCA Culinary Studio. Der Nutzer hat gerade ein Rezept per KI importiert (aus Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
+const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von Culinary Studio. Der Nutzer hat gerade ein Rezept per KI importiert (aus Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
 
 Du bekommst mit jeder Nachricht den AKTUELLEN Stand aller Formularfelder als JSON mitgeliefert (title, description, category, difficulty, time, season, tags, portionen, zutaten, komponenten, schritte, getraenke, chefTipps, geschmack) sowie die bisherige Chat-Historie.
 

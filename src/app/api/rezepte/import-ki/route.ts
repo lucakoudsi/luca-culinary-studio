@@ -13,7 +13,7 @@ const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-k
 const MAX_TEXT_LENGTH = 8000; // Captions sind normalerweise deutlich kuerzer -- grosszuegige Sicherheitsgrenze
 const UPSTREAM_TIMEOUT_MS = 24_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 
-const INTRO = `Du extrahierst Rezepte aus Social-Media-Captions (Instagram/TikTok) oder kopiertem Rezepttext für LUCA Culinary Studio.
+const INTRO = `Du extrahierst Rezepte aus Social-Media-Captions (Instagram/TikTok) oder kopiertem Rezepttext für Culinary Studio.
 
 Der Nutzer gibt dir einen rohen Text -- oft eine ungeordnete Caption mit Emojis, Hashtags, Call-to-Actions ("folgt mir für mehr!", "speichert euch das ab!") und locker formulierten Mengenangaben. Extrahiere daraus ein strukturiertes Rezept.`;
 

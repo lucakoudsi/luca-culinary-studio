@@ -6,7 +6,7 @@ import ThemeProvider from '@/components/providers/ThemeProvider';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'LUCA Culinary Creator',
+  title: 'Culinary Studio',
   description: 'Professionelle Küchen-App für kulinarische Profis & Creator.',
 };
 

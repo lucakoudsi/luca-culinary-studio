@@ -53,7 +53,7 @@ function parseIdArray(value: unknown): number[] {
   ));
 }
 
-const SYSTEM_PROMPT = `Du bist der Menü-Komponist von LUCA Culinary Studio, spezialisiert auf die Gestaltung stimmiger Mehrgänge-Menüs für professionelle und ambitionierte Köch:innen.
+const SYSTEM_PROMPT = `Du bist der Menü-Komponist von Culinary Studio, spezialisiert auf die Gestaltung stimmiger Mehrgänge-Menüs für professionelle und ambitionierte Köch:innen.
 
 Du bekommst eine Liste verfügbarer Zutaten mit Kategorie, Aromaprofil, Geschmacksachsen (Skala 0-5: acidity, sweetness, bitterness, umami, spiciness, saltiness) und Pairings. Komponiere daraus ein Menü mit der angegebenen Gangzahl.
 
