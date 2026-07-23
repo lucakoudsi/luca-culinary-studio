@@ -45,7 +45,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         style={{ background: 'var(--sidebar-bg, #F0EBE3)' }}>
         <div className="flex">
           {BOTTOM_NAV.map(({ href, icon: Icon, label }) => {
-            const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+            const isActive = href === '/' ? pathname === '/' : (pathname === href || pathname.startsWith(href + '/'));
             return (
               <Link key={href} href={href}
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"

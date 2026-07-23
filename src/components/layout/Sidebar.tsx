@@ -52,9 +52,28 @@ function applyFontSize(size: FontSize) {
   localStorage.setItem('fontSize', size);
 }
 
+// Ermittelt den zum aktuellen Pfad passenden Nav-Eintrag. Reines
+// pathname.startsWith(href) matcht auch fremde Routen mit gemeinsamem
+// Prefix (z.B. /zutatenstammbaum faelschlich unter /zutaten) und bei
+// echten Segment-Prefixen mit eigenem Nav-Eintrag (z.B. /collection als
+// Vorfahr von /collection/meine) waeren sonst zwei Eintraege gleichzeitig
+// aktiv -- daher: von allen Treffern (exakt oder /href/... ) gewinnt der
+// mit dem laengsten href.
+function resolveActiveHref(pathname: string, hrefs: string[]): string | undefined {
+  const matches = hrefs.filter(h =>
+    h === '/' ? pathname === '/' : (pathname === h || pathname.startsWith(h + '/'))
+  );
+  if (matches.length === 0) return undefined;
+  return matches.reduce((longest, h) => (h.length > longest.length ? h : longest));
+}
+
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
+  const activeHref = resolveActiveHref(
+    pathname,
+    [...mainNavItems, ...collectionNavItems].map(i => i.href)
+  );
   const [user, setUser]             = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState('');
@@ -158,7 +177,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
   // Gemeinsames Rendering fuer Haupt- und Collection-Nav-Items -- vorher nur
   // fuer eine flache Liste gebraucht, jetzt fuer zwei Gruppen wiederverwendet.
   const renderNavItem = ({ href, label, icon: Icon, aiLocked }: typeof mainNavItems[number]) => {
-    const isActive    = href === '/' ? pathname === '/' : pathname.startsWith(href);
+    const isActive    = href === activeHref;
     const aiBlocked   = aiLocked;
     const minTier     = PAGE_MIN_TIER[href] ?? 1;
     const tierBlocked = userTier < minTier;
