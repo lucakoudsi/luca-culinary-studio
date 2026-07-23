@@ -314,7 +314,7 @@ export default function DashboardPage() {
                       <div className="relative rounded-xl overflow-hidden cursor-pointer group transition-all"
                         style={{ border: '1px solid var(--border, #E8E0D8)', minHeight: 130, background: 'var(--surface, #FFFFFF)' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(107,58,75,0.35)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(107,58,75,0.08)'; }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = '#E8E0D8'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
+                        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = ''; (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; }}>
                         {/* Color accent top bar */}
                         <div className="h-1 w-full" style={{ background: p.color || '#6B3A4B' }} />
                         <div className="p-4">

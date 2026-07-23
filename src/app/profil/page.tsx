@@ -57,12 +57,18 @@ type AdminUser = {
 };
 
 const TIER_LABEL: Record<number, string> = { 1: 'Free', 2: 'Basic', 3: 'Pro', 4: 'Team' };
+// Farben bewusst als feste Werte (nicht var(--accent) o.ae.), analog zum
+// bestehenden Muster bei success/warning/danger/info in tailwind.config.js --
+// mittelhelle Toene, die auf hellem UND dunklem Kartenhintergrund lesbar
+// bleiben, statt sich ans Theme anzupassen. Tier 1/4/99 waren vorher zu
+// dunkel fuer Dark Mode (Kontrast < 3:1 auf dunkler Karte) und wurden
+// aufgehellt; Tier 2/3 waren bereits hell genug und blieben unveraendert.
 const TIER_COLOR: Record<number, { bg: string; text: string }> = {
-  1:  { bg: 'rgba(154,128,112,0.12)', text: '#9A8070' },
+  1:  { bg: 'rgba(176,152,128,0.15)', text: '#B09880' },
   2:  { bg: 'rgba(90,138,154,0.12)',  text: '#5A8B9A' },
   3:  { bg: 'rgba(201,168,76,0.12)',  text: '#C9A84C' },
-  4:  { bg: 'rgba(107,58,75,0.12)',   text: '#6B3A4B' },
-  99: { bg: 'rgba(86,46,60,0.18)',    text: '#562E3C' },
+  4:  { bg: 'rgba(199,115,137,0.15)', text: '#C77389' },
+  99: { bg: 'rgba(224,164,88,0.18)',  text: '#E0A458' },
 };
 
 // Feature-Zeilen kommen jetzt aus src/config/featureGates.ts -- dieselbe
@@ -90,7 +96,7 @@ function onFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
   e.currentTarget.style.boxShadow = '0 0 0 3px rgba(107,58,75,0.06)';
 }
 function onBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-  e.currentTarget.style.borderColor = '#E8E0D8';
+  e.currentTarget.style.borderColor = '';
   e.currentTarget.style.boxShadow = 'none';
 }
 
@@ -1208,8 +1214,8 @@ export default function ProfilPage() {
                 return (
                   <div key={u.id} style={{
                     borderRadius: 12, marginBottom: 6,
-                    background: u.email === ADMIN_EMAIL ? 'rgba(86,46,60,0.04)' : '#FAFAF9',
-                    border: isConfirming ? '1px solid rgba(192,80,80,0.35)' : '1px solid #EEE8E2',
+                    background: u.email === ADMIN_EMAIL ? 'rgba(86,46,60,0.04)' : 'var(--surface)',
+                    border: isConfirming ? '1px solid rgba(192,80,80,0.35)' : '1px solid var(--border)',
                     overflow: 'hidden', transition: 'border-color 0.15s',
                   }}>
                     {/* Main row */}

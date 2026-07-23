@@ -1,5 +1,5 @@
 ﻿'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Mail, Lock, User, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -53,14 +53,6 @@ export default function RegisterPage() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    const prev = document.documentElement.getAttribute('data-theme');
-    document.documentElement.setAttribute('data-theme', 'light');
-    return () => {
-      if (prev) document.documentElement.setAttribute('data-theme', prev);
-      else document.documentElement.removeAttribute('data-theme');
-    };
-  }, []);
   const [confirm, setConfirm]   = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPw, setShowPw]     = useState(false);
@@ -100,7 +92,7 @@ export default function RegisterPage() {
     setResending(false);
   };
 
-  const fieldCls   = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-[#2C2420] outline-none transition-all placeholder:text-[#C0B5A8]";
+  const fieldCls   = "w-full pl-10 pr-4 py-3.5 rounded-xl text-[14px] text-text-primary outline-none transition-all placeholder:text-text-muted";
   const fieldStyle = { background: 'var(--surface)', border: '1px solid var(--border)' };
 
   const onFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -108,7 +100,7 @@ export default function RegisterPage() {
     e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(107,58,75,0.06), inset 0 0 0 1px rgba(107,58,75,0.08)';
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    e.currentTarget.style.borderColor = '#E8E0D8';
+    e.currentTarget.style.borderColor = '';
     e.currentTarget.style.boxShadow   = 'none';
   };
 
@@ -119,7 +111,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col" style={{ background: 'var(--bg)' }}>
         <BlobBackground />
         <div className="absolute inset-y-0 right-0 w-32 z-10" style={{
-          background: 'linear-gradient(90deg, transparent, #FAF8F5)',
+          background: 'linear-gradient(90deg, transparent, var(--bg))',
         }} />
 
         <div className="relative z-10 p-10">
@@ -166,10 +158,10 @@ export default function RegisterPage() {
                   <CheckCircle size={32} color="#6B3A4B" />
                 </div>
               </div>
-              <h2 className="font-heading text-[22px] font-bold text-[#2C2420] mb-3">Bestätigungsmail verschickt!</h2>
+              <h2 className="font-heading text-[22px] font-bold text-text-primary mb-3">Bestätigungsmail verschickt!</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.8 }}>
                 Wir haben eine Email an<br />
-                <strong style={{ color: '#2C2420' }}>{email}</strong><br />
+                <strong style={{ color: 'var(--text)' }}>{email}</strong><br />
                 geschickt. Bitte klicke auf den Link darin,<br />
                 um deinen Account zu bestätigen.
               </p>
@@ -182,7 +174,7 @@ export default function RegisterPage() {
           ) : (
             <>
               <div className="mb-6 text-center">
-                <h2 className="font-heading text-[24px] font-bold text-[#2C2420]">Account erstellen</h2>
+                <h2 className="font-heading text-[24px] font-bold text-text-primary">Account erstellen</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
                   Kostenlos starten, jederzeit upgraden.
                 </p>

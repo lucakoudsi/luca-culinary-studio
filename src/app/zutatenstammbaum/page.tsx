@@ -34,8 +34,8 @@ const STYLES = `
     transition: opacity 0.3s ease, filter 0.3s ease;
   }
   .method-card {
-    background: #FFFFFF;
-    border: 1.5px solid #E8DDD4;
+    background: var(--surface, #FFFFFF);
+    border: 1.5px solid var(--border, #E8DDD4);
     border-radius: 14px;
     padding: 14px 16px;
     cursor: pointer;
@@ -46,10 +46,10 @@ const STYLES = `
   }
   .method-card:hover {
     box-shadow: 0 4px 20px rgba(107,58,75,0.14);
-    border-color: #C9A84C;
+    border-color: var(--accent-gold, #C9A84C);
   }
   .method-card.expanded {
-    border-color: #6B3A4B;
+    border-color: var(--accent, #6B3A4B);
     box-shadow: 0 0 0 2px rgba(107,58,75,0.12), 0 8px 32px rgba(107,58,75,0.18);
     z-index: 5;
   }
@@ -79,7 +79,7 @@ const STYLES = `
   .rail-emoji { font-size: 22px; line-height: 1; }
   .rail-label {
     font-size: 8.5px; font-weight: 600; letter-spacing: 0.4px;
-    color: #6B3A4B; text-transform: uppercase; text-align: center;
+    color: var(--accent, #6B3A4B); text-transform: uppercase; text-align: center;
   }
 `;
 
@@ -125,11 +125,11 @@ function MethodCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontSize: 10.5, fontWeight: 700, letterSpacing: '1.2px',
-            color: '#6B3A4B', textTransform: 'uppercase', lineHeight: 1.3,
+            color: 'var(--accent, #6B3A4B)', textTransform: 'uppercase', lineHeight: 1.3,
           }}>
             {method.label}
           </div>
-          <div style={{ fontSize: 10, color: '#C9A84C', marginTop: 3 }}>
+          <div style={{ fontSize: 10, color: 'var(--accent-gold, #C9A84C)', marginTop: 3 }}>
             {method.children?.length}&nbsp;Arten
           </div>
         </div>
