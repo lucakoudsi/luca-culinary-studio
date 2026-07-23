@@ -36,8 +36,8 @@ fertig und lokal end-to-end getestet, aber noch nicht live/gepusht.
 - **Menügenerator**: echte KI-Generierung über den zentralen Betreiber-Key
   (`OPERATOR_OPENAI_KEY`), 3-Schritt-Dialog, Wein-Pairing pro Gang,
   Technik-Taxonomie an Aufwandsstufe gekoppelt, als Projekt speicherbar.
-- **KI-Sous-Chef & Rezept-Sous-Chef**: laufen über den Betreiber-Key
-  (`OPENAI_API_KEY`), nicht mehr über BYOK. Rezept-Sous-Chef darf bei
+- **KI-Sous-Chef & Rezept-Sous-Chef**: laufen über denselben zentralen
+  Betreiber-Key (`OPERATOR_OPENAI_KEY`), nicht mehr über BYOK. Rezept-Sous-Chef darf bei
   explizitem Chat-Auftrag ("Umbau-Auftrag") aktiv Küchenwissen einbringen,
   beim Import gilt weiter strikt "nichts erfinden".
 - **Tellerdesigner**: echte Bildgenerierung + Galerie mit Persistenz
@@ -192,9 +192,7 @@ Master-Aufgabenliste) sind in den obigen Commits committet.
 | `SUPABASE_SERVICE_ROLE_KEY` | Admin-Client (RLS-Bypass) | gesetzt |
 | `NEXT_PUBLIC_APP_URL` | für Redirect-/Callback-URLs | gesetzt |
 | `NEXT_PUBLIC_AI_MENU_ENABLED` / `_AI_PLATE_ENABLED` | Feature-Flags Menügenerator/Tellerdesigner | gesetzt |
-| `OPENAI_API_KEY` | Rezept-/KI-Sous-Chef, Bildgenerierung | gesetzt |
-| `OPERATOR_OPENAI_KEY` | Menügenerator (zentraler Betreiber-Key) | gesetzt |
-| `PEXELS_API_KEY` | **ungenutzt** — kein Treffer im gesamten `src/`, vermutlich Altlast | gesetzt, aber tot |
+| `OPERATOR_OPENAI_KEY` | zentraler Betreiber-Key — **einzige** tatsächlich gelesene OpenAI-Variable, einzige Lesestelle `src/lib/operator-key.ts` (`getOperatorOpenAiKey()`), genutzt von allen 6 KI-Routen: KI-Sous-Chef-Chat, Menügenerator, Rezept-Bild-Import, Rezept-KI-Import, Rezept-Sous-Chef, Tellerdesigner-Bildgenerierung | gesetzt |
 | `RESEND_API_KEY` | Transaktions-Mails, jetzt auch Supabase-Auth-Confirm-Mails via Custom SMTP | gesetzt, Domain `mail.culinary-studio.de` verifiziert |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe-Testmodus | gesetzt |
 | `STRIPE_PRICE_BASIC` / `_PRO` / `_TEAM` | Price-IDs (Testmodus) | gesetzt |
@@ -207,11 +205,12 @@ Supabase-Dashboard-Konfiguration.
 
 **Bei Vercel erledigt**: `NEXT_PUBLIC_AI_PLATE_ENABLED=true` gesetzt,
 `NEXT_PUBLIC_AI_LAB_ENABLED` und `KEY_ENCRYPTION_SECRET` gelöscht (BYOK
-entfernt). Für den nächsten Deploy weiterhin neu zu ergänzen:
-`OPENAI_API_KEY`, alle Stripe-Testmodus-Keys (`STRIPE_SECRET_KEY`,
-`STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`), `SUPABASE_SERVICE_ROLE_KEY`
-prüfen — vollständige, priorisierte Liste siehe
-`docs/master-aufgabenliste.md` Teil 1B.
+entfernt). Für den nächsten Deploy weiterhin zu prüfen/ergänzen:
+`OPERATOR_OPENAI_KEY` (die tatsächlich genutzte Variable, nicht das
+gestrichene `OPENAI_API_KEY`), alle Stripe-Testmodus-Keys
+(`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`),
+`SUPABASE_SERVICE_ROLE_KEY` prüfen — vollständige, priorisierte Liste
+siehe `docs/master-aufgabenliste.md` Teil 1B.
 
 ---
 
