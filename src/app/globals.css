@@ -117,6 +117,19 @@
     border-color: var(--border);
   }
 
+  /* Browser autofill (v.a. gespeicherte Logins auf Passwort-Feldern) setzt
+     sonst per User-Agent-Stylesheet eine feste helle Hintergrundfarbe +
+     schwarzen Text, unabhängig vom Theme. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text);
+    -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+    box-shadow: 0 0 0 1000px var(--surface) inset;
+    caret-color: var(--text);
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   input, textarea {
     color-scheme: light;
   }
