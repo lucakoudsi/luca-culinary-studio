@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2, CreditCard, HelpCircle } from 'lucide-react';
 import { STUFEN } from '@/config/roles';
+import { FEATURES } from '@/config/features';
 import { FEATURE_GATES } from '@/config/featureGates';
 import { STUFE_PREIS_BRUTTO, formatPreis } from '@/config/pricing';
 import { TEXT_QUOTA_BY_TIER, TEXT_QUOTA_WEIGHTS } from '@/config/textQuota';
@@ -287,7 +288,7 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
                     style={{ fontSize: 11.5, fontWeight: 600, color: '#6B3A4B', background: 'rgba(107,58,75,0.08)' }}>
                     <CheckCircle2 size={13} /> Aktueller Plan
                   </div>
-                ) : canUpgrade ? (
+                ) : canUpgrade && FEATURES.PAYMENTS_ENABLED ? (
                   <button
                     onClick={() => handleUpgrade(s.stufe)}
                     disabled={pendingTier !== null}
@@ -296,6 +297,10 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
                     {pendingTier === s.stufe ? <Loader2 size={12} className="animate-spin" /> : <CreditCard size={12} />}
                     {pendingTier === s.stufe ? 'Weiterleitung…' : `Auf ${TIER_SHORT[s.stufe]} upgraden`}
                   </button>
+                ) : canUpgrade ? (
+                  <div className="text-center py-2" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    Verkauf startet in Kürze
+                  </div>
                 ) : (
                   <div className="text-center py-2" style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     In deinem Plan enthalten
@@ -310,7 +315,7 @@ export default function PlanTab({ currentTier, quota, quotaLoading }: {
         <p style={{ fontSize: 11.5, color: '#C05050', marginTop: 12 }}>{checkoutError}</p>
       )}
 
-      {!isAdminTier && currentTier > 1 && (
+      {!isAdminTier && currentTier > 1 && FEATURES.PAYMENTS_ENABLED && (
         <button
           onClick={handleManageSubscription}
           disabled={pendingPortal}

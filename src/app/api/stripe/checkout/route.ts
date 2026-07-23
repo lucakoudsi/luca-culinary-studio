@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/get-request-user';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { createStripeClient, tierToPriceId } from '@/lib/stripe';
+import { FEATURES } from '@/config/features';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,13 @@ export const dynamic = 'force-dynamic';
 // ist der Schluessel, ueber den der Webhook (checkout.session.completed)
 // spaeter die richtige profiles-Zeile findet.
 export async function POST(req: NextRequest) {
+  // Kaufsperre: solange kein Gewerbe/keine Rechtstexte stehen, hart
+  // blockieren -- unabhaengig vom Frontend-Zustand (siehe
+  // docs/master-aufgabenliste.md, Warnhinweis ganz oben).
+  if (!FEATURES.PAYMENTS_ENABLED) {
+    return NextResponse.json({ error: 'Käufe sind derzeit nicht möglich.' }, { status: 403 });
+  }
+
   const user = await getRequestUser(req);
   if (!user) {
     return NextResponse.json({ error: 'Nicht eingeloggt.' }, { status: 401 });

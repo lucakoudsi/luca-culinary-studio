@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/get-request-user';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { createStripeClient } from '@/lib/stripe';
+import { FEATURES } from '@/config/features';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,14 @@ export const dynamic = 'force-dynamic';
 // Webhook-Events zurueck wie Checkout (siehe /api/stripe/webhook) -- diese
 // Route selbst schreibt nichts auf profiles.
 export async function POST(req: NextRequest) {
+  // Kaufsperre: Portal setzt einen bestehenden zahlenden Kunden voraus, den
+  // es unter der aktuellen Rechtslage nicht geben duerfte -- ausserdem ist
+  // unklar, ob die Stripe-Dashboard-Portal-Konfiguration Plan-Wechsel
+  // erlaubt. Aus Vorsicht gleiche Sperre wie Checkout.
+  if (!FEATURES.PAYMENTS_ENABLED) {
+    return NextResponse.json({ error: 'Die Abo-Verwaltung ist derzeit nicht verfügbar.' }, { status: 403 });
+  }
+
   const user = await getRequestUser(req);
   if (!user) {
     return NextResponse.json({ error: 'Nicht eingeloggt.' }, { status: 401 });
