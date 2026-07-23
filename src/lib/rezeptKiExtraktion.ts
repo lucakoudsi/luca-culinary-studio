@@ -164,8 +164,18 @@ export function parseGeschmack(value: unknown): FlavorProfile {
 }
 
 /** Fehlende Zutaten/Zubereitung erkennt man serverseitig zuverlaessiger als per Prompt-Bitte allein -- Fallback-Netz zur Vollstaendigkeits-Regel oben. */
-function buildVollstaendigkeitsWarnungen(zutaten: Zutat[], komponenten: Komponente[], schritte: string[]): string[] {
+function buildVollstaendigkeitsWarnungen(title: string, zutaten: Zutat[], komponenten: Komponente[], schritte: string[]): string[] {
   const warnungen: string[] = [];
+  // Titel erkannt, aber weder flache Zutaten/Schritte noch Komponenten --
+  // typischerweise ein Bild, dessen Zutatenliste zu klein/dicht war, um sie
+  // zu lesen (siehe Debugging-Session 2026-07-23). Ohne diesen Fall bleiben
+  // die beiden Zweige unten stumm, weil sie je einen nicht-leeren Gegenpart
+  // voraussetzen -- isEmptyRezeptResult() greift wegen des vorhandenen Titels
+  // ebenfalls nicht, das Ergebnis wuerde sonst unbemerkt als voller Erfolg
+  // durchgereicht.
+  if (title && zutaten.length === 0 && komponenten.length === 0 && schritte.length === 0) {
+    warnungen.push('Zutaten konnten nicht gelesen werden, bitte prüfen oder einen Ausschnitt erneut hochladen.');
+  }
   if (komponenten.length > 0) {
     for (const k of komponenten) {
       if (k.zutaten.length === 0) warnungen.push(`Komponente "${k.name}": keine Zutaten erkannt -- bitte ergänzen.`);
@@ -197,11 +207,12 @@ export function parseKiRezeptResponse(parsed: unknown, logPrefix: string, modus:
   if (r.difficulty !== difficulty) console.error(`${logPrefix} difficulty "${String(r.difficulty)}" ungültig, normalisiert zu "${difficulty}".`);
   if (r.season !== season) console.error(`${logPrefix} season "${String(r.season)}" ungültig, normalisiert zu "${season}".`);
 
+  const title = typeof r.title === 'string' ? r.title.trim() : '';
   const zutaten = parseZutatenArray(r.zutaten);
   const komponenten = parseKomponenten(r.komponenten);
   const schritte = Array.isArray(r.schritte) ? r.schritte.filter((s): s is string => typeof s === 'string' && s.trim().length > 0).map(s => s.trim()) : [];
 
-  const warnungen = buildVollstaendigkeitsWarnungen(zutaten, komponenten, schritte);
+  const warnungen = buildVollstaendigkeitsWarnungen(title, zutaten, komponenten, schritte);
   let chefTipps = typeof r.chefTipps === 'string' ? r.chefTipps.trim() : '';
   if (warnungen.length > 0) {
     console.error(`${logPrefix} Vollständigkeits-Warnung: ${warnungen.join(' | ')}`);
@@ -230,7 +241,7 @@ export function parseKiRezeptResponse(parsed: unknown, logPrefix: string, modus:
   }
 
   return {
-    title: typeof r.title === 'string' ? r.title.trim() : '',
+    title,
     description: typeof r.description === 'string' ? r.description.trim() : '',
     category,
     difficulty,

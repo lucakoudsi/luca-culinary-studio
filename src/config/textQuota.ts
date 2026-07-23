@@ -35,5 +35,7 @@ export const TEXT_QUOTA_WEIGHTS = {
   sousChefText: 2,  // /api/rezepte/sous-chef, ohne angehaengte Bilder
   importText: 2,    // /api/rezepte/import-ki
   menue: 3,         // /api/menuegenerator
-  vision: 5,         // /api/rezepte/import-bild, ODER sous-chef MIT Bildern
+  vision: 7,         // /api/rezepte/import-bild, ODER sous-chef MIT Bildern -- ab
+                      // 2026-07-23 detail:"high" statt "auto" (siehe import-bild/
+                      // route.ts), teurer pro Bild durch mehr Tiles/Tokens.
 } as const;

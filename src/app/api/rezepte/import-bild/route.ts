@@ -88,8 +88,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Ein Bild ist zu groß (max. 15 MB pro Bild).' }, { status: 400 });
     }
     try {
+      // Lange Seite statt feste Breite begrenzen: ein reiner Breiten-Cap
+      // schnitt Hochformat-Vorlagen (z.B. dichte Infografiken) unnoetig
+      // schmal, weil die Hoehe unbegrenzt blieb -- OpenAI skaliert bei
+      // detail:"high" ohnehin zuerst auf max. 2048x2048, daher verliert
+      // fit:'inside' bei 2048 gegenueber dem Original keine zusaetzlichen
+      // Details, spart aber Upload-Groesse fuer bereits groessere Bilder.
       const buffer = await sharp(parsedImg.buffer)
-        .resize({ width: 1600, withoutEnlargement: true })
+        .resize({ width: 2048, height: 2048, fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 75 })
         .toBuffer();
       compressed.push({ buffer, dataUrl: `data:image/jpeg;base64,${buffer.toString('base64')}` });
@@ -138,7 +144,12 @@ export async function POST(req: NextRequest) {
             role: 'user',
             content: [
               { type: 'text', text: 'Extrahiere das Rezept aus diesen Bildern.' },
-              ...compressed.map(c => ({ type: 'image_url', image_url: { url: c.dataUrl } })),
+              // detail:"high" statt Default "auto" -- bei dichten, mehrspaltigen
+              // Vorlagen (z.B. Infografiken mit kleiner Zutatenliste) waehlte
+              // "auto" teils die verlustreichere Low-Detail-Verarbeitung, wodurch
+              // kleiner Text unlesbar wurde, waehrend groBe Ueberschriften noch
+              // erkannt wurden (siehe Debugging-Session 2026-07-23).
+              ...compressed.map(c => ({ type: 'image_url', image_url: { url: c.dataUrl, detail: 'high' as const } })),
             ],
           },
         ],

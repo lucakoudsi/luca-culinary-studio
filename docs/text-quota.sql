@@ -20,7 +20,10 @@
 --   Rezept-Sous-Chef (ohne Bilder)               2 Einheiten
 --   Rezept-Import Text                           2 Einheiten
 --   Menuegenerator                               3 Einheiten
---   Rezept-Import Bild / Sous-Chef mit Bildern   5 Einheiten
+--   Rezept-Import Bild / Sous-Chef mit Bildern   7 Einheiten (ab 2026-07-23,
+--                                                 vorher 5 -- detail:"high"
+--                                                 statt "auto", siehe
+--                                                 import-bild/route.ts)
 --
 -- Monatslimits pro Abo-Stufe (kalibriert auf ~10,5 % des jeweiligen
 -- Netto-Abopreises als Worst-Case-Kostenanteil, siehe Diskussion in der
