@@ -5,9 +5,29 @@ import ThemeProvider from '@/components/providers/ThemeProvider';
 
 export const dynamic = 'force-dynamic';
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://culinary-studio.de';
+const TITLE = 'Culinary Studio';
+const DESCRIPTION = 'Professionelle Küchen-App für kulinarische Profis & Creator.';
+
 export const metadata: Metadata = {
-  title: 'Culinary Studio',
-  description: 'Professionelle Küchen-App für kulinarische Profis & Creator.',
+  metadataBase: new URL(APP_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: '/',
+    siteName: TITLE,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: TITLE }],
+    locale: 'de_DE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ['/og-image.png'],
+  },
 };
 
 const themeInitScript = `
