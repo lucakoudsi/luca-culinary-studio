@@ -27,7 +27,7 @@ Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbei
 - **Kontingent-System pro Abo-Stufe.**
 - **Stripe-Anbindung.**
 - **Rechtliches:** AGB, DSGVO, Umsatzsteuer.
-- Community-Idee liegt bereit in `docs/community-konzept.md.txt` (bewusst zurückgestellt, siehe Eintrag vom 2026-07-14).
+- Community-Idee liegt bereit in `docs/community-konzept.md` (bewusst zurückgestellt, siehe Eintrag vom 2026-07-14).
 
 ## ✅ Erledigt am 2026-07-14 – Menügenerator (Commits 8b386e6, fe51b82, fa1b54b, noch nicht gepusht)
 
@@ -39,7 +39,7 @@ Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbei
 - **Diät-Tags:** neues Feld `diaet_tags` in `zutaten` (SQL vom Nutzer selbst ausgeführt, wie üblich), alle 500 Zutaten per GPT-4o-Batch-Skript getaggt (vegetarisch/vegan/glutenfrei/laktosefrei), 22 Grenzfälle vom Modell selbst zur Prüfung markiert, davon 6 manuell nachkorrigiert (u. a. Shio Koji fälschlich als Fischprodukt eingestuft).
 - **Wein-Pairing pro Gang** (Commit `966eb00`): nutzt die bestehende Pairing-Engine (`weinPairing.ts`) unverändert, dasselbe 6-Achsen-Format wie `geschmacksprofil` — keine Konvertierung nötig. Empfehlung landet in den bereits vorhandenen `MenuGang`-Feldern `weinId`/`weinName` (kein neues Schema), dadurch automatisch auch in den alten Menü-Ansichten sichtbar. Dezente Anzeige in der Menükarte (kursiv, mit ✦ abgesetzt).
 - **Technik-Taxonomie an den Aufwand-Regler gekoppelt** (Commit `58eccb4`, `src/config/techniken.ts`): eigenständige, kumulative Technikliste bistro/gehoben/fine_dining (bewusst NICHT über den Zutatenstammbaum, siehe Befund unten). Aufwandsstufe schränkt im System-Prompt die erlaubten Techniken hart ein, plus Pflicht-Anteil an fortgeschrittenen Techniken je Stufe. KI-Antwort liefert strukturiertes `technik`-Feld pro Gang, serverseitig gegen die erlaubte Liste validiert und bei Abweichung auf den nächstliegenden Begriff normalisiert (Synonym-Map + sicherer Fallback „kochen"). Zusätzlich Anti-Halluzinations-Regel im Prompt (kein Erfinden von Fantasiebegriffen).
-- Konzept liegt aktuell in `docs/menuegenerator-konzept.md.txt`.
+- Konzept liegt aktuell in `docs/menuegenerator-konzept.md`.
 - **Damit ist der Menügenerator inhaltlich vollständig** (Bau-Reihenfolge Schritte 1–8 aus dem Konzept erledigt).
 
 ### Erkenntnis für künftige Prompts
@@ -60,7 +60,7 @@ Bevor an `/tellerdesigner` (Frontend, Prompt, Layout, irgendein Feature) gearbei
 ## 💡 Idee festgehalten am 2026-07-14 – Rezept-Community/Mediathek (bewusst NICHT jetzt bauen)
 
 - Aus `/kreativlabor` könnte eine öffentliche Rezept-Community/Mediathek werden: Rezepte teilen, stöbern, übernehmen und mit dem bestehenden Rezept-Sous-Chef weiterentwickeln. Der USP wäre die Filterung über die bereits vorhandenen strukturierten Daten (Geschmacksprofil, Diät-Tags, Technik, Saison) — kein anderes Rezeptportal kann das.
-- **Vollständiges Konzept:** `docs/community-konzept.md.txt` (Kernfunktionen, Sichtbarkeits-/Rechte-Modell, Fallstricke wie kaltes Startproblem/Moderation/Recht, Bau-Reihenfolge).
+- **Vollständiges Konzept:** `docs/community-konzept.md` (Kernfunktionen, Sichtbarkeits-/Rechte-Modell, Fallstricke wie kaltes Startproblem/Moderation/Recht, Bau-Reihenfolge).
 - **Bewusst zurückgestellt:** Erst das Kernprodukt fertig (Tellerdesigner echt bauen, KI-Sous-Chef auf Betreiber-Key, Kontingent/Stripe, Launch) — dann Community, wenn es Nutzer gibt, die etwas zu teilen haben. Eine Mediathek ohne Inhalt ist eine leere Halle.
 - `/kreativlabor` bleibt bis dahin gesperrt (`NEXT_PUBLIC_AI_LAB_ENABLED=false`). Alternative zur Community-Umwidmung: **ersatzlos streichen** — Menügenerator + KI-Sous-Chef decken „kreative KI-Unterstützung" bereits ab. Entscheidung noch offen.
 

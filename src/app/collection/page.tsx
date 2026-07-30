@@ -3,7 +3,7 @@ import PageTransition from '@/components/ui/PageTransition';
 import EmptyState from '@/components/ui/EmptyState';
 import { Library } from 'lucide-react';
 
-// Schritt 1 (Navigation + Seitengeruest) aus docs/community-konzept.md.txt --
+// Schritt 1 (Navigation + Seitengeruest) aus docs/community-konzept.md --
 // noch keine Datenbank-Anbindung, kein Veroeffentlichen-Flow. Die Filterung
 // nach Geschmacksprofil/Technik/Saison aus dem Konzept kommt in einer
 // spaeteren Phase, sobald es tatsaechlich veroeffentlichte Rezepte gibt.

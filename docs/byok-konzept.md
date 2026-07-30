@@ -1,4 +1,14 @@
-﻿# BYOK-Konzept: Individueller API-Key pro Nutzer
+﻿> ⚠️ **HISTORISCH / ÜBERHOLT (Stand 2026-07-23):** BYOK (Bring Your Own Key)
+> wurde aus der App entfernt. Alle KI-Routen laufen inzwischen ausschließlich
+> über den zentralen Betreiber-Key (`OPERATOR_OPENAI_KEY`, siehe
+> `src/lib/operator-key.ts` und `docs/abo-konzept.md` Abschnitt 2a). Die hier
+> beschriebene Architektur (individueller Key pro Nutzer, `user_api_keys`-
+> Tabelle, AES-256-GCM-Verschlüsselung) ist nicht mehr im Code vorhanden und
+> dient nur noch als historische Referenz. Die verwaiste `user_api_keys`-
+> Tabelle steht noch zum Löschen an (siehe `docs/master-aufgabenliste.md`
+> Teil 4).
+
+# BYOK-Konzept: Individueller API-Key pro Nutzer (ARCHIV)
 
 **LUCA Culinary Creator** · Next.js 14 (App Router) · Supabase · Vercel
 

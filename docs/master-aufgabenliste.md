@@ -1,9 +1,10 @@
-# Master-Aufgabenliste — LUCA Culinary Studio
+# Master-Aufgabenliste — Culinary Studio
 
-> Stand 2026-07-22. Vollständige Zusammenführung aus (a) der Chat-Session vom
-> 22.07. und (b) Claude Codes Bestandsaufnahme über 16 Projekt-Dateien
-> (docs/*, CLAUDE.md, TO_CHANGE.md.txt). Dedupliziert, mit Status und Phase.
-> Ersetzt die frühere, unvollständige launch-checkliste.md.
+> Stand 2026-07-23 (Teil 1A/1B seit 22.07. vollständig abgeschlossen, Teil 4
+> teilweise). Ursprünglich zusammengeführt aus (a) der Chat-Session vom 22.07.
+> und (b) Claude Codes Bestandsaufnahme über 16 Projekt-Dateien (docs/*,
+> CLAUDE.md, TO_CHANGE.md). Dedupliziert, mit Status und Phase. Ersetzt die
+> frühere, unvollständige launch-checkliste.md.
 >
 > Legende: [ ] offen · [~] teilweise/unklar · [x] erledigt (zur Info gelistet)
 
@@ -25,59 +26,63 @@ Sperr-Aufgabe siehe Teil 1A.
 ## TEIL 1 — WEG ZUM LAUNCH (das eigentliche Ziel)
 ═══════════════════════════════════════════════════════════════════════
 
-### 1A. VOR DEM PUSH — lokal / Code / Dashboard, kein Deploy nötig
+### 1A. VOR DEM PUSH — lokal / Code / Dashboard, kein Deploy nötig (Stand 2026-07-23, bis auf einen optionalen Punkt erledigt)
 
 **Code-Checks (Claude Code)**
-- [ ] `resend.dev`-Absender im ganzen `src/` gegenchecken (sollte durch das
-  Löschen von `src/lib/email.ts` erledigt sein — verifizieren).
-- [ ] `NEXT_PUBLIC_AI_ENABLED` klären. **Wichtiger als gedacht:** Laut
-  TO_CHANGE.md.txt ist das eine seit Langem offene Entscheidung — das Flag
-  passt nicht mehr sauber zu allen Features (Menü echt, Teller echt). Optionen:
-  pro Feature aufsplitten, Flag ganz abschaffen zugunsten reinem Tier-Gating,
-  oder so lassen. Erst prüfen, ob/wo der Code es liest, dann entscheiden.
-- [ ] Absenderadresse in Env-Var (`RESEND_FROM`) zentralisieren (optional).
+- [x] `resend.dev`-Absender im ganzen `src/` gegenchecken (sollte durch das
+  Löschen von `src/lib/email.ts` erledigt sein — verifiziert).
+- [x] `NEXT_PUBLIC_AI_ENABLED` geklärt.
+- [ ] Absenderadresse in Env-Var (`RESEND_FROM`) zentralisieren (optional,
+  weiterhin nicht umgesetzt).
 
 **Lokale Env-Aufräumung**
-- [ ] `PEXELS_API_KEY` aus `.env.local` entfernen (ungenutzt).
-- [~] Alter `OPENAI_API_KEY`-Stub-Hinweis aus TO_CHANGE.md.txt bezog sich auf
-  einen alten `sk-`-Platzhalter; heute ist der Key echt in Nutzung — vermutlich
-  gegenstandslos, kurz gegenprüfen.
+- [x] `PEXELS_API_KEY` aus `.env.local` entfernt (ungenutzt).
+- [x] Alter `OPENAI_API_KEY`-Stub-Hinweis aus TO_CHANGE.md bezog sich auf
+  einen alten `sk-`-Platzhalter — gegengeprüft, gegenstandslos. `OPENAI_API_KEY`
+  selbst inzwischen aus `.env.local` entfernt (nur `OPERATOR_OPENAI_KEY` in
+  Nutzung, siehe PROJEKTSTAND.md).
 
 **Build-Check**
-- [ ] `npx tsc --noEmit` + `npm run build` sauber, `git status` gesichtet.
+- [x] `npx tsc --noEmit` + `npm run build` sauber, `git status` gesichtet.
 
 **Kaufsperre (siehe Warnhinweis ganz oben — kein Gewerbe, kein Verkauf)**
-- [ ] **Kauffunktion serverseitig sperren** — Feature-Flag
-  `NEXT_PUBLIC_PAYMENTS_ENABLED` (default aus), das (a) alle Upgrade-/
-  Checkout-Buttons ausblendet UND (b) die Route `/api/stripe/checkout`
-  hart mit 403 blockiert, damit auch direkte API-Aufrufe scheitern. Erst
-  scharf schalten, wenn Gewerbe + Rechtstexte stehen (Teil 2).
+- [x] **Kauffunktion serverseitig gesperrt** — Feature-Flag
+  `NEXT_PUBLIC_PAYMENTS_ENABLED` (default aus), blendet Upgrade-/Checkout-
+  Buttons aus UND blockiert `/api/stripe/checkout` hart mit 403. Scharf
+  schalten erst, wenn Gewerbe + Rechtstexte stehen (Teil 2).
 
-### 1B. MIT / NACH DEM PUSH — braucht Deploy oder Produktionsumgebung
+### 1B. MIT / NACH DEM PUSH — braucht Deploy oder Produktionsumgebung (Stand 2026-07-23, technischer Testmodus-Teil erledigt — Stripe-Live-Modus siehe unten, weiterhin offen)
 
 **Push & Deploy**
-- [ ] Alle Commits pushen (Branch weit vor `origin/master`), dann Live-Seite
-  durchklicken.
+- [x] Alle Commits gepusht, Live-Seite durchgeklickt.
 
-**Vercel-Env-Vars nachziehen (PFLICHT — sonst crasht der Live-Build)**
-- [ ] `OPENAI_API_KEY` bei Vercel ergänzen.
-- [ ] Stripe-Vars ergänzen: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+**Vercel-Env-Vars nachgezogen**
+- [x] `OPENAI_API_KEY` bei Vercel — **entfällt**, kein Code-Pfad liest diese
+  Variable; genutzt wird ausschließlich `OPERATOR_OPENAI_KEY`.
+- [x] Stripe-Vars ergänzt: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
   `STRIPE_PRICE_BASIC`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_TEAM` (Testmodus).
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` bei Vercel prüfen (aus TO_CHANGE.md.txt —
-  laut Vercel-Screenshot heute vorhanden, also vermutlich [x], kurz bestätigen).
-- [x] `NEXT_PUBLIC_AI_PLATE_ENABLED=true` gesetzt (heute erledigt).
-- [x] `NEXT_PUBLIC_AI_LAB_ENABLED` + `KEY_ENCRYPTION_SECRET` gelöscht (heute).
+- [x] `SUPABASE_SERVICE_ROLE_KEY` bei Vercel bestätigt.
+- [x] `NEXT_PUBLIC_AI_PLATE_ENABLED=true` gesetzt.
+- [x] `NEXT_PUBLIC_AI_LAB_ENABLED` + `KEY_ENCRYPTION_SECRET` gelöscht.
+
+**Domain & Supabase-Key-Format**
+- [x] Domain-Anbindung (Produktions-Domain live).
+- [x] Supabase-Keys auf neues Format migriert (`sb_publishable_...`/
+  `sb_secret_...` statt der alten JWT-Keys).
+- [x] Alte (Legacy-JWT-)Keys in Supabase deaktiviert.
 
 **Supabase Produktion**
-- [ ] Site-URL & Redirect-URLs auf echte Produktions-Domain (bisher nur
-  `localhost:3000` getestet).
-- [ ] Registrierungs-Flow gegen Live-Domain nachtesten (Register → Mail →
+- [x] Site-URL & Redirect-URLs auf echte Produktions-Domain umgestellt.
+- [x] Registrierungs-Flow gegen Live-Domain nachgetestet (Register → Mail →
   Confirm → Dashboard/Stufe 1).
-- [ ] Custom SMTP aus Produktion verifizieren (lokal bewiesen, live steht aus).
+- [x] Custom SMTP aus Produktion verifiziert.
 
-**Stripe Live-Modus (echter Bezahlbetrieb)**
-- [ ] Produkte/Preise im Live-Modus anlegen, Live-Keys eintragen.
-- [ ] Webhook-Endpoint im Live-Dashboard auf Produktions-URL registrieren.
+**Stripe Live-Modus (echter Bezahlbetrieb) — weiterhin offen, blockiert durch
+Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
+- [ ] Produkte/Preise im Live-Modus anlegen, Live-Keys eintragen (bisher nur
+  Testmodus).
+- [ ] Webhook-Endpoint im Live-Dashboard auf Produktions-URL registrieren
+  (aktuell nur der lokale Stripe-CLI-Listener).
 - [ ] `consent_collection`/`custom_text` (Widerruf-Checkbox) scharf schalten —
   abhängig vom Rechtstext (Teil 2).
 - [ ] Test-Kauf im Live-Modus end-to-end (Checkout → Webhook → Stufe → Portal).
@@ -86,8 +91,8 @@ Sperr-Aufgabe siehe Teil 1A.
 ## TEIL 2 — RECHTLICHES (blockiert den ÖFFENTLICHEN Live-Gang)
 ═══════════════════════════════════════════════════════════════════════
 
-> Aus abo-konzept.md.txt (⚖️-Kasten), registrierung-plan.md, stripe-plan.md,
-> community-konzept.md.txt. Läuft extern/parallel, ist aber der wahrscheinlichste
+> Aus abo-konzept.md (⚖️-Kasten), registrierung-plan.md, stripe-plan.md,
+> community-konzept.md. Läuft extern/parallel, ist aber der wahrscheinlichste
 > Zeitfaktor für den öffentlichen, bezahlbaren Betrieb.
 
 - [ ] **AGB** (inkl. digitale Abos EU) — `/agb` ist nur Gerüst.
@@ -119,7 +124,7 @@ Sperr-Aufgabe siehe Teil 1A.
 
 > **Achtung — das ist mehr als ein Nav-Punkt.** Laut PROJEKTSTAND ist die
 > Collection nur ein leeres Gerüst (~27 Zeilen/Seite, keine DB, kein Publish).
-> community-konzept.md.txt beschreibt ein komplettes, ungebautes Feature.
+> community-konzept.md beschreibt ein komplettes, ungebautes Feature.
 
 - [ ] Sichtbarkeits-/Rechte-Modell (wer sieht was).
 - [ ] Stöber-/Entdecken-Oberfläche.
@@ -133,7 +138,7 @@ Sperr-Aufgabe siehe Teil 1A.
   offiziell getroffen — faktisch per Collection-Platzhalter gelöst. Kann als
   „erledigt durch dritten Weg" abgehakt werden.
 
-### 3C. Menügenerator — Ausbau (aus menuegenerator-konzept.md.txt)
+### 3C. Menügenerator — Ausbau (aus menuegenerator-konzept.md)
 - [ ] **PDF-Export/Druck** der Menükarte (mehrfach genannt, weiterhin offen).
 - [ ] **Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne
   Fisch") — braucht ganzes Menü als Kontext.
@@ -168,20 +173,26 @@ Sperr-Aufgabe siehe Teil 1A.
 ## TEIL 4 — AUFRÄUMEN & TECHNISCHE SCHULD (unkritisch, jederzeit)
 ═══════════════════════════════════════════════════════════════════════
 
-- [ ] **`user_api_keys`-Tabelle** löschen (`drop table if exists
-  public.user_api_keys;`) — BYOK-Altlast, „vor dem nächsten DB-Audit".
+- [x] **`user_api_keys`-Tabelle** gelöscht (BYOK-Altlast).
 - [ ] **`access_requests`-Tabelle** — 6 Alt-Einträge, seit Commit 99759f6 nicht
   mehr referenziert. Löschen oder als Historie behalten.
-- [ ] **npm-Schwachstellen:** aktuell 9 (5 moderate / 4 high), ungelöst.
-  `npm audit` prüfen — vor Live-Gang wünschenswert.
-- [ ] **`.md.txt`-Doppeldateien** normalisieren (`feature-backlog.txt`,
-  `TO_CHANGE.md.txt`, `abo-konzept.md.txt`, `community-konzept.md.txt`,
-  `menuegenerator-konzept.md.txt`).
-- [ ] **`docs/feature-backlog.txt`** löschen (Zwilling der committeten `.md`).
-- [ ] **`docs/byok-konzept.md`** ist inhaltlich überholt (BYOK entfernt) —
-  archivieren/markieren oder löschen.
+- [x] **npm-Schwachstellen:** von 9 (4 moderate / 5 high) auf 4 reduziert via
+  `npm audit fix` (brace-expansion, fast-uri, hono, js-yaml). Verbleibende 4
+  hängen an `shadcn` (Downgrade-only) bzw. `next` — `shadcn` inzwischen nach
+  `devDependencies` verschoben, dadurch meldet `npm audit --omit=dev` nur noch
+  **2** (next + verschachteltes postcss, siehe neuer Punkt unten).
+- [x] **`.md.txt`-Doppeldateien** normalisiert (`TO_CHANGE.md`,
+  `abo-konzept.md`, `community-konzept.md`, `menuegenerator-konzept.md`),
+  Verweise in allen Fundstellen angepasst.
+- [x] **`docs/feature-backlog.txt`** war bereits gelöscht (Zwilling der
+  committeten `.md`).
+- [x] **`docs/byok-konzept.md`** mit Hinweis „historisch/überholt" markiert
+  (BYOK entfernt, siehe Datei-Kopf).
 - [ ] **PROJEKTSTAND.md aktualisieren** — mehrere eigene „offene Punkte" sind
   inzwischen erledigt (Freigabe-Routen, Team-Copy, Registrierung committet).
+- [ ] **Next.js 14 → 16 migrieren** (eigenes Migrationsprojekt, Breaking
+  Changes in App Router/Middleware/Caching; die verbleibende
+  postcss-Schwachstelle hängt daran).
 
 ═══════════════════════════════════════════════════════════════════════
 ## TEIL 5 — BEWUSST OFFEN GELASSEN (kein To-do, nur Dokumentation)
@@ -200,13 +211,15 @@ Sperr-Aufgabe siehe Teil 1A.
 ## KRITISCHER PFAD (Kurzfassung)
 ═══════════════════════════════════════════════════════════════════════
 
-1. **Vor Push:** Teil 1A (Code-Checks, PEXELS raus, Build-Check).
-2. **Technischer Go-Live:** Teil 1B (Push + Vercel-Vars + Supabase-URL) —
-   im Testmodus lauffähig.
-3. **Öffentlicher Bezahl-Live-Gang:** Teil 2 (Rechtliches) + Stripe-Live-Teil
-   aus 1B. **Teil 2 ist der wahrscheinliche Engpass.**
+1. ✅ **Vor Push:** Teil 1A — erledigt (bis auf den optionalen `RESEND_FROM`-Punkt).
+2. ✅ **Technischer Go-Live (Testmodus):** Teil 1B — Push, Vercel-Vars, Domain,
+   Supabase-Key-Format erledigt, App läuft live im **Stripe-Testmodus**.
+3. **Öffentlicher Bezahl-Live-Gang:** Teil 2 (Rechtliches) **und** der
+   Stripe-Live-Modus-Teil aus 1B (Live-Produkte, Live-Webhook, Live-Testkauf —
+   bewusst noch nicht angefasst, solange Teil 2 offen und die Kaufsperre aktiv
+   ist). **Teil 2 ist der Engpass, der auch den Stripe-Live-Teil blockiert.**
 4. **Danach:** Teil 3 (Features) nach echtem Nutzer-Feedback priorisieren.
-5. **Jederzeit nebenher:** Teil 4 (Aufräumen).
+5. **Jederzeit nebenher:** Teil 4 (Aufräumen, u.a. Next.js-Major-Upgrade).
 
-> Nichts aus Teil 3/4/5 blockiert den technischen Go-Live. Nur Teil 1 + 2 stehen
-> zwischen dir und einem live nutzbaren, bezahlbaren Produkt.
+> Nichts aus Teil 3/4/5 blockiert den technischen Go-Live im Testmodus. Für den
+> öffentlichen Bezahlbetrieb stehen Teil 2 + der Stripe-Live-Teil aus 1B noch aus.

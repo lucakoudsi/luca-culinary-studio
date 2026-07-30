@@ -11,7 +11,7 @@ export const TEXT_QUOTA_BY_TIER: Record<number, number> = {
   1: 0,   // Free -- keine der 5 Text-KI-Routen ist unter Tier 1 erreichbar
   2: 150, // Basic
   3: 375, // Pro
-  4: 900, // Team (aktuell pro Nutzer, nicht geteilt -- siehe TO_CHANGE.md.txt)
+  4: 900, // Team (aktuell pro Nutzer, nicht geteilt -- siehe TO_CHANGE.md)
 };
 
 const TEAM_TIER = 4;

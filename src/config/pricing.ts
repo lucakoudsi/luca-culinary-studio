@@ -1,4 +1,4 @@
-// Monatspreise pro Abo-Stufe, brutto inkl. 19% MwSt (siehe docs/abo-konzept.md.txt
+// Monatspreise pro Abo-Stufe, brutto inkl. 19% MwSt (siehe docs/abo-konzept.md
 // Abschnitt 4). Es gibt noch keine Stripe-Anbindung -- Stufen werden aktuell
 // manuell vom Admin vergeben (/profil, Tab "Verwaltung"). Diese Zahlen sind
 // trotzdem schon die verbindliche Zielpreisliste, u.a. fuer den

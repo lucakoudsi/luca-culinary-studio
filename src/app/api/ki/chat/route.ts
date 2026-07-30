@@ -8,7 +8,7 @@ import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // allgemeiner Chat -- deckt Verbindungsaufbau + Streaming der Antwort
 const UPSTREAM_TIMEOUT_MS = 24_000; // gilt fuer den Verbindungsaufbau (bis die ersten Header/Tokens da sind)
-const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md.txt Abschnitt 2a
+const MIN_TIER = 2; // Basic -- laeuft ueber den Betreiber-Key, siehe docs/abo-konzept.md Abschnitt 2a
 
 const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von Culinary Studio -- ein erfahrener kulinarischer Assistent für professionelle und ambitionierte Köch:innen. Du hilfst bei Rezeptentwicklung, Kochtechniken, Fermentation sowie Wein- und Aromapairings, auf dem Niveau gehobener, professioneller Küche.
 

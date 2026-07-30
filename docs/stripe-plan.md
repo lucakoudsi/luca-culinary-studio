@@ -1,6 +1,6 @@
 # Stripe-Anbindung — Planung
 
-> Stand 2026-07-21. Reine Planung, noch nichts gebaut. Grundlage: `docs/abo-konzept.md.txt`
+> Stand 2026-07-21. Reine Planung, noch nichts gebaut. Grundlage: `docs/abo-konzept.md`
 > (v.a. Abschnitt 7 "Stripe & Zahlung" und Abschnitt 10/11 zur Team-Grundsatzfrage) und
 > der aktuelle Code-Stand (`profiles.stufe` als Integer 1–4, manuell gesetzt über
 > `/api/admin/users/[id]`, gelesen via `getUserTier()` in `src/config/roles.ts`).
@@ -151,7 +151,7 @@ Extra-Behandlung nötig.
 ## 4. Team als Einzelkonto zum Start
 
 **Entscheidung: einverstanden.** Das deckt sich mit der offenen Grundsatzfrage in
-`docs/abo-konzept.md.txt` Abschnitt 10/11, die dort bereits als Empfehlung stand ("empfohlen:
+`docs/abo-konzept.md` Abschnitt 10/11, die dort bereits als Empfehlung stand ("empfohlen:
 nachrüsten" — Team ist technisch der aufwendigste Baustein: Team-Verwaltung, Einladungen,
 geteiltes Kontingent). Diese Entscheidung löst die dort offen gelassene Frage jetzt zugunsten
 von Modell 1 auf: **Team = Einzelkonto mit größerem (350er) Bildkontingent**, genau wie es

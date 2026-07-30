@@ -1,5 +1,5 @@
 // Monatliches Bild-Kontingent fuer den Tellerdesigner, gestaffelt nach
-// Abo-Stufe (docs/abo-konzept.md.txt Abschnitt 2/5). Getrennt von
+// Abo-Stufe (docs/abo-konzept.md Abschnitt 2/5). Getrennt von
 // rate-limit.ts (Missbrauchsschutz) -- hier geht es um ein Produkt-
 // Entitlement mit Kalendermonat-Fenster statt Minuten/Tag.
 //
@@ -13,8 +13,8 @@ export const IMAGE_QUOTA_BY_TIER: Record<number, number> = {
   2: 0,   // Basic -- Tellerdesigner ist Pro-exklusiv
   3: 150, // Pro
   4: 350, // Team (gesenkt von 500 -- Marge fiel bei voller Ausschoepfung auf ~44%,
-          // siehe abo-konzept.md.txt Abschnitt 11. Aktuell pro Nutzer, nicht
-          // geteilt -- siehe TO_CHANGE.md.txt und die offene Team-Frage ebenda.)
+          // siehe abo-konzept.md Abschnitt 11. Aktuell pro Nutzer, nicht
+          // geteilt -- siehe TO_CHANGE.md und die offene Team-Frage ebenda.)
 };
 
 const TEAM_TIER = 4;

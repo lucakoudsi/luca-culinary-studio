@@ -1,6 +1,6 @@
-# Projektstand — LUCA Culinary Studio
+# Projektstand — Culinary Studio
 
-> Stand 2026-07-22. Für jemanden ohne Vorwissen, der sofort weiterarbeiten
+> Stand 2026-07-23. Für jemanden ohne Vorwissen, der sofort weiterarbeiten
 > können soll. Ersetzt keine der Einzel-Doku-Dateien (siehe unten), fasst
 > nur den aktuellen Gesamtzustand zusammen.
 
@@ -8,12 +8,13 @@
 
 Next.js-14-App für professionelle Köche/Gastronomen (Rezepte, Menüs,
 Tellerdesign per KI, Zutatenwissen), Supabase als Backend. Kernprodukt ist
-fertig und in Produktion nutzbar (letztes echtes Deployment: 2026-07-15,
-Commit `67f28e2`). **Seitdem sind 22 weitere Commits entstanden, die noch
-nicht auf `origin/master` gepusht sind** — der größte Teil dieser Session
-(Supabase-Crash-Fix, Stripe-Zahlungsabwicklung, Plan-Tab, offene
-Registrierung inkl. Entfernung des alten Zugangsantrag-Flows) ist lokal
-fertig und lokal end-to-end getestet, aber noch nicht live/gepusht.
+fertig, live und in Produktion nutzbar unter der eigenen Domain
+**`culinary-studio.de`** (technischer Go-Live im Stripe-Testmodus
+abgeschlossen, siehe `docs/master-aufgabenliste.md` Teil 1A/1B). Produktname
+im gesamten sichtbaren Text auf **„Culinary Studio"** vereinheitlicht (das
+frühere „LUCA"-Präfix ist überall entfernt, siehe Abschnitt 2). Öffentlicher
+Bezahlbetrieb ist weiterhin gesperrt (`NEXT_PUBLIC_PAYMENTS_ENABLED=false`),
+bis Gewerbe/Rechtstexte stehen (Teil 2 der Master-Aufgabenliste).
 
 ---
 
@@ -25,6 +26,11 @@ fertig und lokal end-to-end getestet, aber noch nicht live/gepusht.
 - Resend (Transaktions-Mails), Stripe (Zahlungsabwicklung, `stripe@22.3.2`),
   OpenAI (GPT-4o Text + Bildgenerierung)
 - Deployment: Vercel
+- `shadcn` (Codegen-CLI für UI-Komponenten, `npx shadcn add ...`) liegt in
+  `devDependencies` — landet nicht im ausgelieferten Bundle, kein
+  `import`/`require` irgendwo in `src/`. Nebeneffekt: `npm audit --omit=dev`
+  meldet dadurch nur noch 2 statt 5 Schwachstellen (Details/verbleibende
+  npm-Schwachstellen siehe `docs/master-aufgabenliste.md` Teil 4).
 
 ---
 
@@ -60,13 +66,20 @@ fertig und lokal end-to-end getestet, aber noch nicht live/gepusht.
   Passwort ändern, Admin-Auth-Checks) für den Fall eines
   Chunk-Load-Fehlers nach einem Deploy.
 - **BYOK vollständig entfernt** (Verschlüsselung, Key-Verwaltung,
-  `src/lib/crypto.ts` etc.) — einzige verbliebene Spur ist die verwaiste
-  Tabelle `user_api_keys` in Supabase (siehe Abschnitt 8).
+  `src/lib/crypto.ts` etc.), inklusive der zuletzt verwaisten Tabelle
+  `user_api_keys` (in Supabase gelöscht). `docs/byok-konzept.md` ist als
+  historisch/überholt markiert.
 - **Kreativlabor entfernt**, ersetzt durch "Collection"-Navigationspunkt.
   **Collection selbst ist nur Gerüst** (`src/app/collection/*`, ~27 Zeilen
   pro Seite, `EmptyState`-Platzhalter) — keine Datenbank-Anbindung, kein
   Veröffentlichen-Flow. Bewusst zurückgestellt (siehe
-  `docs/community-konzept.md.txt`).
+  `docs/community-konzept.md`).
+- **Branding vereinheitlicht**: „LUCA" als Marken-Präfix komplett entfernt
+  (Tab-Titel, Sidebar, mobile Topbar, Footer, Menükarten, KI-System-Prompts),
+  einheitlich „Culinary Studio" — inklusive der vorher uneinheitlichen
+  Bezeichnung „Culinary Creator". Nebenbei ein Kollisions-Bug im
+  Sidebar-/Bottom-Nav-Active-Matching behoben (`/zutatenstammbaum` markierte
+  fälschlich auch „Zutatenbibliothek" als aktiv).
 
 ---
 
@@ -145,42 +158,39 @@ und umgesetzt:
 
 ## 5. Git-Status
 
-**Branch `master` ist 22 Commits vor `origin/master`** (letzter Push:
-2026-07-15, `67f28e2`). Kein Push in dieser Session durchgeführt.
+**Der technische Go-Live ist erfolgt** — der große Rückstand aus früheren
+Session-Ständen dieser Datei (zuletzt „22 Commits ungepusht") ist inzwischen
+auf `origin/master` gepusht. Aktuell ist `master` nur noch **2 Commits vor
+`origin/master`**:
 
-Ungepushte Commits (neueste zuerst):
 ```
+2400d7f chore: shadcn von dependencies nach devDependencies verschoben
+1b3a915 fix: npm audit fix fuer 4 der 9 gemeldeten Schwachstellen
+```
+
+Zuletzt gepushte Commits (Auszug, neueste zuerst):
+```
+497e85e fix: Unnoetige Einzel-Komponente bei einteiligen Gerichten im Bild-/Text-Import
+e8d61b4 fix: Zutaten-Erkennung bei dichten Bild-Vorlagen (Infografiken)
+5ce24e3 docs: Produktname vereinheitlicht auf "Culinary Studio"
+f71cffb fix: Kollisionssicheres Active-Matching in Sidebar & Bottom-Nav
+5e7858a fix: Browser-Autofill ueberschreibt Dark-Mode-Textfarbe in Inputs
+928bf74 fix: Dark-Mode-Kontrastprobleme systematisch beheben (Login/Register/Profil/Dashboard/Stammbaum)
+b713b18 docs: OPENAI_API_KEY als Altlast streichen, OPERATOR_OPENAI_KEY korrekt dokumentieren
+efe4950 feat: Kaufsperre über NEXT_PUBLIC_PAYMENTS_ENABLED, default aus
+91de644 docs: PROJEKTSTAND auf aktuellen Stand
 f57e0ef docs: vollständige Master-Aufgabenliste
 c7e741d docs: Feature-Backlog für Post-Launch-Ideen
 99759f6 chore: alten Zugangsantrag-/Freigabe-Flow entfernen
 b3a0997 feat: offene Registrierung -- Selbstanmeldung statt Zugangsantrag
-7ed1daa fix: Team-Stufenbeschreibung an "Einzelkonto"-Entscheidung anpassen
-ce9d6dd feat: Stripe-Checkout/Webhook/Portal fuer Abo-Upgrades, end-to-end getestet
-f746aef fix: Supabase-Client-SSR-Crash beheben, Plan-Tab, Sous-Chef-Prompt, Komponenten-Hinweis
-ae4ad4a chore: toten Code aufraeumen (backend/-Prototyp, ungenutzte Module, npm audit)
-b170345 feat: gewichtetes Text-KI-Kontingent, Team-Bildkontingent gesenkt
-194c17a feat: KI-Sous-Chef auf Betreiber-Key umstellen, BYOK komplett ausbauen
-0f1c3db fix: Tellerdesigner-Varianten beim Stil-/Fokus-Wechsel behalten
-4f2174b feat: Collection-Navigation als Ersatz fuer Kreativlabor (Schritt 1)
-decd5fc feat: Tellerdesigner Phase B -- Galerie mit Persistenz
-41ae4d9 feat: Tellerdesigner-Redesign (Vision, Zwei-Achsen-System, Bugfixes, Layout)
-2a062b4 feat: give KI-Sous-Chef vision access to import session images
-058ce1a fix: make <main> the real scroll container in AppShell
-58a3837 fix: give Admin (Tier 99) unlimited image quota instead of 0
-efdfa45 fix: sharpen Gericht-Rekonstruktion prompt (Vollständigkeit, Anrichte-Schritte, Unsicherheit)
-5159a57 chore: track project docs + local Claude Code tooling permissions
-277f7fc feat: add Gericht-Rekonstruktion mode to Bild-Import
-5895019 feat: build real Tellerdesigner (image generation + save)
-953707c fix: add maxDuration + soft upstream timeout to all KI-Routen
 ```
 
-**Working Tree**: sauber bis auf diese Datei selbst (`docs/PROJEKTSTAND.md`,
-gerade in Aktualisierung). Alle vorherigen Working-Tree-Änderungen
-(offene Registrierung, alter-Flow-Entfernung, Feature-Backlog,
-Master-Aufgabenliste) sind in den obigen Commits committet.
+**Working Tree**: sauber bis auf die laufende Doku-Aufräumung dieser Session
+(`.md.txt` → `.md`-Umbenennungen, `docs/byok-konzept.md`-Historisch-Hinweis,
+`docs/master-aufgabenliste.md`- und diese `docs/PROJEKTSTAND.md`-Aktualisierung).
 
 `npx tsc --noEmit` und `npm run build` sind mit diesem Stand sauber
-(zuletzt verifiziert 2026-07-22).
+(zuletzt verifiziert 2026-07-23).
 
 ---
 
@@ -188,10 +198,11 @@ Master-Aufgabenliste) sind in den obigen Commits committet.
 
 | Variable | Zweck | Status |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` | Supabase-Client | gesetzt |
-| `SUPABASE_SERVICE_ROLE_KEY` | Admin-Client (RLS-Bypass) | gesetzt |
-| `NEXT_PUBLIC_APP_URL` | für Redirect-/Callback-URLs | gesetzt |
+| `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` | Supabase-Client | gesetzt, `_ANON_KEY` auf neues Key-Format migriert (`sb_publishable_...`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Admin-Client (RLS-Bypass) | gesetzt, auf neues Key-Format migriert (`sb_secret_...`) |
+| `NEXT_PUBLIC_APP_URL` | für Redirect-/Callback-URLs | gesetzt, zeigt auf `culinary-studio.de` |
 | `NEXT_PUBLIC_AI_MENU_ENABLED` / `_AI_PLATE_ENABLED` | Feature-Flags Menügenerator/Tellerdesigner | gesetzt |
+| `NEXT_PUBLIC_PAYMENTS_ENABLED` | Kaufsperre (siehe Abschnitt 3) | gesetzt, default `false` |
 | `OPERATOR_OPENAI_KEY` | zentraler Betreiber-Key — **einzige** tatsächlich gelesene OpenAI-Variable, einzige Lesestelle `src/lib/operator-key.ts` (`getOperatorOpenAiKey()`), genutzt von allen 6 KI-Routen: KI-Sous-Chef-Chat, Menügenerator, Rezept-Bild-Import, Rezept-KI-Import, Rezept-Sous-Chef, Tellerdesigner-Bildgenerierung | gesetzt |
 | `RESEND_API_KEY` | Transaktions-Mails, jetzt auch Supabase-Auth-Confirm-Mails via Custom SMTP | gesetzt, Domain `mail.culinary-studio.de` verifiziert |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Stripe-Testmodus | gesetzt |
@@ -199,18 +210,24 @@ Master-Aufgabenliste) sind in den obigen Commits committet.
 
 **Custom SMTP**: in Supabase auf Resend umgestellt, Domain
 `mail.culinary-studio.de` verifiziert — Supabase verschickt
-Auth-Bestätigungsmails jetzt darüber (lokal end-to-end bewiesen, siehe
+Auth-Bestätigungsmails jetzt darüber (end-to-end bewiesen, siehe
 Abschnitt 4). Keine Änderung an den Env-Vars selbst nötig, reine
 Supabase-Dashboard-Konfiguration.
 
-**Bei Vercel erledigt**: `NEXT_PUBLIC_AI_PLATE_ENABLED=true` gesetzt,
-`NEXT_PUBLIC_AI_LAB_ENABLED` und `KEY_ENCRYPTION_SECRET` gelöscht (BYOK
-entfernt). Für den nächsten Deploy weiterhin zu prüfen/ergänzen:
-`OPERATOR_OPENAI_KEY` (die tatsächlich genutzte Variable, nicht das
-gestrichene `OPENAI_API_KEY`), alle Stripe-Testmodus-Keys
-(`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`),
-`SUPABASE_SERVICE_ROLE_KEY` prüfen — vollständige, priorisierte Liste
-siehe `docs/master-aufgabenliste.md` Teil 1B.
+**Supabase-Key-Format-Migration**: `NEXT_PUBLIC_SUPABASE_ANON_KEY` und
+`SUPABASE_SERVICE_ROLE_KEY` laufen jetzt über das neue Supabase-Key-Format
+(`sb_publishable_...` / `sb_secret_...` statt der alten JWT-Keys). Die alten
+Legacy-JWT-Keys sind im Supabase-Dashboard deaktiviert.
+
+**Domain**: App läuft live unter `culinary-studio.de`, Supabase Site-URL/
+Redirect-URLs entsprechend umgestellt (siehe Abschnitt 5).
+
+**Bei Vercel erledigt**: alle produktionsrelevanten Env-Vars gesetzt
+(`OPERATOR_OPENAI_KEY`, Stripe-Testmodus-Keys, `SUPABASE_SERVICE_ROLE_KEY`
+im neuen Format, `NEXT_PUBLIC_AI_PLATE_ENABLED=true`), `NEXT_PUBLIC_AI_LAB_ENABLED`
+und `KEY_ENCRYPTION_SECRET` gelöscht (BYOK entfernt). `OPENAI_API_KEY` wird
+bei Vercel **nicht** benötigt — kein Code-Pfad liest diese Variable, siehe
+`docs/master-aufgabenliste.md` Teil 1B.
 
 ---
 
@@ -226,7 +243,7 @@ Direkt gegen Supabase verifiziert (nicht nur aus dem Gedächtnis):
 | `tellerdesigns` | ✅ | siehe `docs/tellerdesigns.sql` |
 | `access_requests` | ✅ (6 Alt-Zeilen) | seit Commit `99759f6` von keinem Code-Pfad mehr gelesen/geschrieben (alle Freigabe-Routen entfernt, siehe Abschnitt 4) — reine Alt-Daten |
 | `ai_rate_limits` | ✅ | Minuten-/Tages-Limit, unabhängig vom Kontingent-System |
-| `user_api_keys` | ✅ (verwaist) | BYOK entfernt, Tabelle wird von nichts mehr gelesen — laut `TO_CHANGE.md.txt` zum Löschen vorgemerkt, noch nicht erledigt |
+| `user_api_keys` | ❌ gelöscht | BYOK-Altlast, in Supabase entfernt (`drop table`) |
 
 **SQL-Dateien in `docs/`** und ihr Ausführungsstatus:
 - `docs/text-quota.sql` — ausgeführt (Feature läuft produktiv)
@@ -246,11 +263,13 @@ Datei und der Chat-Session zusammengeführt) — wird hier bewusst nicht
 dupliziert, um nicht zwei Stellen synchron halten zu müssen. Kurzer Verweis
 auf die dortige Struktur:
 
-- Teil 1: Weg zum technischen Go-Live (Code-Checks, Push, Vercel-Env-Vars,
-  Supabase-Produktion, Stripe-Live-Modus).
+- Teil 1: Weg zum technischen Go-Live — **1A/1B erledigt** (Code-Checks,
+  Push, Vercel-Env-Vars, Domain, Supabase-Produktion), App läuft live im
+  Stripe-**Testmodus**. Nur der Stripe-**Live**-Modus-Teil bleibt offen,
+  bewusst nicht angefasst, solange Teil 2 offen ist.
 - Teil 2: Rechtliches (AGB, Datenschutz, Impressum, Widerrufsrecht,
-  Umsatzsteuer) — wahrscheinlicher Engpass für den öffentlichen
-  Bezahl-Live-Gang.
+  Umsatzsteuer) — der Engpass, der auch den Stripe-Live-Teil aus Teil 1
+  blockiert.
 - Teil 3: Post-Launch-Features (Kalorien, Feedback-System, Gamification,
   Collection/Community, Menügenerator-/Tellerdesigner-Ausbau).
 - Teil 4: Aufräumen & technische Schuld.
@@ -264,15 +283,15 @@ auf die dortige Struktur:
   (Weg zum Launch, Rechtliches, Post-Launch-Features, Aufräumen), siehe
   Abschnitt 8
 - `CLAUDE.md` — Konventionen, Architektur-Grundregeln
-- `TO_CHANGE.md.txt` — älteres, chronologisches Backlog-Log (Stand
+- `TO_CHANGE.md` — älteres, chronologisches Backlog-Log (Stand
   2026-07-15, größtenteils durch diese Datei und master-aufgabenliste.md
   überholt)
-- `docs/abo-konzept.md.txt` — Herleitung der 4 Abo-Stufen, Preise, Marge
+- `docs/abo-konzept.md` — Herleitung der 4 Abo-Stufen, Preise, Marge
 - `docs/stripe-plan.md` — vollständige Stripe-Architektur
 - `docs/registrierung-plan.md` — vollständige Registrierungs-Architektur
 - `docs/tellerdesigner-vision.md` — Produktvision Tellerdesigner (vor jeder
   Änderung an `/tellerdesigner` lesen)
-- `docs/community-konzept.md.txt` — zurückgestelltes Collection/Community-Konzept
-- `docs/menuegenerator-konzept.md.txt` — Konzept Menügenerator
+- `docs/community-konzept.md` — zurückgestelltes Collection/Community-Konzept
+- `docs/menuegenerator-konzept.md` — Konzept Menügenerator
 - `docs/feature-backlog.md` — geparkte Post-Launch-Feature-Ideen
 - `docs/byok-konzept.md` — historisch, BYOK ist entfernt

@@ -3,7 +3,7 @@ import PageTransition from '@/components/ui/PageTransition';
 import EmptyState from '@/components/ui/EmptyState';
 import { FolderHeart } from 'lucide-react';
 
-// Schritt 1 (Navigation + Seitengeruest) aus docs/community-konzept.md.txt --
+// Schritt 1 (Navigation + Seitengeruest) aus docs/community-konzept.md --
 // noch keine Datenbank-Anbindung, kein Sammlungen-Funktionen.
 export default function MeineSammlungenPage() {
   return (

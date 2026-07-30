@@ -7,7 +7,7 @@
 -- OpenAI-Kosten verursacht, statt jede Aktion pauschal mit 1 zu zaehlen.
 --
 -- Deckt alle 5 Text-KI-Routen ab, die ueber den zentralen Betreiber-Key
--- laufen (docs/abo-konzept.md.txt Abschnitt 2a): Menuegenerator,
+-- laufen (docs/abo-konzept.md Abschnitt 2a): Menuegenerator,
 -- KI-Sous-Chef-Chat, Rezept-Sous-Chef, Rezept-Import Text, Rezept-Import
 -- Bild. Rate-Limit (20/Min, 200/Tag, ai_rate_limits) bleibt UNVERAENDERT
 -- zusaetzlich bestehen -- das Kontingent hier deckelt die Kosten uebers

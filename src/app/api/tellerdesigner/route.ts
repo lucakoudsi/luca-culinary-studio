@@ -12,7 +12,7 @@ import { fetchWithTimeout, UpstreamTimeoutError } from '@/lib/upstreamTimeout';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Bildgenerierung ist der langsamste KI-Call im Projekt
 
-const MIN_TIER = 3; // Pro -- Tellerdesigner ist Pro-exklusiv (docs/abo-konzept.md.txt)
+const MIN_TIER = 3; // Pro -- Tellerdesigner ist Pro-exklusiv (docs/abo-konzept.md)
 const MAX_DESCRIPTION_LENGTH = 1500;
 const UPSTREAM_TIMEOUT_MS = 50_000; // etwas unter maxDuration, damit wir noch selbst antworten koennen
 

@@ -30,7 +30,7 @@ const mainNavItems = [
 ];
 
 // Neuer Bereich (Ersatz fuer das gestrichene Kreativlabor, siehe
-// docs/community-konzept.md.txt) -- eigene Section mit Ueberschrift statt
+// docs/community-konzept.md) -- eigene Section mit Ueberschrift statt
 // einfach an die Hauptliste angehaengt, damit die Herkunft/Zusammengehoerigkeit
 // der drei Unterseiten in der Navigation sichtbar bleibt.
 const collectionNavItems = [
