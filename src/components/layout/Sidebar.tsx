@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, Utensils,
   Leaf, Sun, Wine, Beaker, FolderOpen, Bot, X, UtensilsCrossed, LogOut, Lock, Settings, GitFork,
-  Library, FolderHeart, ChefHat,
+  Library, FolderHeart, ChefHat, Newspaper,
 } from 'lucide-react';
 import { FEATURES } from '@/config/features';
 import { getUserTier, PAGE_MIN_TIER } from '@/config/roles';
@@ -14,6 +14,8 @@ import { applyTheme } from '@/lib/theme';
 import type { ThemeMode } from '@/lib/theme';
 import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import NotificationBell from './NotificationBell';
+import FeedbackButton from './FeedbackButton';
 
 const mainNavItems = [
   { href: '/dashboard',       label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
@@ -27,6 +29,7 @@ const mainNavItems = [
   { href: '/fermentation',    label: 'Fermentation',     icon: Beaker,          aiLocked: false },
   { href: '/projekte',        label: 'Projekte',         icon: FolderOpen,      aiLocked: false },
   { href: '/ki-sous-chef',    label: 'KI-Sous-Chef',     icon: Bot,             aiLocked: false },
+  { href: '/neuigkeiten',     label: 'Neuigkeiten',      icon: Newspaper,       aiLocked: false },
 ];
 
 // Neuer Bereich (Ersatz fuer das gestrichene Kreativlabor, siehe
@@ -435,6 +438,9 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
               </div>
             </Link>
           )}
+
+          <NotificationBell />
+          <FeedbackButton />
 
           {/* Sichtbarer Einstellungen-Button */}
           <button

@@ -24,6 +24,7 @@
 --                                                 vorher 5 -- detail:"high"
 --                                                 statt "auto", siehe
 --                                                 import-bild/route.ts)
+--   Changelog-KI-Entwurf (nur Admin)              2 Einheiten
 --
 -- Monatslimits pro Abo-Stufe (kalibriert auf ~10,5 % des jeweiligen
 -- Netto-Abopreises als Worst-Case-Kostenanteil, siehe Diskussion in der

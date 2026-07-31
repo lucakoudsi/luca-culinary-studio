@@ -38,6 +38,7 @@ export const PAGE_MIN_TIER: Record<string, number> = {
   '/tellerdesigner':    3,
   '/zutatenstammbaum':  1,
   '/collection':        1,
+  '/neuigkeiten':       1,
 };
 
 // Tier now comes directly from profiles.stufe, not from the titel

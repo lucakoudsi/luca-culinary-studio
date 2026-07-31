@@ -11,11 +11,13 @@ import {
   User as UserIcon, Mail, Lock, LogOut, Loader2,
   Eye, EyeOff, CheckCircle, ChefHat, Shield, Sparkles, Star,
   Share2, Globe, Camera, PlayCircle, Briefcase, Music2,
-  Users, Search, X as XIcon, Trash2, Layers, Wine,
+  Users, Search, X as XIcon, Trash2, Layers, Wine, Newspaper, MessageSquare,
 } from 'lucide-react';
 import { ADMIN_EMAIL, ALL_TITLES, STUFEN, getUserTier } from '@/config/roles';
 import { FEATURE_GATES } from '@/config/featureGates';
 import PlanTab, { type QuotaResponse } from '@/components/profil/PlanTab';
+import ChangelogAdminPanel from '@/components/profil/ChangelogAdminPanel';
+import FeedbackAdminPanel from '@/components/profil/FeedbackAdminPanel';
 
 const DepthHeader = dynamic(() => import('@/components/ui/DepthHeader'), { ssr: false });
 
@@ -202,6 +204,7 @@ export default function ProfilPage() {
   const [socialError, setSocialError]   = useState('');
 
   // Tab 5 – Verwaltung (Admin only)
+  const [verwaltungSubTab, setVerwaltungSubTab] = useState<'nutzer' | 'neuigkeiten' | 'feedback'>('nutzer');
   const [adminUsers, setAdminUsers]           = useState<AdminUser[]>([]);
   const [adminSearch, setAdminSearch]         = useState('');
   const [adminLoading, setAdminLoading]       = useState(false);
@@ -1162,6 +1165,30 @@ export default function ProfilPage() {
           {/* ── Tab 5: Verwaltung (Admin only) ─────────────────────────── */}
           {activeTab === 'verwaltung' && isAdmin && (
             <div>
+              {/* Verwaltung-Unterbereiche */}
+              <div className="flex gap-2 mb-6">
+                {([
+                  { id: 'nutzer' as const,      label: 'Nutzer',      Icon: Users },
+                  { id: 'neuigkeiten' as const, label: 'Neuigkeiten', Icon: Newspaper },
+                  { id: 'feedback' as const,    label: 'Feedback',    Icon: MessageSquare },
+                ]).map(({ id, label, Icon }) => (
+                  <button key={id} onClick={() => setVerwaltungSubTab(id)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                    style={{
+                      background: verwaltungSubTab === id ? '#6B3A4B' : 'var(--surface-2, #F4EFE9)',
+                      color: verwaltungSubTab === id ? '#FFFFFF' : 'var(--text-muted)',
+                      border: verwaltungSubTab === id ? '1px solid #6B3A4B' : '1px solid var(--border)',
+                    }}>
+                    <Icon size={13} /> {label}
+                  </button>
+                ))}
+              </div>
+
+              {verwaltungSubTab === 'neuigkeiten' && <ChangelogAdminPanel />}
+              {verwaltungSubTab === 'feedback' && <FeedbackAdminPanel />}
+
+              {verwaltungSubTab === 'nutzer' && (
+              <>
               <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 1rem' }}>
                 Nutzerverwaltung
               </h3>
@@ -1360,7 +1387,7 @@ export default function ProfilPage() {
               })}
 
               {/* Permissions overview */}
-              <div style={{ marginTop: '2.5rem' }}>
+              <div style={{ marginTop: '2.5rem', paddingBottom: '2rem' }}>
                 <h3 style={{ fontFamily: 'var(--font-playfair, serif)', fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: '0 0 0.5rem' }}>
                   Rechte-Übersicht
                 </h3>
@@ -1401,6 +1428,8 @@ export default function ProfilPage() {
                   </table>
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
 

@@ -38,4 +38,9 @@ export const TEXT_QUOTA_WEIGHTS = {
   vision: 7,         // /api/rezepte/import-bild, ODER sous-chef MIT Bildern -- ab
                       // 2026-07-23 detail:"high" statt "auto" (siehe import-bild/
                       // route.ts), teurer pro Bild durch mehr Tiles/Tokens.
+  changelogDraft: 2, // /api/admin/changelog/draft -- reine Text-Zusammenfassung,
+                      // gleiche Kostenklasse wie sousChefText/importText. Nur
+                      // admin-nutzbar (Tier 99 = ADMIN_UNLIMITED_TEXT_LIMIT),
+                      // Kontingent-Pruefung laeuft trotzdem mit, gleiches Muster
+                      // wie alle anderen KI-Routen.
 } as const;
