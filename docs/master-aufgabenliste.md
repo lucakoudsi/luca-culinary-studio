@@ -1,7 +1,9 @@
 # Master-Aufgabenliste — Culinary Studio
 
-> Stand 2026-07-23 (Teil 1A/1B seit 22.07. vollständig abgeschlossen, Teil 4
-> teilweise). Ursprünglich zusammengeführt aus (a) der Chat-Session vom 22.07.
+> Stand 2026-07-23, ergänzt 2026-07-31 (neue 3F: Landing-Page, Changelog+
+> Feedback, Sterne-Bewertung, Sous-Chef-Import; Teil 4 DB-Cleanup
+> abgeschlossen). Teil 1A/1B seit 22.07. vollständig abgeschlossen. Ursprünglich
+> zusammengeführt aus (a) der Chat-Session vom 22.07.
 > und (b) Claude Codes Bestandsaufnahme über 16 Projekt-Dateien (docs/*,
 > CLAUDE.md, TO_CHANGE.md). Dedupliziert, mit Status und Phase. Ersetzt die
 > frühere, unvollständige launch-checkliste.md.
@@ -115,8 +117,8 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [ ] **Kalorien aus Rezepten** berechnen (Nährwert-DB, deterministisch).
   Offene Fragen: Zutat→DB-Mapping, Mengen ohne Gewicht, Roh- vs. Zubereitet.
 - [ ] **Kalorien aus Bildern** schätzen (Vision, „ohne Gewähr", niedrige Prio).
-- [ ] **Feedback-System** (Nutzer-Formular + Admin-Verwaltung, `feedback`-
-  Tabelle, RLS) — als „launch-nah sinnvoll" markiert.
+- [x] **Feedback-System** (Nutzer-Formular + Admin-Verwaltung, `feedback`-
+  Tabelle, RLS) — umgesetzt, siehe 3F.
 - [ ] **Gamification/Belohnungssystem** (Küchen-Titel-Stufen). Offene Fragen:
   wo sichtbar, kosmetisch vs. echte Freischaltungen, Anti-Gaming.
 
@@ -169,13 +171,32 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [~] „Anthropic im Chat" — bewusst zurückgestellt, Chat-Route lehnt Anthropic-
   Keys weiter mit 400 ab. Kein To-do, nur Notiz.
 
+### 3F. Kürzlich umgesetzt (nachträglich ergänzt, ursprünglich nicht in dieser Liste)
+- [x] **Öffentliche Landing-Page** + 4 Content-Seiten (`/features`, `/studio`,
+  `/preise`, `/ueber-uns`), Auth-abhängige Header-/Hero-Buttons (Login/Logout
+  je nach Session), OG-Bild für Link-Vorschauen (Social/Messenger).
+- [x] **Changelog ("Was ist neu") + Feedback-System** — `changelog_entries`/
+  `feedback`-Tabellen, Sidebar-Glocke + Feedback-Button, `/neuigkeiten`-Seite,
+  Admin-CRUD unter „Verwaltung" auf `/profil`, inkl. KI-Entwurfsassistent für
+  Changelog-Einträge aus eingefügten Commit-Messages.
+- [x] **Sterne-Bewertung editierbar** — Detail-Modal + Bearbeiten-Seite, dabei
+  vier unabhängige `StarRating`-Implementierungen zu einer gemeinsamen
+  Komponente konsolidiert.
+- [x] **KI-Sous-Chef auch beim Rezept-Import** — bisher nur Bild-/Text-KI-
+  Import, jetzt auch URL-Import; Diff-Vorschau (Übernehmen/Verwerfen) statt
+  automatischer Übernahme, serverseitiger Merge, proaktive Kontingent-Sperre.
+
 ═══════════════════════════════════════════════════════════════════════
 ## TEIL 4 — AUFRÄUMEN & TECHNISCHE SCHULD (unkritisch, jederzeit)
 ═══════════════════════════════════════════════════════════════════════
 
 - [x] **`user_api_keys`-Tabelle** gelöscht (BYOK-Altlast).
-- [ ] **`access_requests`-Tabelle** — 6 Alt-Einträge, seit Commit 99759f6 nicht
-  mehr referenziert. Löschen oder als Historie behalten.
+- [x] **`access_requests`-Tabelle** gelöscht — 6 Alt-Einträge, seit Commit
+  99759f6 nicht mehr referenziert, DROP in Supabase ausgeführt.
+- [x] **`users_deprecated`-Tabelle** gelöscht — keine Referenz irgendwo im
+  Repo gefunden (weder Code noch Doku), reine Alt-Tabelle.
+- [x] **`ideen`-Tabelle geprüft** — aktiv genutzt (Dashboard-Ideen-Widget,
+  volle CRUD-Kette über `/api/ideen`), keine Altlast, bewusst behalten.
 - [x] **npm-Schwachstellen:** von 9 (4 moderate / 5 high) auf 4 reduziert via
   `npm audit fix` (brace-expansion, fast-uri, hono, js-yaml). Verbleibende 4
   hängen an `shadcn` (Downgrade-only) bzw. `next` — `shadcn` inzwischen nach
@@ -188,8 +209,10 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
   committeten `.md`).
 - [x] **`docs/byok-konzept.md`** mit Hinweis „historisch/überholt" markiert
   (BYOK entfernt, siehe Datei-Kopf).
-- [ ] **PROJEKTSTAND.md aktualisieren** — mehrere eigene „offene Punkte" sind
-  inzwischen erledigt (Freigabe-Routen, Team-Copy, Registrierung committet).
+- [x] **PROJEKTSTAND.md aktualisieren** — Freigabe-Routen/Team-Copy/
+  Registrierung waren dort bereits korrekt dokumentiert; Landing-Page,
+  Changelog+Feedback, Sterne-Bewertung, Sous-Chef-Import und der
+  DB-Cleanup (2026-07-31) ergänzt.
 - [ ] **Next.js 14 → 16 migrieren** (eigenes Migrationsprojekt, Breaking
   Changes in App Router/Middleware/Caching; die verbleibende
   postcss-Schwachstelle hängt daran).

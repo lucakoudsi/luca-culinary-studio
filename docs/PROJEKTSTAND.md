@@ -1,8 +1,11 @@
 # Projektstand — Culinary Studio
 
-> Stand 2026-07-23. Für jemanden ohne Vorwissen, der sofort weiterarbeiten
-> können soll. Ersetzt keine der Einzel-Doku-Dateien (siehe unten), fasst
-> nur den aktuellen Gesamtzustand zusammen.
+> Stand 2026-07-23, ergänzt 2026-07-31 (Landing-Page + Content-Seiten,
+> Changelog+Feedback-System, Sterne-Bewertung editierbar, Sous-Chef auch beim
+> Import; DB-Cleanup `access_requests`/`users_deprecated`). Für jemanden ohne
+> Vorwissen, der sofort weiterarbeiten können soll. Ersetzt keine der
+> Einzel-Doku-Dateien (siehe unten), fasst nur den aktuellen Gesamtzustand
+> zusammen.
 
 ## Kurzfassung
 
@@ -80,6 +83,29 @@ bis Gewerbe/Rechtstexte stehen (Teil 2 der Master-Aufgabenliste).
   Bezeichnung „Culinary Creator". Nebenbei ein Kollisions-Bug im
   Sidebar-/Bottom-Nav-Active-Matching behoben (`/zutatenstammbaum` markierte
   fälschlich auch „Zutatenbibliothek" als aktiv).
+- **Öffentliche Landing-Page** (`/`) + 4 Content-Seiten (`/features`,
+  `/studio`, `/preise`, `/ueber-uns`): Single-Screen-Hero, Auth-abhängige
+  Header-/Hero-Buttons (serverseitige Session-Erkennung über
+  `src/lib/marketingAuth.ts`), Logout leitet auf `/` statt `/login`. Plus
+  OG-Bild für Link-Vorschauen (Social/Messenger).
+- **Changelog ("Was ist neu") + Feedback-System**: Tabellen
+  `changelog_entries`/`feedback` (RLS, siehe `docs/changelog-migration.sql`/
+  `docs/feedback-migration.sql`), Sidebar-Glocke + Feedback-Button,
+  `/neuigkeiten`-Seite, Admin-CRUD unter „Verwaltung" auf `/profil` inkl.
+  KI-Entwurfsassistent (formuliert aus eingefügten Commit-Messages einen
+  Changelog-Eintrag, mit hartem Redaktions-Filter gegen technische/interne
+  Details).
+- **Sterne-Bewertung editierbar**: Detail-Modal (optimistisches Update +
+  Rollback bei fehlgeschlagenem Speichern) und Bearbeiten-Seite (neues
+  Bewertungsfeld). Vier vormals unabhängige `StarRating`-Implementierungen zu
+  einer gemeinsamen Komponente (`src/components/ui/StarRating.tsx`)
+  konsolidiert; Rezeptarchiv-Karten bleiben bewusst read-only.
+- **KI-Sous-Chef auch beim Rezept-Import**: bisher nur Bild-/Text-KI-Import,
+  jetzt auch beim URL-Import. Jede KI-Änderung kommt als Diff-Vorschlag (Feld
+  alt→neu, Übernehmen/Verwerfen) statt automatisch übernommen zu werden;
+  `/api/rezepte/sous-chef` führt den Merge jetzt serverseitig aus,
+  Kontingent-/Tier-Prüfung unverändert vor dem OpenAI-Call, Panel zeigt
+  zusätzlich eine proaktive Kontingent-Sperre.
 
 ---
 
@@ -151,8 +177,9 @@ und umgesetzt:
 - `access_requests`-Cleanup in `src/app/api/admin/users/[id]/route.ts`
   (beim Nutzer-Löschen) entfernt — war mit `signUp()`-basierter
   Registrierung ohnehin hinfällig.
-- `access_requests`-Tabelle selbst bleibt unangetastet (6 Alt-Zeilen, keine
-  DB-Änderung), wird aber von keinem Code-Pfad mehr gelesen/geschrieben.
+- `access_requests`-Tabelle war zunächst unangetastet stehen geblieben (6
+  Alt-Zeilen, kein Code-Pfad mehr), ist seit 2026-07-31 in Supabase gedroppt
+  (siehe Abschnitt 7).
 
 ---
 
@@ -241,7 +268,9 @@ Direkt gegen Supabase verifiziert (nicht nur aus dem Gedächtnis):
 | `ai_text_quota` | ✅ | siehe `docs/text-quota.sql` |
 | `ai_image_quota` | ✅ | analog, Bild-Kontingent |
 | `tellerdesigns` | ✅ | siehe `docs/tellerdesigns.sql` |
-| `access_requests` | ✅ (6 Alt-Zeilen) | seit Commit `99759f6` von keinem Code-Pfad mehr gelesen/geschrieben (alle Freigabe-Routen entfernt, siehe Abschnitt 4) — reine Alt-Daten |
+| `access_requests` | ❌ gelöscht | seit Commit `99759f6` von keinem Code-Pfad mehr gelesen/geschrieben, 6 Alt-Zeilen ohne Referenz — in Supabase gedroppt (2026-07-31) |
+| `users_deprecated` | ❌ gelöscht | keine Referenz irgendwo im Repo (weder Code noch Doku) gefunden — in Supabase gedroppt (2026-07-31) |
+| `ideen` | ✅ | aktiv genutzt (Dashboard-Ideen-Widget, `/api/ideen`, `/api/ideen/[id]`), geprüft — keine Altlast |
 | `ai_rate_limits` | ✅ | Minuten-/Tages-Limit, unabhängig vom Kontingent-System |
 | `user_api_keys` | ❌ gelöscht | BYOK-Altlast, in Supabase entfernt (`drop table`) |
 
