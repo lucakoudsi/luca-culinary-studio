@@ -39,6 +39,26 @@ GPT-4o-Vision schätzt Kalorien aus Fotos.
 
 **Empfehlung:** 1a bauen, 1b höchstens als optionale, klar deklarierte Schätzung.
 
+### 1c. Stufe 2: Genauigkeits-Upgrade (später)
+Hybrid aus Nährwert-Datenbank (**USDA FoodData Central**, kostenlos) +
+KI-Schätzung, statt sich auf eine der beiden Quellen allein zu verlassen.
+
+- Für jede Zutat erst in der Nährwert-DB nachschlagen (liefert einen exakten
+  Wert). Was die DB nicht kennt/nicht zuordnen kann, geht an die KI zur
+  Schätzung. Beide Ergebnisse werden zu einer Gesamtzahl zusammengeführt,
+  dabei aber sichtbar gekennzeichnet, welcher Anteil exakt vs. geschätzt ist
+  (kein stillschweigendes Vermischen).
+- Erfordert drei eigene Bausteine:
+  1. **Übersetzungs-/Mapping-Schicht**: deutsche Zutatenbezeichnung → passender
+     englischer USDA-Begriff.
+  2. **Mengen-Parser**: Haushaltsmaße („1 Prise", „2 EL", „1 Stück") → Gramm.
+  3. **Zutaten-Cache-Tabelle**: bereits aufgelöste Zutaten zwischenspeichern,
+     gegen API-Rate-Limits von USDA FoodData Central.
+- Eigenes Projekt, vom Umfang vergleichbar zum Sous-Chef-Feature — nicht
+  nebenbei mitgebaut.
+- **Zeitpunkt:** erst angehen, wenn Stufe 1 (reine KI-Schätzung) sich im
+  echten Betrieb bewährt hat und Nutzer spürbar mehr Genauigkeit einfordern.
+
 ---
 
 ## 2. Feedback-System (nützlichstes der drei — Launch-nah sinnvoll)
