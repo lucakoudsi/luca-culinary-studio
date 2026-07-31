@@ -24,7 +24,7 @@ export const STUFEN = [
 
 // Minimum tier required per route prefix
 export const PAGE_MIN_TIER: Record<string, number> = {
-  '/':              1,
+  '/dashboard':     1,
   '/rezepte':       1,
   '/ki-sous-chef':  2,
   '/profil':        1,

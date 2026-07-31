@@ -25,11 +25,18 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
+  // Exaktes Match, NICHT startsWith('/') -- das wuerde sonst jede Route der
+  // App treffen, jede pathname beginnt schliesslich mit '/'.
+  const isLandingPage = pathname === '/';
   const isAuthPage  = pathname.startsWith('/login') || pathname.startsWith('/register');
   // Oeffentlich einsehbar unabhaengig vom Login-Status (kein Redirect in
-  // beide Richtungen, anders als isAuthPage) -- AGB/Datenschutz muessen
-  // z.B. auch aus der Checkbox auf /register heraus lesbar sein.
-  const isPublicPage = pathname.startsWith('/agb') || pathname.startsWith('/datenschutz');
+  // beide Richtungen, anders als isAuthPage/isLandingPage) -- AGB/Datenschutz
+  // muessen z.B. auch aus der Checkbox auf /register heraus lesbar sein.
+  const isPublicPage = pathname.startsWith('/agb') || pathname.startsWith('/datenschutz') || pathname.startsWith('/impressum')
+                   // Oeffentliche Marketing-Unterseiten der Landing-Page --
+                   // wie AGB/Datenschutz fuer beide Login-Staende sichtbar.
+                   || pathname.startsWith('/features') || pathname.startsWith('/studio')
+                   || pathname.startsWith('/preise') || pathname.startsWith('/ueber-uns');
   const isPublicRoute = pathname.startsWith('/api/register')
                    // Ziel des Supabase-Bestaetigungslinks -- Session existiert
                    // erst NACH dem Code-Tausch in dieser Route selbst.
@@ -40,16 +47,18 @@ export async function middleware(request: NextRequest) {
                    || pathname.startsWith('/api/stripe/webhook');
 
   // ── Not logged in → login ─────────────────────────────────────────────────
-  if (!user && !isAuthPage && !isPublicPage && !isPublicRoute) {
+  if (!user && !isLandingPage && !isAuthPage && !isPublicPage && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  // ── Logged in + auth page → dashboard ────────────────────────────────────
-  if (user && isAuthPage) {
+  // ── Logged in + (Landing-Page ODER Auth-Seite) → Dashboard ────────────────
+  // Landing-Page ist die oeffentliche Startseite fuer ausgeloggte Besucher --
+  // eingeloggte Nutzer sollen dort nicht landen, genau wie bei /login/register.
+  if (user && (isLandingPage || isAuthPage)) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 
@@ -61,7 +70,7 @@ export async function middleware(request: NextRequest) {
   for (const [prefix, flag] of Object.entries(AI_ROUTE_FLAGS)) {
     if (pathname.startsWith(prefix) && flag !== 'true') {
       const url = request.nextUrl.clone();
-      url.pathname = '/';
+      url.pathname = '/dashboard';
       return NextResponse.redirect(url);
     }
   }
@@ -85,7 +94,7 @@ export async function middleware(request: NextRequest) {
       const tier = getUserTier(user.email, profile?.stufe);
       if (tier < minTier) {
         const url = request.nextUrl.clone();
-        url.pathname = '/';
+        url.pathname = '/dashboard';
         return NextResponse.redirect(url);
       }
     }

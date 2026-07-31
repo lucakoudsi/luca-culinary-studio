@@ -16,7 +16,7 @@ import { createClient } from '@/utils/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 const mainNavItems = [
-  { href: '/',                label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
+  { href: '/dashboard',       label: 'Dashboard',        icon: LayoutDashboard, aiLocked: false },
   { href: '/rezepte',         label: 'Rezeptarchiv',     icon: BookOpen,        aiLocked: false },
   { href: '/menuegenerator',  label: 'Menügenerator',    icon: UtensilsCrossed, aiLocked: !FEATURES.AI_MENU_ENABLED  },
   { href: '/tellerdesigner',  label: 'Tellerdesigner',   icon: Utensils,        aiLocked: !FEATURES.AI_PLATE_ENABLED },
@@ -60,9 +60,7 @@ function applyFontSize(size: FontSize) {
 // aktiv -- daher: von allen Treffern (exakt oder /href/... ) gewinnt der
 // mit dem laengsten href.
 function resolveActiveHref(pathname: string, hrefs: string[]): string | undefined {
-  const matches = hrefs.filter(h =>
-    h === '/' ? pathname === '/' : (pathname === h || pathname.startsWith(h + '/'))
-  );
+  const matches = hrefs.filter(h => pathname === h || pathname.startsWith(h + '/'));
   if (matches.length === 0) return undefined;
   return matches.reduce((longest, h) => (h.length > longest.length ? h : longest));
 }
@@ -146,7 +144,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
     try {
       const supabase = await createClient();
       await supabase.auth.signOut();
-      router.push('/login');
+      router.push('/');
       router.refresh();
     } catch (e) {
       setLoggingOut(false);

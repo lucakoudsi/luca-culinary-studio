@@ -83,7 +83,7 @@ export default function SaisonPage() {
               {loading ? '…' : filtered.length} Zutaten — {filter}
             </p>
           </div>
-          <Link href="/" className="flex items-center gap-1.5 text-[12px] font-medium mt-1"
+          <Link href="/dashboard" className="flex items-center gap-1.5 text-[12px] font-medium mt-1"
             style={{ color: '#6B3A4B', flexShrink: 0 }}>
             <ChevronLeft size={14} /> Dashboard
           </Link>

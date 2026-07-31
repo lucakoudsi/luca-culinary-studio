@@ -6,19 +6,28 @@ import Sidebar from './Sidebar';
 import { Menu, LayoutDashboard, BookOpen, Leaf, User } from 'lucide-react';
 
 const AUTH_PATHS = ['/login', '/register'];
+// Oeffentliche Marketing-Unterseiten der Landing-Page -- gleiche
+// Chrome-lose Behandlung wie /login, /register.
+const MARKETING_PATHS = ['/features', '/studio', '/preise', '/ueber-uns'];
 
 const BOTTOM_NAV = [
-  { href: '/',        icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/rezepte', icon: BookOpen,        label: 'Rezepte'   },
-  { href: '/zutaten', icon: Leaf,            label: 'Zutaten'   },
-  { href: '/profil',  icon: User,            label: 'Profil'    },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/rezepte',   icon: BookOpen,        label: 'Rezepte'   },
+  { href: '/zutaten',   icon: Leaf,            label: 'Zutaten'   },
+  { href: '/profil',    icon: User,            label: 'Profil'    },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  if (AUTH_PATHS.some(p => pathname.startsWith(p))) {
+  // Exaktes Match fuer '/' (die oeffentliche Landing-Page) -- NICHT
+  // startsWith('/'), das wuerde sonst jede Route der App treffen.
+  if (
+    pathname === '/' ||
+    AUTH_PATHS.some(p => pathname.startsWith(p)) ||
+    MARKETING_PATHS.some(p => pathname.startsWith(p))
+  ) {
     return <>{children}</>;
   }
 
@@ -45,7 +54,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         style={{ background: 'var(--sidebar-bg, #F0EBE3)' }}>
         <div className="flex">
           {BOTTOM_NAV.map(({ href, icon: Icon, label }) => {
-            const isActive = href === '/' ? pathname === '/' : (pathname === href || pathname.startsWith(href + '/'));
+            const isActive = pathname === href || pathname.startsWith(href + '/');
             return (
               <Link key={href} href={href}
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"

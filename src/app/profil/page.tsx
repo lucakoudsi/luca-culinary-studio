@@ -503,7 +503,7 @@ export default function ProfilPage() {
     setLogoutNeedsReload(false);
     try {
       await (await createClient()).auth.signOut();
-      router.push('/login');
+      router.push('/');
     } catch (e) {
       setLogoutSaving(false);
       if (isChunkLoadError(e)) {

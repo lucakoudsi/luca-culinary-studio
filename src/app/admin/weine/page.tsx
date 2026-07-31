@@ -140,7 +140,7 @@ export default function AdminWeinePage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || user.email !== ADMIN_EMAIL) {
           setAuthorized(false);
-          setTimeout(() => router.push('/'), 2000);
+          setTimeout(() => router.push('/dashboard'), 2000);
           return;
         }
         setAuthorized(true);
