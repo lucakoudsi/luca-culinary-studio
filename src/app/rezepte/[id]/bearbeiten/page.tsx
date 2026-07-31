@@ -343,8 +343,8 @@ export default function RezeptBearbeitenPage() {
         </div>
       )}
 
-      {/* Form (+ KI-Sous-Chef-Sidebar) */}
-      <div className="flex gap-6 items-start p-8">
+      {/* Form (+ KI-Sous-Chef, gestapelt unter dem Formular statt daneben) */}
+      <div className="p-8">
       <div className="max-w-[800px] w-full grid gap-6">
 
         {/* Title */}
@@ -644,38 +644,38 @@ export default function RezeptBearbeitenPage() {
           </button>
         </div>
 
-      </div>
-
-      {/* ── KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern ──────────── */}
-      {kiLocked ? (
-        <div className="w-[380px] flex-shrink-0 sticky flex flex-col hidden lg:flex" style={{ top: 32 }}>
-          <div className="bg-card border border-border rounded-xl flex flex-col items-center justify-center gap-3 p-8 text-center">
-            <div className="w-11 h-11 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }}>
-              <Lock size={18} style={{ color: '#C9A84C' }} />
+        {/* ── KI-Sous-Chef: gestapelt unter dem Formular, wie beim Import ──── */}
+        {kiLocked ? (
+          <div className="w-full">
+            <div className="bg-card border border-border rounded-xl flex flex-col items-center justify-center gap-3 p-8 text-center">
+              <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)' }}>
+                <Lock size={18} style={{ color: '#C9A84C' }} />
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold text-text-primary mb-1">KI-Sous-Chef ist ein Basic-Feature</p>
+                <p className="text-[12px] text-text-muted">
+                  Rezepte im Dialog korrigieren und verfeinern — ab Basic verfügbar.
+                </p>
+              </div>
+              <Link href="/profil"
+                className="px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
+                style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                Jetzt upgraden
+              </Link>
             </div>
-            <div>
-              <p className="text-[13px] font-semibold text-text-primary mb-1">KI-Sous-Chef ist ein Basic-Feature</p>
-              <p className="text-[12px] text-text-muted">
-                Rezepte im Dialog korrigieren und verfeinern — ab Basic verfügbar.
-              </p>
-            </div>
-            <Link href="/profil"
-              className="px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
-              style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
-              Jetzt upgraden
-            </Link>
           </div>
-        </div>
-      ) : userTier !== null ? (
-        <SousChefPanel
-          getSnapshot={getSousChefSnapshot}
-          onApplyPatch={applySousChefPatch}
-          greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
-          stickyTop={32}
-        />
-      ) : null}
-    </div>
+        ) : userTier !== null ? (
+          <SousChefPanel
+            variant="stacked"
+            getSnapshot={getSousChefSnapshot}
+            onApplyPatch={applySousChefPatch}
+            greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
+          />
+        ) : null}
+
+      </div>
+      </div>
     </div>
   );
 }
