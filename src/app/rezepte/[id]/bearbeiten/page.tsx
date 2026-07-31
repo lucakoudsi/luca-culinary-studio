@@ -13,6 +13,7 @@ import { FlavorSliders } from '@/components/ui/FlavorSliders';
 import { computeRecipeFlavorProfile, EMPTY_FLAVOR } from '@/lib/recipeFlavorUtils';
 import KomponenteCard from '@/components/recipes/KomponenteCard';
 import SousChefPanel from '@/components/recipes/SousChefPanel';
+import { StarRating } from '@/components/ui/StarRating';
 import { getUserTier } from '@/config/roles';
 import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 
@@ -58,6 +59,7 @@ export default function RezeptBearbeitenPage() {
   const [status,      setStatus]      = useState<RecipeStatus>('Entwurf');
   const [time,        setTime]        = useState(60);
   const [portionen,   setPortionen]   = useState(4);
+  const [rating,      setRating]      = useState(0);
   const [description, setDescription] = useState('');
   const [tagsInput,   setTagsInput]   = useState('');
   const [image,       setImage]       = useState('');
@@ -112,6 +114,7 @@ export default function RezeptBearbeitenPage() {
     setStatus(r.status);
     setTime(r.time);
     setPortionen(r.portionen ?? 4);
+    setRating(r.rating ?? 0);
     setDescription(r.description || '');
     setTagsInput((r.tags || []).join(', '));
     setImage(r.image || '');
@@ -230,7 +233,7 @@ export default function RezeptBearbeitenPage() {
         finalImage = uploaded;
       }
       await updateRecipe(Number(id), {
-        title, category, difficulty, season, status, time, description, tags, portionen,
+        title, category, difficulty, season, status, time, description, tags, portionen, rating,
         zutaten, komponenten, schritte, getraenke, chefTipps,
         image: finalImage,
         geschmack: geschmackSet ? geschmack : undefined,
@@ -377,6 +380,12 @@ export default function RezeptBearbeitenPage() {
             <input type="number" value={portionen} onChange={e => setPortionen(Number(e.target.value))} min={1} max={100}
               className={input} style={inputStyle} />
           </div>
+        </div>
+
+        {/* Bewertung */}
+        <div>
+          <label className={label} style={{ color: 'var(--text-muted)' }}>Bewertung</label>
+          <StarRating value={rating} onChange={setRating} size={22} />
         </div>
 
         {/* Grid: Season + Status */}

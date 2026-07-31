@@ -2,11 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Recipe, Project } from '@/types';
-import { BookOpen, Eye, Star, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Minus, RotateCcw, Search } from 'lucide-react';
+import { BookOpen, Eye, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Minus, RotateCcw, Search } from 'lucide-react';
 import { matchWeine } from '@/lib/weinPairing';
 import type { Wein, WeinMatch, FoodProfile } from '@/lib/weinPairing';
 import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
 import { scaleMenge } from '@/lib/portionen';
+import { StarRating } from '@/components/ui/StarRating';
 
 export const TYP_COLOR: Record<Wein['typ'], string> = {
   weiss: '#9B6E1A', rot: '#C04040', rose: '#C06080', schaumwein: '#3A80A8', suesswein: '#8B4A9B',
@@ -19,16 +20,6 @@ export const diffColor:   Record<string, string> = { Leicht: '#7CB87A', Mittel: 
 export const statusColor: Record<string, string> = { Fertig: '#7CB87A', 'In Bearbeitung': '#E8A838', Entwurf: '#7BB8D4' };
 
 const labelCls = "block text-[11px] text-[#A89880] font-semibold mb-1.5 uppercase tracking-wider";
-
-export function StarRating({ value }: { value: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={11} fill={i <= value ? '#6B3A4B' : 'none'} color={i <= value ? '#6B3A4B' : '#D4C9BC'} />
-      ))}
-    </div>
-  );
-}
 
 // ─── Projekt-Auswahl (Mehrfachzuordnung) ──────────────────────────────────────
 function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
@@ -75,13 +66,29 @@ function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
 }
 
 export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recipe: Recipe; onClose: () => void; onDelete: () => void }) {
-  const { ingredients, fetchIngredients, projects, fetchProjects, addRecipeToProject, removeRecipeFromProject } = useStore();
+  const { ingredients, fetchIngredients, projects, fetchProjects, addRecipeToProject, removeRecipeFromProject, updateRecipe } = useStore();
 
   const [pairingLoading, setPairingLoading] = useState(false);
   const [pairingResults, setPairingResults] = useState<WeinMatch[]>([]);
   const [pairingError,   setPairingError]   = useState('');
   const [pairingDone,    setPairingDone]    = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+
+  // Optimistisches UI-Update: sofort anzeigen, bei fehlgeschlagenem PATCH
+  // auf den vorherigen Wert zurueckrollen.
+  const [ratingValue, setRatingValue] = useState(recipe.rating);
+  const [ratingError, setRatingError] = useState('');
+  const handleRatingChange = async (v: number) => {
+    const previous = ratingValue;
+    setRatingValue(v);
+    setRatingError('');
+    try {
+      await updateRecipe(recipe.id, { rating: v });
+    } catch (err) {
+      setRatingValue(previous);
+      setRatingError(err instanceof Error ? err.message : 'Bewertung konnte nicht gespeichert werden');
+    }
+  };
 
   const basisPortionen = recipe.portionen || 4;
   const [portionen, setPortionen] = useState(basisPortionen);
@@ -404,8 +411,9 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
           </div>
 
           <div className="flex items-center gap-4 pt-5 border-t border-border">
-            <div className="flex gap-1">
-              {[1,2,3,4,5].map(i => <Star key={i} size={14} fill={i <= recipe.rating ? '#6B3A4B' : 'none'} color={i <= recipe.rating ? '#6B3A4B' : '#D4C9BC'} />)}
+            <div className="flex items-center gap-2">
+              <StarRating value={ratingValue} onChange={handleRatingChange} size={16} />
+              {ratingError && <span className="text-[11px]" style={{ color: '#E06B6B' }}>{ratingError}</span>}
             </div>
             <span className="text-[12px] text-text-muted flex items-center gap-1 ml-1"><Eye size={12} />{recipe.views} Aufrufe</span>
             <div className="flex-1" />

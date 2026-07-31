@@ -8,7 +8,8 @@ import type { Recipe } from '@/types';
 import {
   BookOpen, Search, Plus, Filter, Clock, Eye, Trash2, Edit3, Download,
 } from 'lucide-react';
-import RecipeDetail, { StarRating, diffColor, statusColor } from '@/components/recipes/RecipeDetailModal';
+import RecipeDetail, { diffColor, statusColor } from '@/components/recipes/RecipeDetailModal';
+import { StarRating } from '@/components/ui/StarRating';
 
 const categories = ['Alle', 'Vorspeise', 'Suppe', 'Hauptgang', 'Dessert', 'Beilage', 'Snack'];
 const statuses   = ['Alle', 'Fertig', 'In Bearbeitung', 'Entwurf'];
@@ -53,7 +54,7 @@ function RecipeCard({ recipe, onView, onDelete, onEdit }: { recipe: Recipe; onVi
         <div className="flex items-center justify-between pt-2.5 border-t border-border">
           <span className="text-[11px] font-semibold" style={{ color: diffColor[recipe.difficulty] }}>{recipe.difficulty}</span>
           <span className="text-[11px] text-text-muted">{recipe.category}</span>
-          <StarRating value={recipe.rating} />
+          <StarRating value={recipe.rating} size={11} />
         </div>
       </div>
 

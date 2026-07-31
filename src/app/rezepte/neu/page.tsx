@@ -12,9 +12,10 @@ const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: fals
 import KomponenteCard from '@/components/recipes/KomponenteCard';
 import SousChefPanel from '@/components/recipes/SousChefPanel';
 import ImageLightbox from '@/components/ui/ImageLightbox';
+import { StarRating } from '@/components/ui/StarRating';
 import type { Recipe, RecipeIngredient, RecipeKomponente } from '@/types';
 import {
-  ArrowLeft, Star, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
+  ArrowLeft, Tag, Wine, ChefHat, Plus, X, ChevronUp, ChevronDown,
   Eye, BookOpen, Clock, ImagePlus, Loader2, Calculator, Link2, Download, FileText, Sparkles, Images, ZoomIn, Lock,
 } from 'lucide-react';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
@@ -40,20 +41,6 @@ const LC  = "block text-[10px] text-text-muted font-semibold mb-1.5 uppercase tr
 const SEC = "bg-card border border-border rounded-2xl p-6";
 const STL = "font-heading text-[16px] font-bold text-text-primary mb-5 flex items-center gap-2.5";
 const ABT = "flex items-center gap-1.5 text-[12px] text-gold hover:text-gold-light transition-colors mt-3";
-
-// ─── StarRating ──────────────────────────────────────────────────────────────
-function StarRating({ value, onChange }: { value: number; onChange?: (v: number) => void }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i} type="button" onClick={() => onChange?.(i)}
-          className={onChange ? 'cursor-pointer' : 'cursor-default'}>
-          <Star size={onChange ? 22 : 14} fill={i <= value ? '#6B3A4B' : 'none'} color={i <= value ? '#6B3A4B' : '#D4C9BC'} />
-        </button>
-      ))}
-    </div>
-  );
-}
 
 // ─── RecipePreview ───────────────────────────────────────────────────────────
 function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: () => void }) {
@@ -134,9 +121,7 @@ function RecipePreview({ recipe, onClose }: { recipe: Partial<Recipe>; onClose: 
                 <div className="flex items-center justify-between pt-2.5 border-t border-border">
                   <span className="text-[11px] font-semibold" style={{ color: dc }}>{recipe.difficulty ?? 'Mittel'}</span>
                   <span className="text-[11px] text-text-muted">{recipe.category ?? 'Hauptgang'}</span>
-                  <div className="flex gap-0.5">
-                    {[1,2,3,4,5].map(i => <Star key={i} size={11} fill={i <= (recipe.rating ?? 3) ? '#6B3A4B' : 'none'} color={i <= (recipe.rating ?? 3) ? '#6B3A4B' : '#D4C9BC'} />)}
-                  </div>
+                  <StarRating value={recipe.rating ?? 3} size={11} />
                 </div>
               </div>
             </div>
@@ -1140,7 +1125,7 @@ function NewRezeptForm() {
             </div>
             <div>
               <label className={LC}>Bewertung</label>
-              <StarRating value={base.rating} onChange={v => upd('rating', v)} />
+              <StarRating value={base.rating} onChange={v => upd('rating', v)} size={22} />
             </div>
           </div>
         </div>

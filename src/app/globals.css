@@ -40,6 +40,8 @@
     --font-inter:   'Inter';
     --accent-gold:  #C9A84C;
     --sidebar-bg:   #F0EBE3;
+    --star-filled:  #6B3A4B;
+    --star-empty:   #D4C9BC;
 
     /* RGB-Tripel fuer rgba()-Ueberblendungen (z.B. blurred sticky Header,
        abgestufte Textopazitaeten) */
@@ -75,6 +77,8 @@
     --ring:         #C9A84C;
     --accent-gold:  #E8C67A;
     --sidebar-bg:   #111111;
+    --star-filled:  #E8C67A;
+    --star-empty:   #A89880;
 
     --bg-rgb:          10,10,10;
     --surface-rgb:     26,26,26;
