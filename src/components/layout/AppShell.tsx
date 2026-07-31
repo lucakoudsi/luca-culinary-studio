@@ -32,19 +32,32 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    // Kein h-screen/overflow-hidden mehr auf diesem oder dem naechsten Level
+    // -- die vorherige Konstruktion (fester 100vh-Rahmen + <main> als einzige
+    // interne Scroll-Zone via min-h-0/overflow-y-auto) blieb bei Tabs mit viel
+    // Inhalt (Verwaltung -> Neuigkeiten) unterhalb einer bestimmten Hoehe
+    // haengen -- zoomabhaengig reproduzierbar, also ein Verhaeltnis-Problem
+    // zwischen fixen px-Inhalten und einem vh-gebundenen Deckel, nicht ein
+    // einfaches "scrollt nicht". Sidebar UND die mobile Bottom-Nav sind
+    // ohnehin bereits position:fixed (bleiben beim Scrollen an Ort und
+    // Stelle) -- dafuer war die verschachtelte Scroll-Zone nie zwingend
+    // noetig. Jetzt scrollt ganz normal das Dokument (html/body), das ist
+    // die robusteste Variante ohne diese Klasse von Hoehen-Bugs.
+    <div className="flex min-h-screen bg-background">
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      <div className="lg:ml-60 flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile topbar */}
-        <div className="lg:hidden flex items-center px-5 py-3 border-b border-border bg-surface flex-shrink-0">
+      <div className="lg:ml-60 flex-1 flex flex-col">
+        {/* Mobile topbar -- sticky statt Teil einer eigenen Scroll-Zone, damit
+            sie beim (jetzt normalen Seiten-)Scrollen weiterhin oben sichtbar
+            bleibt, wie zuvor. */}
+        <div className="lg:hidden sticky top-0 z-30 flex items-center px-5 py-3 border-b border-border bg-surface flex-shrink-0">
           <button onClick={() => setMobileOpen(true)} className="text-text-primary p-1">
             <Menu size={22} />
           </button>
           <span className="ml-3 font-heading text-base font-bold text-text-primary">Culinary Studio</span>
         </div>
 
-        <main className="flex-1 min-h-0 overflow-y-auto pb-16 md:pb-0">
+        <main className="pb-16 md:pb-0">
           {children}
         </main>
       </div>
