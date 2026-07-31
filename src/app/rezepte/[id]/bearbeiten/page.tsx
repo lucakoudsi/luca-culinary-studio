@@ -82,6 +82,7 @@ export default function RezeptBearbeitenPage() {
   const [naehrwerte,     setNaehrwerte]     = useState<RecipeNaehrwerte | null>(null);
   const [kalorienLoading, setKalorienLoading] = useState(false);
   const [kalorienError,   setKalorienError]   = useState<string | null>(null);
+  const [kalorienInfo,    setKalorienInfo]    = useState<string | null>(null);
   const kalorienGate = useTextQuotaGate(TEXT_QUOTA_WEIGHTS.kalorien);
 
   const [zutaten,     setZutaten]     = useState<RecipeIngredient[]>([]);
@@ -149,9 +150,17 @@ export default function RezeptBearbeitenPage() {
 
   // ── Kalorien-Schaetzung: lokaler Formular-State, kein Auto-Speichern -----
   // Persistiert wird erst durch "Änderungen speichern" wie jedes andere Feld.
-  const handleKalorienBerechnen = async () => {
-    setKalorienLoading(true);
+  // Cache ueber den Zutaten-Hash: bei unveraendertem Rezept kein erneuter
+  // KI-Call (spart Kontingent, haelt die Zahl stabil) -- ausser force=true
+  // ("Trotzdem neu berechnen").
+  const handleKalorienBerechnen = async (force = false) => {
     setKalorienError(null);
+    if (!force && naehrwerte && hashZutatenKomponenten(zutaten, komponenten) === naehrwerte.zutaten_hash) {
+      setKalorienInfo('Zutaten unverändert seit der letzten Berechnung — Wert ist bereits aktuell.');
+      return;
+    }
+    setKalorienInfo(null);
+    setKalorienLoading(true);
     try {
       const res = await fetch('/api/rezepte/kalorien', {
         method: 'POST',
@@ -695,7 +704,7 @@ export default function RezeptBearbeitenPage() {
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <button
               type="button"
-              onClick={handleKalorienBerechnen}
+              onClick={() => handleKalorienBerechnen(false)}
               disabled={kalorienLoading || kalorienGate.blocked || !kalorienGate.ready || (zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0))}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
               style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
@@ -706,6 +715,18 @@ export default function RezeptBearbeitenPage() {
               <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{kalorienGate.reason}</span>
             )}
           </div>
+
+          {kalorienInfo && (
+            <div className="mb-4 flex items-center gap-3 flex-wrap px-3 py-2.5 rounded-lg text-[12px]"
+              style={{ background: 'rgba(90,154,88,0.08)', border: '1px solid rgba(90,154,88,0.25)', color: '#3A7A38' }}>
+              <span>{kalorienInfo}</span>
+              <button type="button" onClick={() => handleKalorienBerechnen(true)}
+                disabled={kalorienGate.blocked || !kalorienGate.ready}
+                className="underline font-semibold flex-shrink-0 disabled:opacity-40" style={{ color: '#3A7A38' }}>
+                Trotzdem neu berechnen
+              </button>
+            </div>
+          )}
 
           {kalorienError && (
             <div className="mb-4 px-3 py-2.5 rounded-lg text-[12px]"

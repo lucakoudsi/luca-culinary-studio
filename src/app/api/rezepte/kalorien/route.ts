@@ -133,7 +133,12 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-        temperature: 0.3,
+        // 0 statt der sonst in diesen Routen ueblichen 0.3 -- bei identischer
+        // Zutatenliste soll dieselbe Schaetzung rauskommen, nicht bei jedem
+        // Klick eine leicht andere Zahl. Ergaenzt den Client-Cache (siehe
+        // handleKalorienBerechnen in bearbeiten/page.tsx), der ohnehin nur
+        // bei tatsaechlich geaenderten Zutaten neu aufruft.
+        temperature: 0,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
