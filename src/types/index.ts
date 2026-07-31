@@ -14,6 +14,26 @@ export interface RecipeKomponente {
   zubereitung: string;
 }
 
+export interface NaehrwertWert {
+  kcal: number;
+  protein: number;
+  fett: number;
+  kh: number;
+}
+
+export interface KomponentenNaehrwert extends NaehrwertWert {
+  name: string;
+}
+
+/** KI-geschaetzte Naehrwerte (Stufe 1). Siehe docs/kalorien-migration.sql fuer die DB-Struktur. */
+export interface RecipeNaehrwerte {
+  gesamt: NaehrwertWert;
+  pro_komponente: KomponentenNaehrwert[];
+  berechnet_am: string;
+  zutaten_hash: string;
+  pro_portion: boolean;
+}
+
 export interface Recipe {
   id: number;
   title: string;
@@ -35,6 +55,7 @@ export interface Recipe {
   getraenke?: string;
   chefTipps?: string;
   geschmack?: FlavorProfile | null;
+  naehrwerte?: RecipeNaehrwerte | null;
 }
 
 export interface Idea {

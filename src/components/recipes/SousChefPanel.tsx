@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChefHat, Send, User, Loader2, Check, X as XIcon } from 'lucide-react';
 import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
 import { TEXT_QUOTA_WEIGHTS } from '@/config/textQuota';
+import { useTextQuotaGate } from '@/lib/useTextQuotaGate';
 
 type TextMessage = { id: number; kind: 'text'; role: 'user' | 'assistant'; text: string; time: string };
 type DiffMessage = {
@@ -55,8 +56,6 @@ function renderSousChefText(text: string) {
   });
 }
 
-type QuotaState = { tier: number; remaining: number } | null;
-
 type SousChefPanelProps = {
   /** Liest den AKTUELLEN Formular-Stand -- als Funktion statt fixem Wert, damit bei jeder Nachricht frisch gelesen wird (kein stale Snapshot). */
   getSnapshot: () => RezeptSnapshot;
@@ -103,22 +102,11 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
   // die serverseitig ohnehin abgelehnt wuerde. Die eigentliche Absicherung
   // bleibt vollstaendig serverseitig in /api/rezepte/sous-chef (Tier- +
   // Kontingent-Pruefung vor jedem OpenAI-Call) -- das hier ist nur UX.
-  const [quota, setQuota] = useState<QuotaState>(null);
-  useEffect(() => {
-    fetch('/api/profil/kontingent').then(r => r.json()).then(d => {
-      if (typeof d.tier === 'number' && d.text && typeof d.text.remaining === 'number') {
-        setQuota({ tier: d.tier, remaining: d.text.remaining });
-      }
-    }).catch(() => {});
-  }, []);
-
-  const gateReady = quota !== null;
-  const blocked = gateReady && (quota!.tier < 2 || quota!.remaining < weight);
-  const blockedReason = !gateReady
-    ? 'Prüfe KI-Guthaben…'
-    : quota!.tier < 2
-      ? 'KI-Sous-Chef ist ein Basic-Feature -- ab Basic verfügbar.'
-      : 'KI-Guthaben aufgebraucht -- nächsten Monat geht es weiter.';
+  // Gemeinsamer Hook mit der Kalorien-Schaetzung auf der Bearbeiten-Seite.
+  const quotaGate = useTextQuotaGate(weight);
+  const gateReady = quotaGate.ready;
+  const blocked = quotaGate.blocked;
+  const blockedReason = quotaGate.reason;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -158,7 +146,7 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (d.error === 'quota_exceeded') setQuota(q => q ? { ...q, remaining: 0 } : q);
+        if (d.error === 'quota_exceeded') quotaGate.markExhausted();
         const errText = d.message || d.error || 'Etwas ist schiefgelaufen. Bitte versuche es erneut.';
         setMessages(prev => [...prev, { id: Date.now() + 1, kind: 'text', role: 'assistant', text: errText, time: nowTime() }]);
         return;
@@ -174,7 +162,7 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
         });
       }
       setMessages(prev => [...prev, ...newMessages]);
-      setQuota(q => q ? { ...q, remaining: Math.max(0, q.remaining - weight) } : q);
+      quotaGate.consume();
     } catch {
       setMessages(prev => [...prev, { id: Date.now() + 1, kind: 'text', role: 'assistant', text: 'Netzwerkfehler. Bitte versuche es erneut.', time: nowTime() }]);
     } finally {

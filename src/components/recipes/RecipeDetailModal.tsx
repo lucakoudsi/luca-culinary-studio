@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import type { Recipe, Project } from '@/types';
-import { BookOpen, Eye, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Minus, RotateCcw, Search } from 'lucide-react';
+import { BookOpen, Eye, X, Trash2, Tag, Wine, ChefHat, Loader2, Grape, FolderOpen, Plus, Minus, RotateCcw, Search, Flame } from 'lucide-react';
 import { matchWeine } from '@/lib/weinPairing';
 import type { Wein, WeinMatch, FoodProfile } from '@/lib/weinPairing';
 import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
@@ -281,6 +281,31 @@ export default function RecipeDetailModal({ recipe, onClose, onDelete }: { recip
             <div className="mb-5">
               <div className={labelCls + ' flex items-center gap-1.5'}><Wine size={10} /> Getränkeempfehlung</div>
               <p className="text-[14px] text-text-secondary bg-card border border-border rounded-xl p-4">{recipe.getraenke}</p>
+            </div>
+          )}
+
+          {/* Kalorien & Nährwerte -- reine Anzeige, kein Berechnen/Bearbeiten hier (das läuft auf der Bearbeiten-Seite) */}
+          {recipe.naehrwerte && (
+            <div className="mb-5">
+              <div className={labelCls + ' flex items-center gap-1.5'}><Flame size={10} /> Kalorien &amp; Nährwerte</div>
+              <div className="bg-card border border-border rounded-xl p-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-heading text-[20px] font-bold text-text-primary">
+                    {recipe.portionen > 0 ? Math.round(recipe.naehrwerte.gesamt.kcal / recipe.portionen) : recipe.naehrwerte.gesamt.kcal}
+                  </span>
+                  <span className="text-[12px] text-text-muted">
+                    kcal {recipe.portionen > 0 ? `pro Portion (${recipe.portionen})` : 'gesamt — Portionen nicht angegeben'}
+                  </span>
+                </div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide mt-1 mb-2" style={{ color: '#9A6B1E' }}>
+                  ca. — KI-Schätzung, keine exakte Nährwertberechnung
+                </p>
+                <p className="text-[12px] text-text-muted">
+                  Protein {recipe.portionen > 0 ? Math.round((recipe.naehrwerte.gesamt.protein / recipe.portionen) * 10) / 10 : recipe.naehrwerte.gesamt.protein} g
+                  {' · '}Fett {recipe.portionen > 0 ? Math.round((recipe.naehrwerte.gesamt.fett / recipe.portionen) * 10) / 10 : recipe.naehrwerte.gesamt.fett} g
+                  {' · '}KH {recipe.portionen > 0 ? Math.round((recipe.naehrwerte.gesamt.kh / recipe.portionen) * 10) / 10 : recipe.naehrwerte.gesamt.kh} g
+                </p>
+              </div>
             </div>
           )}
 

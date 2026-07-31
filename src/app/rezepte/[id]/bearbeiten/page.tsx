@@ -5,8 +5,8 @@ import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown, ChefHat, Lock } from 'lucide-react';
-import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile } from '@/types';
+import { ArrowLeft, Save, Loader2, ImagePlus, Wine, Calculator, Tag, Plus, X, ChevronUp, ChevronDown, ChefHat, Lock, Flame } from 'lucide-react';
+import type { Recipe, RecipeCategory, RecipeDifficulty, Season, RecipeStatus, RecipeIngredient, RecipeKomponente, FlavorProfile, RecipeNaehrwerte } from '@/types';
 import { compressImage, validateImageFile } from '@/lib/imageUtils';
 import { submitGlow } from '@/lib/utils';
 import { FlavorSliders } from '@/components/ui/FlavorSliders';
@@ -16,6 +16,9 @@ import SousChefPanel from '@/components/recipes/SousChefPanel';
 import { StarRating } from '@/components/ui/StarRating';
 import { getUserTier } from '@/config/roles';
 import type { RezeptSnapshot } from '@/lib/rezeptKiExtraktion';
+import { hashZutatenKomponenten } from '@/lib/naehrwertHash';
+import { useTextQuotaGate } from '@/lib/useTextQuotaGate';
+import { TEXT_QUOTA_WEIGHTS } from '@/config/textQuota';
 
 const PhotoZone = dynamic(() => import('@/components/ui/PhotoZone'), { ssr: false });
 
@@ -75,6 +78,12 @@ export default function RezeptBearbeitenPage() {
   const [matchInfo,    setMatchInfo]     = useState<{ matched: string[]; unmatched: string[] } | null>(null);
   const setGeschmack = (p: FlavorProfile) => { setGeschmackRaw(p); setGeschmackSet(true); };
 
+  // Kalorien-/Naehrwert-Schaetzung (Stufe 1: reine KI-Schaetzung)
+  const [naehrwerte,     setNaehrwerte]     = useState<RecipeNaehrwerte | null>(null);
+  const [kalorienLoading, setKalorienLoading] = useState(false);
+  const [kalorienError,   setKalorienError]   = useState<string | null>(null);
+  const kalorienGate = useTextQuotaGate(TEXT_QUOTA_WEIGHTS.kalorien);
+
   const [zutaten,     setZutaten]     = useState<RecipeIngredient[]>([]);
   const [komponenten, setKomponenten] = useState<RecipeKomponente[]>([]);
   const [collapsed,   setCollapsed]   = useState<boolean[]>([]);
@@ -129,12 +138,39 @@ export default function RezeptBearbeitenPage() {
       setGeschmackRaw(r.geschmack);
       setGeschmackSet(true);
     }
+    setNaehrwerte(r.naehrwerte ?? null);
   }
 
   const handleCompute = () => {
     const result = computeRecipeFlavorProfile(zutaten, komponenten, ingredients);
     setGeschmack(result.profile);
     setMatchInfo({ matched: result.matched, unmatched: result.unmatched });
+  };
+
+  // ── Kalorien-Schaetzung: lokaler Formular-State, kein Auto-Speichern -----
+  // Persistiert wird erst durch "Änderungen speichern" wie jedes andere Feld.
+  const handleKalorienBerechnen = async () => {
+    setKalorienLoading(true);
+    setKalorienError(null);
+    try {
+      const res = await fetch('/api/rezepte/kalorien', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zutaten, komponenten, portionen }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (d.error === 'quota_exceeded') kalorienGate.markExhausted();
+        setKalorienError(d.message || d.error || 'Kalorien konnten nicht berechnet werden.');
+        return;
+      }
+      setNaehrwerte(d.naehrwerte);
+      kalorienGate.consume();
+    } catch {
+      setKalorienError('Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+      setKalorienLoading(false);
+    }
   };
 
   // ── Zutaten helpers ────────────────────────────────────────────────────────
@@ -237,6 +273,7 @@ export default function RezeptBearbeitenPage() {
         zutaten, komponenten, schritte, getraenke, chefTipps,
         image: finalImage,
         geschmack: geschmackSet ? geschmack : undefined,
+        naehrwerte,
       });
       setSaved(true);
       setTimeout(() => router.push('/rezepte'), 900);
@@ -275,6 +312,24 @@ export default function RezeptBearbeitenPage() {
     if (f.chefTipps !== undefined) setChefTipps(f.chefTipps);
     if (f.geschmack) setGeschmack(f.geschmack);
   };
+
+  // ── Kalorien-Anzeige: live abgeleitet, kein eigener State ──────────────
+  // "Veraltet" erkennt Aenderungen an zutaten/komponenten automatisch, egal
+  // ob sie durch manuelles Bearbeiten, Sous-Chef-Patch oder Import kamen --
+  // kein Flag, das irgendwo separat gesetzt werden muesste.
+  const naehrwerteStale = naehrwerte !== null && hashZutatenKomponenten(zutaten, komponenten) !== naehrwerte.zutaten_hash;
+  const showProPortion = portionen > 0;
+  const naehrwerteFactor = showProPortion ? 1 / portionen : 1;
+  const displayKcal    = naehrwerte ? Math.round(naehrwerte.gesamt.kcal * naehrwerteFactor) : 0;
+  const displayProtein = naehrwerte ? Math.round(naehrwerte.gesamt.protein * naehrwerteFactor * 10) / 10 : 0;
+  const displayFett    = naehrwerte ? Math.round(naehrwerte.gesamt.fett * naehrwerteFactor * 10) / 10 : 0;
+  const displayKh      = naehrwerte ? Math.round(naehrwerte.gesamt.kh * naehrwerteFactor * 10) / 10 : 0;
+  const macroMax = Math.max(displayProtein, displayFett, displayKh, 1);
+  const MAKROS = [
+    { label: 'Protein', value: displayProtein, color: '#6B8E4E' },
+    { label: 'Fett', value: displayFett, color: '#C9A84C' },
+    { label: 'Kohlenhydrate', value: displayKh, color: '#6B3A4B' },
+  ] as const;
 
   if (loading) {
     return (
@@ -624,6 +679,102 @@ export default function RezeptBearbeitenPage() {
           )}
 
           <FlavorSliders profile={geschmack} onChange={setGeschmack} />
+        </div>
+
+        {/* Kalorien & Nährwerte */}
+        <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text)' }}>
+            <Flame size={16} color="#6B3A4B" />
+            <span className="font-heading text-[16px] font-bold">Kalorien &amp; Nährwerte</span>
+            <span className="text-[12px] font-normal ml-1" style={{ color: 'var(--text-muted)' }}>· KI-Schätzung</span>
+          </div>
+          <p className="text-[13px] mb-4 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+            Schätzt Kalorien und Makros aus den Zutaten. Keine exakte Nährwertberechnung — als grobe Orientierung verstehen.
+          </p>
+
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <button
+              type="button"
+              onClick={handleKalorienBerechnen}
+              disabled={kalorienLoading || kalorienGate.blocked || !kalorienGate.ready || (zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0))}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+              style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+              {kalorienLoading ? <Loader2 size={14} className="animate-spin" /> : <Flame size={14} />}
+              {kalorienLoading ? 'Berechne…' : naehrwerte ? 'Neu berechnen' : 'Kalorien berechnen'}
+            </button>
+            {(kalorienGate.blocked || !kalorienGate.ready) && (
+              <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{kalorienGate.reason}</span>
+            )}
+          </div>
+
+          {kalorienError && (
+            <div className="mb-4 px-3 py-2.5 rounded-lg text-[12px]"
+              style={{ background: 'rgba(192,80,80,0.08)', border: '1px solid rgba(192,80,80,0.25)', color: '#C05050' }}>
+              {kalorienError}
+            </div>
+          )}
+
+          {naehrwerte && (
+            <div>
+              {naehrwerteStale && (
+                <div className="mb-4 flex items-start gap-2 px-3 py-2.5 rounded-lg text-[12px] font-medium"
+                  style={{ background: 'rgba(196,142,42,0.1)', border: '1px solid rgba(196,142,42,0.3)', color: '#9A6B1E' }}>
+                  <span className="flex-shrink-0 mt-0.5">⚠</span>
+                  <span>Zutaten haben sich seit der letzten Berechnung geändert — Werte sind veraltet, bitte neu berechnen.</span>
+                </div>
+              )}
+
+              <div className="flex items-baseline gap-2">
+                <span className="font-heading font-bold" style={{ fontSize: 28, color: 'var(--text)' }}>{displayKcal}</span>
+                <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
+                  kcal {showProPortion ? `pro Portion (${portionen})` : 'gesamt — Portionen nicht angegeben'}
+                </span>
+              </div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide mt-1 mb-4" style={{ color: '#9A6B1E' }}>
+                ca. — KI-Schätzung, keine exakte Nährwertberechnung
+              </p>
+
+              {showProPortion && (
+                <p className="text-[12px] mb-4" style={{ color: 'var(--text-muted)' }}>
+                  Gesamtes Rezept: {naehrwerte.gesamt.kcal} kcal
+                </p>
+              )}
+
+              <div className="space-y-2.5">
+                {MAKROS.map(m => (
+                  <div key={m.label}>
+                    <div className="flex items-center justify-between text-[12px] mb-1">
+                      <span style={{ color: 'var(--text)' }}>{m.label}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>{m.value} g</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${(m.value / macroMax) * 100}%`, background: m.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {naehrwerte.pro_komponente.length > 0 && (
+                <div className="mt-5 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Pro Komponente {showProPortion ? `(pro Portion)` : '(gesamt)'}
+                  </p>
+                  <div className="space-y-1.5">
+                    {naehrwerte.pro_komponente.map(k => (
+                      <div key={k.name} className="flex items-center justify-between text-[12px]">
+                        <span style={{ color: 'var(--text)' }}>{k.name}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{Math.round(k.kcal * naehrwerteFactor)} kcal</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[10px] mt-4" style={{ color: 'var(--text-muted)' }}>
+                Berechnet am {new Date(naehrwerte.berechnet_am).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Save */}

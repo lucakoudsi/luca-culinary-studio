@@ -43,4 +43,7 @@ export const TEXT_QUOTA_WEIGHTS = {
                       // admin-nutzbar (Tier 99 = ADMIN_UNLIMITED_TEXT_LIMIT),
                       // Kontingent-Pruefung laeuft trotzdem mit, gleiches Muster
                       // wie alle anderen KI-Routen.
+  kalorien: 2,        // /api/rezepte/kalorien -- reiner Text-Call (Zutatenliste
+                      // rein, Naehrwert-Schaetzung raus), gleiche Kostenklasse
+                      // wie sousChefText/importText.
 } as const;
