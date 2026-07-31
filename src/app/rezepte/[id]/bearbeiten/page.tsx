@@ -85,6 +85,23 @@ export default function RezeptBearbeitenPage() {
   const [kalorienInfo,    setKalorienInfo]    = useState<string | null>(null);
   const kalorienGate = useTextQuotaGate(TEXT_QUOTA_WEIGHTS.kalorien);
 
+  // "Leichter machen"-Zielknoepfe: vorformulierte Anweisungen, die ueber den
+  // bestehenden Sous-Chef-Mechanismus laufen (kein eigener KI-Weg, siehe
+  // triggerPrompt-Prop auf SousChefPanel). Kontingent dafuer ist das
+  // sous_chef-Gewicht, NICHT kalorien -- das ist eine Rezeptaenderung wie
+  // jede andere Sous-Chef-Anfrage.
+  const [kalorienTrigger, setKalorienTrigger] = useState<{ text: string; id: number } | null>(null);
+  const sousChefGate = useTextQuotaGate(TEXT_QUOTA_WEIGHTS.sousChefText);
+  const triggerSousChef = (text: string) => {
+    setKalorienTrigger({ text, id: Date.now() });
+    document.getElementById('sous-chef-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const KALORIEN_ZIELE = [
+    { label: 'Leichter', prompt: 'Reduziere die Kalorien dieses Rezepts, ohne den Charakter zu verlieren — konkrete Zutaten-Anpassungen vorschlagen.' },
+    { label: 'Mehr Protein', prompt: 'Erhöhe den Proteinanteil, ohne die Kalorien stark zu steigern.' },
+    { label: 'Weniger Fett', prompt: 'Reduziere den Fettanteil, ohne den Geschmack zu verlieren.' },
+  ] as const;
+
   const [zutaten,     setZutaten]     = useState<RecipeIngredient[]>([]);
   const [komponenten, setKomponenten] = useState<RecipeKomponente[]>([]);
   const [collapsed,   setCollapsed]   = useState<boolean[]>([]);
@@ -791,6 +808,29 @@ export default function RezeptBearbeitenPage() {
                 </div>
               )}
 
+              {/* "Leichter machen"-Zielknoepfe -- vorformulierte Anweisungen an denselben Sous-Chef-Mechanismus, kein eigener KI-Weg. */}
+              {!kiLocked && (
+                <div className="mt-5 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>
+                    Diese Zahl mit KI anpassen
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {KALORIEN_ZIELE.map(z => (
+                      <button key={z.label} type="button"
+                        onClick={() => triggerSousChef(z.prompt)}
+                        disabled={sousChefGate.blocked || !sousChefGate.ready}
+                        className="px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all disabled:opacity-40"
+                        style={{ background: 'var(--surface-2, rgba(107,58,75,0.06))', color: 'var(--accent)', border: '1px solid var(--border)' }}>
+                        {z.label}
+                      </button>
+                    ))}
+                  </div>
+                  {(sousChefGate.blocked || !sousChefGate.ready) && (
+                    <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)' }}>{sousChefGate.reason}</p>
+                  )}
+                </div>
+              )}
+
               <p className="text-[10px] mt-4" style={{ color: 'var(--text-muted)' }}>
                 Berechnet am {new Date(naehrwerte.berechnet_am).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -817,6 +857,7 @@ export default function RezeptBearbeitenPage() {
         </div>
 
         {/* ── KI-Sous-Chef: gestapelt unter dem Formular, wie beim Import ──── */}
+        <div id="sous-chef-panel">
         {kiLocked ? (
           <div className="w-full">
             <div className="bg-card border border-border rounded-xl flex flex-col items-center justify-center gap-3 p-8 text-center">
@@ -843,8 +884,11 @@ export default function RezeptBearbeitenPage() {
             getSnapshot={getSousChefSnapshot}
             onApplyPatch={applySousChefPatch}
             greeting={`Frag mich, was ich an „${title || 'diesem Rezept'}“ anpassen soll — z.B. „Die Garzeit stimmt nicht, das braucht 25 Minuten“ oder „Rechne die Mengen auf 6 Portionen um“. Änderungen werden erst beim Speichern übernommen.`}
+            triggerPrompt={kalorienTrigger}
+            onTriggerHandled={() => setKalorienTrigger(null)}
           />
         ) : null}
+        </div>
 
       </div>
       </div>

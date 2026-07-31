@@ -82,10 +82,22 @@ type SousChefPanelProps = {
    * daneben (auch am Desktop, nicht nur mobil).
    */
   variant?: 'sidebar' | 'stacked';
+  /**
+   * Programmatisch eine vorformulierte Nachricht abschicken -- z.B. die
+   * "Leichter machen"-Zielknoepfe bei der Kalorien-Anzeige. Laeuft ueber
+   * denselben send() wie eine manuelle Chat-Eingabe (gleiche Route, gleiche
+   * Kontingentpruefung, gleiche Diff-Vorschau) -- kein Sonderfall. "id"
+   * MUSS sich bei jedem Trigger aendern (z.B. Date.now()), auch bei
+   * identischem Text, sonst feuert der Effekt beim zweiten Klick auf
+   * denselben Knopf nicht erneut.
+   */
+  triggerPrompt?: { text: string; id: number } | null;
+  /** Wird aufgerufen, sobald triggerPrompt verarbeitet wurde -- Elternteil sollte triggerPrompt danach auf null zuruecksetzen. */
+  onTriggerHandled?: () => void;
 };
 
 /** Chat-Panel für den KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern -- sowohl direkt nach dem Import (URL/Text/Bild) als auch beim späteren Bearbeiten eines gespeicherten Rezepts. Jede Feld-Änderung kommt als Diff-Vorschlag (Übernehmen/Verwerfen) statt automatisch übernommen zu werden. */
-export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, stickyTop = 88, images, variant = 'sidebar' }: SousChefPanelProps) {
+export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, stickyTop = 88, images, variant = 'sidebar', triggerPrompt, onTriggerHandled }: SousChefPanelProps) {
   const hasImages = !!images && images.length > 0;
   const weight = hasImages ? TEXT_QUOTA_WEIGHTS.vision : TEXT_QUOTA_WEIGHTS.sousChefText;
 
@@ -170,6 +182,16 @@ export default function SousChefPanel({ getSnapshot, onApplyPatch, greeting, sti
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   };
+
+  // Programmatischer Trigger (z.B. "Leichter machen"-Zielknoepfe) -- ruft
+  // denselben send() wie eine manuelle Eingabe auf, kein eigener Codepfad.
+  useEffect(() => {
+    if (triggerPrompt) {
+      send(triggerPrompt.text);
+      onTriggerHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerPrompt]);
 
   const containerClass = variant === 'sidebar'
     ? 'w-[380px] flex-shrink-0 sticky flex flex-col hidden lg:flex'
