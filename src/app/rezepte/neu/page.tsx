@@ -404,6 +404,12 @@ function NewRezeptForm() {
         setImageFile(null);
       }
       setImportSuccessMsg('Rezept übernommen — bitte prüfen und bei Bedarf korrigieren.');
+      // KI-Sous-Chef-Panel auch nach URL-Import aktivieren (bisher nur nach
+      // Text-KI-/Bild-Import ueber applyKiRezept) -- keine Bilder aus diesem
+      // Weg, daher sousChefImages defensiv leeren (falls zuvor ein
+      // Bild-Import in derselben Sitzung stattfand).
+      setSousChefImages([]);
+      setSousChefActive(true);
     } catch {
       setImportError('Netzwerkfehler beim Import.');
     } finally {
@@ -512,6 +518,7 @@ function NewRezeptForm() {
         return;
       }
       const r = d.recipe as KiRezept;
+      setSousChefImages([]); // kein Bild-Import -- evtl. Bilder aus einem frueheren Bild-Import in dieser Sitzung verwerfen
       applyKiRezept(r);
       setImportSuccessMsg('Rezept per KI erkannt — bitte prüfen und bei Bedarf korrigieren.');
       if (r.erkennungsQualitaet === 'schlecht' || r.erkennungsQualitaet === 'teilweise') {
@@ -802,9 +809,9 @@ function NewRezeptForm() {
         </div>
       )}
 
-      {/* ── Form (+ KI-Sous-Chef-Sidebar nach erfolgtem KI-Import) ─────────── */}
-      <div className={`flex gap-6 items-start px-8 py-8 pb-24 ${sousChefActive ? 'max-w-[1300px] mx-auto' : ''}`}>
-      <div className={`max-w-[820px] w-full space-y-5 ${sousChefActive ? '' : 'mx-auto'}`}>
+      {/* ── Form (+ KI-Sous-Chef nach erfolgtem Import, gestapelt unter dem Import-Ergebnis) ─── */}
+      <div className="px-8 py-8 pb-24">
+      <div className="max-w-[820px] w-full mx-auto space-y-5">
 
         {/* ── Rezept-Import ────────────────────────────────────────────────── */}
         <div className={SEC}>
@@ -1059,6 +1066,17 @@ function NewRezeptForm() {
           )}
         </div>
 
+        {/* ── KI-Sous-Chef: gestapelt direkt unter dem Import-Ergebnis, nicht daneben ── */}
+        {sousChefActive && (
+          <SousChefPanel
+            variant="stacked"
+            getSnapshot={getSousChefSnapshot}
+            onApplyPatch={applySousChefPatch}
+            greeting={`Rezept „${base.title || 'Unbenannt'}“ ist importiert. Sag mir, was ich anpassen soll — z.B. „Übersetze auf Deutsch“, „Mengen für 2 Personen“ oder „Ersetze Butter durch Öl“.`}
+            images={sousChefImages}
+          />
+        )}
+
         {/* ── Foto Upload ─────────────────────────────────────────────────── */}
         <div className={SEC}>
           <h2 className={STL}><ImagePlus size={16} color="#6B3A4B" /> Rezeptfoto</h2>
@@ -1299,16 +1317,6 @@ function NewRezeptForm() {
             className={IC + ' resize-none leading-relaxed'} />
         </div>
       </div>
-
-      {/* ── KI-Sous-Chef: Rezept im Dialog korrigieren/verfeinern ──────────── */}
-      {sousChefActive && (
-        <SousChefPanel
-          getSnapshot={getSousChefSnapshot}
-          onApplyPatch={applySousChefPatch}
-          greeting={`Rezept „${base.title || 'Unbenannt'}“ ist importiert. Sag mir, was ich korrigieren oder ergänzen soll — z.B. „Das sind Calamari, keine Ofenkartoffeln“ oder „Mach die Mengen für 2 Personen statt 4“.`}
-          images={sousChefImages}
-        />
-      )}
     </div>
     </div>
 

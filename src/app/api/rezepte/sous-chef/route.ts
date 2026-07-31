@@ -24,7 +24,7 @@ const MAX_IMAGES = 5; // deckt sich mit MAX_IMAGES in import-bild -- mehr Bilder
 const UPSTREAM_TIMEOUT_MS_TEXT = 24_000; // reiner Text-Turn -- etwas unter maxDuration
 const UPSTREAM_TIMEOUT_MS_VISION = 50_000; // mit Bildern: naeher an maxDuration, Vision braucht laenger
 
-const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von Culinary Studio. Der Nutzer hat gerade ein Rezept per KI importiert (aus Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
+const SYSTEM_PROMPT = `Du bist der KI-Sous-Chef von Culinary Studio. Der Nutzer hat gerade ein Rezept importiert (per URL, Text oder Bildern) und möchte es jetzt im Dialog mit dir korrigieren und verfeinern, bevor er es speichert.
 
 Du bekommst mit jeder Nachricht den AKTUELLEN Stand aller Formularfelder als JSON mitgeliefert (title, description, category, difficulty, time, season, tags, portionen, zutaten, komponenten, schritte, getraenke, chefTipps, geschmack) sowie die bisherige Chat-Historie.
 
@@ -41,6 +41,8 @@ AUSNAHME -- Umbau-Aufträge (Umrechnung, Neuinterpretation, Ausarbeitung): Bitte
 Antworte in diesem Fall NICHT nur zustimmend, ohne die Daten tatsächlich auszuarbeiten -- "updatedFields" muss die wirklich hergeleiteten Werte enthalten (Zutaten mit echten Mengen, Komponenten/Schritte mit echter Zubereitung), sonst hat der Nutzer nichts von seiner Bitte.
 
 Mengen/Portionen skalieren: Bittet der Nutzer um eine andere Portionszahl (z.B. "für 2 statt 4 Personen") bei einem Rezept, das schon echte Mengenangaben hat, skaliere ALLE Mengenangaben (auch innerhalb von Komponenten) proportional und runde auf plausible Kochmengen (z.B. keine "0,5 Eier" -- runde sinnvoll, notfalls mit Hinweis in "reply"). Aktualisiere dabei auch "portionen". Hat das Rezept noch keine echten Mengen (z.B. direkt nach dem Import einer Verpackungs-Zutatenliste), gilt stattdessen die Umbau-Ausnahme oben: Mengen für die gewünschte Portionszahl komplett neu herleiten statt zu skalieren.
+
+Übersetzen: Bittet der Nutzer um eine Übersetzung (z.B. "übersetze auf Deutsch/Englisch"), übertrage NUR die Sprache der Textfelder (title, description, zutaten-Namen, schritte, komponenten, getraenke, chefTipps je nachdem was vorhanden ist) -- keine Rezeptur ändern, keine Mengen umrechnen, keine Schritte hinzufügen/weglassen/umformulieren über die reine Übersetzung hinaus. Zahlen, Maßeinheiten und Struktur bleiben unangetastet.
 
 Enums: "category" nur aus Vorspeise/Suppe/Hauptgang/Dessert/Beilage/Snack. "difficulty" nur aus Leicht/Mittel/Schwer. "season" nur aus Frühling/Sommer/Herbst/Winter/Ganzjährig.
 
@@ -256,5 +258,13 @@ export async function POST(req: NextRequest) {
   const reply = typeof p.reply === 'string' && p.reply.trim() ? p.reply.trim() : 'Verstanden.';
   const updatedFields = parsePatch(p.updatedFields, '[sous-chef]');
 
-  return NextResponse.json({ reply, updatedFields });
+  // Server-Merge statt Client-Merge: die KI liefert nur geaenderte Felder,
+  // hier -- nicht im Client -- werden sie mit dem vom Client mitgeschickten
+  // Original zusammengefuehrt. "merged" ist dadurch strukturell immer
+  // vollstaendig (jedes RezeptSnapshot-Feld vorhanden, unangetastete Felder
+  // kommen unveraendert aus dem Original), der Client muss dafuer keine
+  // eigene Merge-Logik nachbauen.
+  const merged: RezeptSnapshot = { ...(body.rezept as RezeptSnapshot), ...updatedFields };
+
+  return NextResponse.json({ reply, updatedFields, merged });
 }
