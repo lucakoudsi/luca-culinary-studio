@@ -26,27 +26,32 @@ function getWeatherInfo(code: number) {
 
 type SaisonItem = { id: number; name: string; kategorie: string; saison: string[] | null; image_url: string | null };
 
-function SeasonalCard({ s }: { s: SaisonItem }) {
+function SeasonalCard({ s, ariaHidden }: { s: SaisonItem; ariaHidden?: boolean }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover">
-      {s.image_url ? (
-        <img src={s.image_url} alt="" className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
-      ) : (
-        <span className="text-lg flex-shrink-0">🌿</span>
-      )}
+    <Link href={`/saison?zutat=${s.id}`} tabIndex={ariaHidden ? -1 : undefined} aria-hidden={ariaHidden}
+      className="group flex items-center gap-3 p-3 rounded-xl bg-card border border-border card-hover cursor-pointer">
+      <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0" style={{ border: '1px solid var(--border)' }}>
+        {s.image_url ? (
+          <img src={s.image_url} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
+            <span className="text-lg">🌿</span>
+          </div>
+        )}
+      </div>
       <div className="min-w-0 flex-1">
         <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
         {s.saison && (
-          <div className="text-[10px]" style={{ color: 'rgba(107,58,75,0.65)' }}>
+          <div className="text-[10px]" style={{ color: 'var(--accent)', opacity: 0.75 }}>
             {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
           </div>
         )}
       </div>
       <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
-        style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B' }}>
+        style={{ background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', border: '1px solid rgba(var(--accent-rgb), 0.25)' }}>
         {s.kategorie}
       </span>
-    </div>
+    </Link>
   );
 }
 
@@ -512,7 +517,7 @@ export default function DashboardPage() {
               <div className="seasonal-marquee-wrap" style={{ height: 320 }}>
                 <div className="seasonal-marquee-track" style={{ animationDuration: `${seasonalDuration}s` }}>
                   {marqueeItems.map(s => <SeasonalCard key={`a-${s.id}`} s={s} />)}
-                  {marqueeItems.map(s => <SeasonalCard key={`b-${s.id}`} s={s} />)}
+                  {marqueeItems.map(s => <SeasonalCard key={`b-${s.id}`} s={s} ariaHidden />)}
                 </div>
               </div>
             )}

@@ -1,6 +1,7 @@
 'use client';
 import PageTransition from '@/components/ui/PageTransition';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Leaf, ChevronLeft } from 'lucide-react';
 
@@ -26,14 +27,30 @@ type Zutat = {
 const SEASON_TABS = ['Frühling', 'Sommer', 'Herbst', 'Winter', 'Ganzjährig'];
 
 export default function SaisonPage() {
+  return (
+    <Suspense fallback={null}>
+      <SaisonPageInner />
+    </Suspense>
+  );
+}
+
+function SaisonPageInner() {
   const now = new Date();
   const month = now.getMonth();
   const currentMonth = MONTH_NAMES_DE[month];
   const currentSeason = MONTH_TO_SEASON[month];
+  const searchParams = useSearchParams();
+  const zutatParam = searchParams.get('zutat');
 
   const [itemsBySeason, setItemsBySeason] = useState<Record<string, Zutat[]>>({});
   const [loading, setLoading]             = useState(true);
   const [filter, setFilter]               = useState<string>(currentSeason);
+  // Deep-Link von der Dashboard-Marquee (/saison?zutat=<id>): erst den
+  // richtigen Saison-Tab waehlen, DANACH (naechster Effect, nach dem
+  // Re-Render mit dem neuen Tab) zur Karte scrollen -- sonst existiert das
+  // DOM-Element noch nicht.
+  const [pendingScrollId, setPendingScrollId] = useState<number | null>(null);
+  const [highlightId,     setHighlightId]     = useState<number | null>(null);
 
   useEffect(() => {
     // Fetch all seasons in parallel
@@ -51,6 +68,29 @@ export default function SaisonPage() {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (loading || !zutatParam) return;
+    const targetId = Number(zutatParam);
+    if (!Number.isFinite(targetId)) return;
+    const matchTab = SEASON_TABS.find(tab => (itemsBySeason[tab] ?? []).some(z => z.id === targetId));
+    if (matchTab) {
+      setFilter(matchTab);
+      setPendingScrollId(targetId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, zutatParam]);
+
+  useEffect(() => {
+    if (pendingScrollId === null) return;
+    const el = document.getElementById(`zutat-${pendingScrollId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightId(pendingScrollId);
+    setPendingScrollId(null);
+    const t = setTimeout(() => setHighlightId(null), 2200);
+    return () => clearTimeout(t);
+  }, [pendingScrollId, filter]);
 
   const all = itemsBySeason[filter] ?? [];
   const filtered = all;
@@ -144,9 +184,11 @@ export default function SaisonPage() {
                     const saisonArr = Array.isArray(z.saison) ? z.saison : (z.saison ? [String(z.saison)] : []);
                     const primarySeason = saisonArr[0];
                     const seasonColor = SEASON_COLORS[primarySeason ?? ''] ?? '#A89880';
+                    const isHighlighted = highlightId === z.id;
                     return (
-                      <div key={z.id}
-                        className="rounded-2xl overflow-hidden bg-card border border-border card-hover cursor-default">
+                      <div key={z.id} id={`zutat-${z.id}`}
+                        className="rounded-2xl overflow-hidden bg-card border border-border card-hover cursor-default transition-shadow duration-500"
+                        style={isHighlighted ? { boxShadow: '0 0 0 2px var(--accent), 0 0 24px rgba(var(--accent-rgb), 0.35)', borderColor: 'var(--accent)' } : undefined}>
                         <div style={{ height: 110, background: 'var(--surface-2)', overflow: 'hidden' }}>
                           {z.image_url ? (
                             <img src={z.image_url} alt={z.name}
