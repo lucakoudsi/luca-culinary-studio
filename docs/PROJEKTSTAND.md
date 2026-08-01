@@ -1,11 +1,13 @@
 # Projektstand — Culinary Studio
 
-> Stand 2026-07-23, ergänzt 2026-07-31 (Landing-Page + Content-Seiten,
-> Changelog+Feedback-System, Sterne-Bewertung editierbar, Sous-Chef auch beim
-> Import; DB-Cleanup `access_requests`/`users_deprecated`). Für jemanden ohne
-> Vorwissen, der sofort weiterarbeiten können soll. Ersetzt keine der
-> Einzel-Doku-Dateien (siehe unten), fasst nur den aktuellen Gesamtzustand
-> zusammen.
+> Stand 2026-07-23, ergänzt 2026-07-31/2026-08-01 (Landing-Page +
+> Content-Seiten, Changelog+Feedback-System, Sterne-Bewertung editierbar,
+> Sous-Chef auch beim Import UND auf der Bearbeiten-Seite, Kalorien-/
+> Nährwertschätzung, Saison-Karten-Redesign, Menüs speicherbar
+> (Menügenerator-Ausbau Schritt 1); DB-Cleanup `access_requests`/
+> `users_deprecated`). Für jemanden ohne Vorwissen, der sofort weiterarbeiten
+> können soll. Ersetzt keine der Einzel-Doku-Dateien (siehe unten), fasst nur
+> den aktuellen Gesamtzustand zusammen.
 
 ## Kurzfassung
 
@@ -106,6 +108,38 @@ bis Gewerbe/Rechtstexte stehen (Teil 2 der Master-Aufgabenliste).
   `/api/rezepte/sous-chef` führt den Merge jetzt serverseitig aus,
   Kontingent-/Tier-Prüfung unverändert vor dem OpenAI-Call, Panel zeigt
   zusätzlich eine proaktive Kontingent-Sperre.
+- **KI-Sous-Chef auch auf der Bearbeiten-Seite gestapelt statt Sidebar**:
+  nutzt den bestehenden `variant="stacked"` (bisher nur beim Import), dadurch
+  auch auf dem Handy sichtbar (`variant="sidebar"` hatte `hidden lg:flex`,
+  auf Mobile unsichtbar).
+- **Kalorien-/Nährwertschätzung** (KI-Schätzung, Stufe 1, alle 3 Bausteine):
+  Route `/api/rezepte/kalorien` (eigenes Kontingent-Gewicht `kalorien`,
+  `temperature: 0` für stabile Werte bei identischer Eingabe), Berechnen-
+  Button + Anzeige (kcal/Makros pro Portion, „ca."-Kennzeichnung, automatische
+  Veraltet-Erkennung über einen Zutaten-Hash statt Zeitstempel-Vergleich) auf
+  der Bearbeiten-Seite, read-only Anzeige im Detail-Modal. „Leichter"/„Mehr
+  Protein"/„Weniger Fett"-Zielknöpfe lösen den bestehenden Sous-Chef-Flow
+  programmatisch aus (kein neuer KI-Weg, eigenes `sous_chef`-Kontingent-
+  Gewicht statt `kalorien`). Neue Spalte `recipes.naehrwerte` (jsonb, siehe
+  `docs/kalorien-migration.sql`). Eine spätere Stufe 2 (Hybrid aus
+  USDA-Nährwert-DB + KI-Schätzung) ist als Idee in `docs/feature-backlog.md`
+  Abschnitt 1c geparkt, erst relevant wenn Stufe 1 sich im Betrieb bewährt.
+- **Saison-Karten im Dashboard redesignt**: `SeasonalCard` ist jetzt ein
+  klickbarer Link auf `/saison?zutat=<id>` (wählt automatisch den passenden
+  Saison-Tab, scrollt zur Zutat und hebt sie kurz mit einem Glow hervor),
+  größeres Thumbnail mit dezentem Hover-Zoom, Dark-Mode-Fix (`var(--accent)`
+  statt fest verdrahtetem Bordeaux/`rgba(107,58,75,...)`, neues
+  `--accent-rgb`-Token für theme-sichere Pill-Hintergründe).
+- **Menüs speicherbar & wiederaufrufbar** (Menügenerator-Ausbau Schritt 1 von
+  3, siehe `docs/menuegenerator-konzept.md`): neue Tabelle `menus` (analog
+  `tellerdesigns`, RLS ohne Policies, siehe `docs/menus-migration.sql`),
+  „Menü speichern"-Button (editierbarer Name, vorausgefüllt mit dem
+  generierten Titel) im Generator, neue Galerie-Seite
+  `/menuegenerator/galerie` (Umbenennen/Löschen), Deep-Link `?laden=<id>`
+  lädt ein gespeichertes Menü direkt in die Ergebnis-Ansicht. Kein
+  Kontingent-Verbrauch — reines Speichern/Laden, kein OpenAI-Call. Schritt 2
+  (PDF-Export) und Schritt 3 („Gang gezielt anpassen") bleiben offen, siehe
+  `docs/master-aufgabenliste.md` Teil 3C.
 
 ---
 

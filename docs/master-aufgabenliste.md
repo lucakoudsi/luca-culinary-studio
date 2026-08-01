@@ -1,7 +1,9 @@
 # Master-Aufgabenliste — Culinary Studio
 
-> Stand 2026-07-23, ergänzt 2026-07-31 (neue 3F: Landing-Page, Changelog+
-> Feedback, Sterne-Bewertung, Sous-Chef-Import; Teil 4 DB-Cleanup
+> Stand 2026-07-23, ergänzt 2026-07-31/2026-08-01 (3F erweitert: Landing-Page,
+> Changelog+Feedback, Sterne-Bewertung, Sous-Chef-Import, Sous-Chef auf der
+> Bearbeiten-Seite, Kalorien-/Nährwertschätzung, Saison-Karten-Redesign,
+> Menüs speicherbar (Menügenerator-Ausbau Schritt 1); Teil 4 DB-Cleanup
 > abgeschlossen). Teil 1A/1B seit 22.07. vollständig abgeschlossen. Ursprünglich
 > zusammengeführt aus (a) der Chat-Session vom 22.07.
 > und (b) Claude Codes Bestandsaufnahme über 16 Projekt-Dateien (docs/*,
@@ -114,9 +116,12 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 ═══════════════════════════════════════════════════════════════════════
 
 ### 3A. Neue Ideen (aus feature-backlog.md, diese Session)
-- [ ] **Kalorien aus Rezepten** berechnen (Nährwert-DB, deterministisch).
-  Offene Fragen: Zutat→DB-Mapping, Mengen ohne Gewicht, Roh- vs. Zubereitet.
-- [ ] **Kalorien aus Bildern** schätzen (Vision, „ohne Gewähr", niedrige Prio).
+- [x] **Kalorien aus Rezepten** — umgesetzt als reine KI-Schätzung (Stufe 1),
+  siehe 3F. Ursprünglich hier als „Nährwert-DB, deterministisch" geplant —
+  der DB-Hybrid-Ansatz ist als Stufe 2 in `docs/feature-backlog.md`
+  Abschnitt 1c geparkt, erst bauen wenn Stufe 1 sich bewährt hat.
+- [ ] **Kalorien aus Bildern** schätzen (Vision, „ohne Gewähr", niedrige Prio) —
+  weiterhin offen, eigenständig von der jetzt umgesetzten Text-Schätzung.
 - [x] **Feedback-System** (Nutzer-Formular + Admin-Verwaltung, `feedback`-
   Tabelle, RLS) — umgesetzt, siehe 3F.
 - [ ] **Gamification/Belohnungssystem** (Küchen-Titel-Stufen). Offene Fragen:
@@ -141,8 +146,10 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
   „erledigt durch dritten Weg" abgehakt werden.
 
 ### 3C. Menügenerator — Ausbau (aus menuegenerator-konzept.md)
-- [ ] **PDF-Export/Druck** der Menükarte (mehrfach genannt, weiterhin offen).
-- [ ] **Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne
+- [x] **Schritt 1: Menüs speicherbar & wiederaufrufbar machen** — umgesetzt,
+  siehe 3F.
+- [ ] **Schritt 2: PDF-Export/Druck** der Menükarte (mehrfach genannt, weiterhin offen).
+- [ ] **Schritt 3: Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne
   Fisch") — braucht ganzes Menü als Kontext.
 - [ ] **Verlinkung** Stammbaum/Zutatenbibliothek aus den Gängen heraus.
 - [ ] Einkaufsliste automatisch aus Gängen ableiten?
@@ -163,9 +170,11 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [x] Speichern von Designs (Galerie mit Persistenz existiert).
 
 ### 3E. Sonstige Feature-/Design-Punkte
-- [ ] **Saison-Karten Redesign** (Dashboard-Seitenleiste): 3 Varianten (Gold
-  Thread / Bordeaux Depth / Warm Glow) gezeigt, **keine Auswahl getroffen** —
-  danach in `SeasonalCard` umsetzen. Scheint vergessen worden zu sein.
+- [x] **Saison-Karten Redesign** (Dashboard-Seitenleiste) — umgesetzt, siehe
+  3F. Die 3 ursprünglich gezeigten Varianten (Gold Thread/Bordeaux
+  Depth/Warm Glow) existierten nur als Chat-Vorschlag, nie im Code
+  (verifiziert per `git log --all -S`) — komplett neu gebaut statt eine der
+  drei zu übernehmen.
 - [ ] Separates `rolle`-Feld (admin/staff/member), getrennt von der Stufe —
   „erst nötig, sobald Mitarbeiter mit Sonderrechten dazukommen".
 - [~] „Anthropic im Chat" — bewusst zurückgestellt, Chat-Route lehnt Anthropic-
@@ -185,6 +194,29 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [x] **KI-Sous-Chef auch beim Rezept-Import** — bisher nur Bild-/Text-KI-
   Import, jetzt auch URL-Import; Diff-Vorschau (Übernehmen/Verwerfen) statt
   automatischer Übernahme, serverseitiger Merge, proaktive Kontingent-Sperre.
+- [x] **KI-Sous-Chef auch auf der Bearbeiten-Seite gestapelt statt Sidebar** —
+  nutzt den bestehenden „stacked"-Variant (bisher nur beim Import), dadurch
+  auch auf dem Handy sichtbar (vorher `hidden lg:flex`, auf Mobile
+  unsichtbar).
+- [x] **Kalorien-/Nährwertschätzung** (KI-Schätzung, Stufe 1, alle 3
+  Bausteine) — Berechnen-Button + Anzeige (kcal/Makros pro Portion, „ca."-
+  Kennzeichnung, automatische Veraltet-Erkennung via Zutaten-Hash statt
+  Zeitstempel) auf der Bearbeiten-Seite, read-only Anzeige im Detail-Modal,
+  „Leichter"/„Mehr Protein"/„Weniger Fett"-Zielknöpfe docken an den
+  bestehenden Sous-Chef-Mechanismus an (kein neuer KI-Weg, eigenes
+  Kontingent-Gewicht `kalorien`). Neue Spalte `recipes.naehrwerte` (jsonb).
+- [x] **Saison-Karten im Dashboard redesignt** — klickbar (Link zu
+  `/saison?zutat=<id>` mit automatischem Tab-Wechsel + Scroll-Highlight),
+  größeres Thumbnail, Dark-Mode-Fix (`var(--accent)` statt fest verdrahtetem
+  Bordeaux), neues `--accent-rgb`-Token.
+- [x] **Menüs speicherbar & wiederaufrufbar** (Menügenerator-Ausbau
+  Schritt 1) — neue Tabelle `menus` (analog `tellerdesigns`), „Menü
+  speichern"-Button (editierbarer Name) im Generator, Galerie unter
+  `/menuegenerator/galerie` (Umbenennen/Löschen), Deep-Link `?laden=<id>`
+  lädt ein gespeichertes Menü direkt in die Ergebnis-Ansicht. Kein
+  Kontingent-Verbrauch (reines Speichern/Laden, kein OpenAI-Call).
+  PDF-Export (Schritt 2) und „Gang gezielt anpassen" (Schritt 3) bleiben
+  offen, siehe 3C.
 
 ═══════════════════════════════════════════════════════════════════════
 ## TEIL 4 — AUFRÄUMEN & TECHNISCHE SCHULD (unkritisch, jederzeit)
