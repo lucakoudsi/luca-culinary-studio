@@ -249,3 +249,70 @@
   from { transform: translateY(0); }
   to   { transform: translateY(-50%); }
 }
+
+/* ── Druck: nur EIN Element sichtbar lassen (Menükarten-PDF-Export) ────────
+   Standard-Trick: erst wird komplett alles unsichtbar gemacht, dann nur der
+   .print-only-Bereich (+ seine Kinder) wieder sichtbar geschaltet und aus dem
+   Fluss genommen. Robuster als jede einzelne Sidebar-/Button-/Nav-Komponente
+   selbst mit einer .no-print-Klasse zu versehen -- funktioniert automatisch
+   auch fuer kuenftig neu hinzukommende UI. .print-only bleibt auf dem
+   Bildschirm immer unsichtbar, unabhaengig davon wo im DOM es sitzt (siehe
+   MenuekartePrintSheet in src/components/Menuekarte.tsx). */
+.print-only { display: none; }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-only, .print-only * { visibility: visible; }
+  .print-only {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  @page { size: A4; margin: 18mm 16mm; }
+
+  /* Spannungsbogen + Mini-Geschmacksbalken sind ein Bildschirm-Arbeitswerkzeug
+     (Farbe-abhaengig, verblasst in Graustufen-Ausdrucken) -- auf der
+     gastfertigen Druckkarte bewusst weggelassen, wirkt ruhiger/klassischer. */
+  .menuekarte-print [data-print-hide] { display: none !important; }
+
+  /* Karten-Optik (Bildschirm-Hintergrund/Rahmen/Schatten) durch reinen
+     Druck-Hintergrund ersetzen -- print-color-adjust erzwingt, dass die
+     Gold-Akzente (Trenner, Roemische Ziffern, Wein-Stern) trotzdem gedruckt
+     werden, auch wenn der Nutzer "Hintergrundgrafiken drucken" nicht
+     aktiviert hat. */
+  .menuekarte-print {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .menuekarte-print > div {
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Zubereitungsidee-Box: duenne Linie statt Fuellfarbe -- wirkt wie
+     gesetzter Druck statt Bildschirm-UI. */
+  .menuekarte-print [data-print-box] {
+    background: none !important;
+    border: 1px solid #D8CFC4 !important;
+  }
+
+  /* Ein Gang soll nicht mitten im Satz auf die naechste Seite umbrechen. */
+  .menuekarte-print [data-print-course] {
+    break-inside: avoid;
+  }
+
+  .menuekarte-print-footer {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #9A8070;
+  }
+}

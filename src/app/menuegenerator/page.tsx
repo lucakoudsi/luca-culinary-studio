@@ -1,14 +1,14 @@
 'use client';
 import PageTransition from '@/components/ui/PageTransition';
-import Menuekarte, { type MenuekarteDaten } from '@/components/Menuekarte';
+import Menuekarte, { toMenuekarteDaten, MenuekartePrintSheet } from '@/components/Menuekarte';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { Ingredient, GeneratedMenuResult, SavedMenuRow } from '@/types';
+import type { Ingredient, GeneratedMenuResult } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import {
   Sparkles, UtensilsCrossed, Wine, Calendar, Search, X,
-  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2, Images, Check,
+  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2, Images, Check, Printer,
 } from 'lucide-react';
 
 // ─── Optionen & Konstanten ─────────────────────────────────────────────────
@@ -199,23 +199,6 @@ function LoadingScene() {
   );
 }
 
-function toMenuekarteDaten(menu: MenuResult): MenuekarteDaten {
-  return {
-    titel: menu.titel,
-    dramaturgieBegruendung: menu.dramaturgie_begruendung,
-    gaenge: menu.gaenge.map(g => ({
-      nummer: g.nummer,
-      titel: g.titel,
-      beschreibung: g.beschreibung,
-      hauptzutaten: g.hauptzutaten,
-      geschmacksprofil: g.geschmacksprofil,
-      zubereitungsidee: g.zubereitungsidee,
-      weinId: g.wein_empfehlung?.id ?? null,
-      weinName: g.wein_empfehlung?.name ?? null,
-    })),
-  };
-}
-
 function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menuSaveState, onMenuSaveNameChange, menuSaveName, onMenuSaveStart, onMenuSaveConfirm, onMenuSaveCancel }: {
   menu: MenuResult; onReset: () => void;
   onSave: () => void; saveState: SaveState; savedProjectId: number | null;
@@ -225,6 +208,7 @@ function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menu
   return (
     <div className="mx-auto" style={{ maxWidth: 680 }}>
       <Menuekarte data={toMenuekarteDaten(menu)} />
+      <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
 
       {menuSaveState === 'naming' ? (
         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
@@ -273,6 +257,11 @@ function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menu
               {saveState === 'saving' ? 'Wird gespeichert…' : 'Als Projekt speichern'}
             </button>
           )}
+          <button onClick={() => window.print()} type="button"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
+            style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text)' }}>
+            <Printer size={14} /> Als PDF exportieren
+          </button>
           <button onClick={onReset} type="button"
             className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
             style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.25)', color: '#6B3A4B' }}>

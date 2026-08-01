@@ -1,4 +1,4 @@
-import type { FlavorProfile } from '@/types';
+import type { FlavorProfile, GeneratedMenuResult } from '@/types';
 
 // ─── Wiederverwendbare Menükarte ────────────────────────────────────────────
 // Genutzt in /menuegenerator (direkt nach der Generierung) UND in
@@ -72,7 +72,7 @@ function Spannungsbogen({ gaenge }: { gaenge: MenuekarteGang[] }) {
 
 function MiniFlavorBars({ profile }: { profile: MenuekarteGang['geschmacksprofil'] }) {
   return (
-    <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4">
+    <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4" data-print-hide="true">
       {FLAVOR_KEYS.map((key, i) => (
         <div key={key} className="flex items-center gap-1.5" style={{ width: 98 }}>
           <span className="text-[9px] w-9 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{FLAVOR_LABELS[i]}</span>
@@ -101,14 +101,14 @@ export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
       )}
 
       {data.gaenge?.length > 0 && (
-        <div className="mb-9">
+        <div className="mb-9" data-print-hide="true">
           <Spannungsbogen gaenge={data.gaenge} />
         </div>
       )}
 
       <div>
         {data.gaenge?.map((g, i) => (
-          <div key={g.nummer ?? i}>
+          <div key={g.nummer ?? i} data-print-course="true">
             <div className="py-6">
               <div className="text-center mb-3">
                 <span className="font-heading" style={{ fontSize: 13, letterSpacing: 3, color: '#C9A84C' }}>
@@ -128,7 +128,7 @@ export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
               )}
 
               {g.zubereitungsidee && (
-                <div className="mt-4 rounded-lg p-3.5" style={{ background: 'var(--bg)' }}>
+                <div className="mt-4 rounded-lg p-3.5" style={{ background: 'var(--bg)' }} data-print-box="true">
                   <div className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>Zubereitungsidee</div>
                   <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>{g.zubereitungsidee}</p>
                 </div>
@@ -152,6 +152,41 @@ export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Exakte Antwort-Form von POST /api/menuegenerator (siehe GeneratedMenuResult
+// in @/types) -- geteilt zwischen /menuegenerator und der Menü-Galerie, statt
+// zweimal dieselbe Zuordnung zu pflegen. /projekte/[id] hat eine andere
+// Eingangsform (ProjectMenu/MenuGang) und behält dafür seine eigene, lokale
+// Zuordnung in GeneratedMenuView.tsx.
+export function toMenuekarteDaten(menu: GeneratedMenuResult): MenuekarteDaten {
+  return {
+    titel: menu.titel,
+    dramaturgieBegruendung: menu.dramaturgie_begruendung,
+    gaenge: menu.gaenge.map(g => ({
+      nummer: g.nummer,
+      titel: g.titel,
+      beschreibung: g.beschreibung,
+      hauptzutaten: g.hauptzutaten,
+      geschmacksprofil: g.geschmacksprofil,
+      zubereitungsidee: g.zubereitungsidee,
+      weinId: g.wein_empfehlung?.id ?? null,
+      weinName: g.wein_empfehlung?.name ?? null,
+    })),
+  };
+}
+
+// Druckansicht derselben Menuekarte -- KEIN separates Layout, nur eine zweite
+// Instanz derselben Komponente, die auf dem Bildschirm unsichtbar bleibt
+// (.print-only, siehe globals.css) und erst bei window.print() erscheint.
+// Verhindert, dass Bildschirm- und Druck-Darstellung je auseinanderlaufen.
+export function MenuekartePrintSheet({ data }: { data: MenuekarteDaten }) {
+  return (
+    <div className="print-only menuekarte-print">
+      <Menuekarte data={data} />
+      <p className="menuekarte-print-footer">✦ Culinary Studio ✦</p>
     </div>
   );
 }

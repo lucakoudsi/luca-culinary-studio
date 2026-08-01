@@ -1,7 +1,7 @@
 'use client';
 import type { ProjectMenu } from '@/types';
-import Menuekarte, { type MenuekarteDaten } from '@/components/Menuekarte';
-import { X, Pencil } from 'lucide-react';
+import Menuekarte, { type MenuekarteDaten, MenuekartePrintSheet } from '@/components/Menuekarte';
+import { X, Pencil, Printer } from 'lucide-react';
 
 // Ein Projekt-Menü gilt als "aus dem Menuegenerator" (KI-generiert), sobald
 // mindestens ein Gang eines der KI-only-Felder gesetzt hat. Manuell angelegte
@@ -36,6 +36,11 @@ export default function GeneratedMenuView({ menu, onClose, onEdit }: {
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-end gap-2 mb-3">
+          <button onClick={() => window.print()} type="button"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
+            style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
+            <Printer size={13} /> Als PDF exportieren
+          </button>
           <button onClick={onEdit} type="button"
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
             style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
@@ -48,6 +53,7 @@ export default function GeneratedMenuView({ menu, onClose, onEdit }: {
           </button>
         </div>
         <Menuekarte data={toMenuekarteDaten(menu)} />
+        <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
       </div>
     </div>
   );

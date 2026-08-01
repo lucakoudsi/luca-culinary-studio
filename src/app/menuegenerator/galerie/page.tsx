@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { ArrowLeft, Loader2, UtensilsCrossed, Sparkles, Pencil, Trash2, Check, X } from 'lucide-react';
+import { ArrowLeft, Loader2, UtensilsCrossed, Sparkles, Pencil, Trash2, Check, X, Printer } from 'lucide-react';
 import type { SavedMenuRow } from '@/types';
+import { toMenuekarteDaten, MenuekartePrintSheet } from '@/components/Menuekarte';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -18,6 +19,21 @@ export default function MenuegeneratorGaleriePage() {
   const [editingName, setEditingName] = useState('');
   const [renaming, setRenaming] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Galerie zeigt nur schlanke Karten (Titel/Anzahl/Datum), keine volle
+  // Menuekarte -- die wird fuers Drucken erst on-demand gemountet, NICHT fuer
+  // alle gespeicherten Menuees gleichzeitig vorgehalten. Der useEffect feuert
+  // erst NACH dem React-Commit, wenn der Druckbereich garantiert im DOM
+  // steht -- ein window.print() direkt im Click-Handler haette noch die
+  // vorherige (leere) Ansicht erwischt.
+  const [printingMenu, setPrintingMenu] = useState<SavedMenuRow | null>(null);
+  useEffect(() => {
+    if (!printingMenu) return;
+    window.print();
+    const reset = () => setPrintingMenu(null);
+    window.addEventListener('afterprint', reset, { once: true });
+    return () => window.removeEventListener('afterprint', reset);
+  }, [printingMenu]);
 
   // Nur fuer den Avatar oben rechts -- dieselbe Quelle wie andere Feature-Seiten.
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -189,6 +205,11 @@ export default function MenuegeneratorGaleriePage() {
                           style={{ color: 'var(--text-muted)' }}>
                           <Pencil size={11} /> Umbenennen
                         </button>
+                        <button onClick={() => setPrintingMenu(m)} disabled={printingMenu?.id === m.id}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-colors disabled:opacity-40"
+                          style={{ color: 'var(--text-muted)' }}>
+                          <Printer size={11} /> PDF
+                        </button>
                         <button onClick={() => handleDelete(m)} disabled={deletingId === m.id}
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-colors disabled:opacity-40 ml-auto"
                           style={{ color: '#C05050' }}>
@@ -203,6 +224,8 @@ export default function MenuegeneratorGaleriePage() {
           </div>
         )}
       </div>
+
+      {printingMenu && <MenuekartePrintSheet data={toMenuekarteDaten(printingMenu.menu)} />}
     </div>
   );
 }
