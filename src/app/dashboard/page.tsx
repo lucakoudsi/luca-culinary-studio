@@ -40,17 +40,23 @@ function SeasonalCard({ s, ariaHidden }: { s: SaisonItem; ariaHidden?: boolean }
         )}
       </div>
       <div className="min-w-0 flex-1">
+        {/* Name bekommt garantiert die volle Zeilenbreite -- Saison/Kategorie
+            teilen sich darunter eine eigene, umbrechende Zeile, damit ein
+            langer Kategoriename (z.B. "Milchprodukte & Käse") nie den Namen
+            verdraengt und abschneidet. */}
         <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text)' }}>{s.name}</div>
-        {s.saison && (
-          <div className="text-[10px]" style={{ color: 'var(--accent)', opacity: 0.75 }}>
-            {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
-          </div>
-        )}
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          {s.saison && (
+            <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--accent)', opacity: 0.75 }}>
+              {Array.isArray(s.saison) ? s.saison.join(' · ') : String(s.saison)}
+            </span>
+          )}
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold truncate min-w-0 max-w-full"
+            style={{ background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', border: '1px solid rgba(var(--accent-rgb), 0.25)' }}>
+            {s.kategorie}
+          </span>
+        </div>
       </div>
-      <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-semibold"
-        style={{ background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent)', border: '1px solid rgba(var(--accent-rgb), 0.25)' }}>
-        {s.kategorie}
-      </span>
     </Link>
   );
 }
