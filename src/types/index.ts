@@ -162,6 +162,37 @@ export interface Project {
   status: 'Aktiv' | 'Abgeschlossen' | 'Pausiert';
 }
 
+// ─── Menügenerator ───────────────────────────────────────────────────────────
+// Exakte Antwort-Form von POST /api/menuegenerator -- geteilt zwischen der
+// Generator-Seite, der Speicher-Route (/api/menus) und der Galerie, statt
+// dreimal denselben Shape lokal zu definieren.
+export interface GeneratedMenuGang {
+  nummer: number;
+  titel: string;
+  beschreibung: string;
+  hauptzutaten: string[];
+  geschmacksprofil: Partial<FlavorProfile>;
+  zubereitungsidee: string;
+  technik?: string;
+  wein_empfehlung?: { id: number; name: string } | null;
+}
+export interface GeneratedMenuResult {
+  titel: string;
+  dramaturgie_begruendung: string;
+  gaenge: GeneratedMenuGang[];
+}
+
+// Eine gespeicherte Zeile aus public.menus (siehe GET /api/menus) -- "menu"
+// ist das komplette, unveraenderte Generator-Ergebnis (Snapshot-Prinzip wie
+// bei TellerDesignRow), nur "name" ist per PUT /api/menus/[id] aenderbar.
+export interface SavedMenuRow {
+  id: string;
+  name: string;
+  menu: GeneratedMenuResult;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── Tellerdesigner ──────────────────────────────────────────────────────────
 import type { Aufwandsstufe } from '@/config/techniken';
 import type { Stilrichtung } from '@/config/tellerStilrichtung';

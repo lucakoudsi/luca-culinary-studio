@@ -2,12 +2,13 @@
 import PageTransition from '@/components/ui/PageTransition';
 import Menuekarte, { type MenuekarteDaten } from '@/components/Menuekarte';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import type { FlavorProfile, Ingredient } from '@/types';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import type { Ingredient, GeneratedMenuResult, SavedMenuRow } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import {
   Sparkles, UtensilsCrossed, Wine, Calendar, Search, X,
-  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2,
+  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2, Images, Check,
 } from 'lucide-react';
 
 // ─── Optionen & Konstanten ─────────────────────────────────────────────────
@@ -70,24 +71,16 @@ const LOADING_STYLES = `
 
 // ─── Typen ───────────────────────────────────────────────────────────────────
 
-type GangResult = {
-  nummer: number;
-  titel: string;
-  beschreibung: string;
-  hauptzutaten: string[];
-  geschmacksprofil: Partial<FlavorProfile>;
-  zubereitungsidee: string;
-  technik?: string;
-  wein_empfehlung?: { id: number; name: string } | null;
-};
-type MenuResult = {
-  titel: string;
-  dramaturgie_begruendung: string;
-  gaenge: GangResult[];
-};
+// GeneratedMenuGang/GeneratedMenuResult (@/types) sind die exakte Antwort-Form
+// von POST /api/menuegenerator -- geteilt mit /api/menus und der Galerie.
+type MenuResult = GeneratedMenuResult;
 type ApiError = { status: number; error?: string; message?: string };
 type Stage = 'dialog' | 'loading' | 'result' | 'error';
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+// Eigener State fuer "Menü speichern" (public.menus), getrennt vom "Als
+// Projekt speichern"-Flow (SaveState/savedProjectId) -- beide Aktionen
+// koennen unabhaengig voneinander laufen.
+type MenuSaveState = 'idle' | 'naming' | 'saving' | 'saved' | 'error';
 
 // ─── Kleine Bausteine ───────────────────────────────────────────────────────
 
@@ -223,37 +216,75 @@ function toMenuekarteDaten(menu: MenuResult): MenuekarteDaten {
   };
 }
 
-function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId }: {
+function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menuSaveState, onMenuSaveNameChange, menuSaveName, onMenuSaveStart, onMenuSaveConfirm, onMenuSaveCancel }: {
   menu: MenuResult; onReset: () => void;
   onSave: () => void; saveState: SaveState; savedProjectId: number | null;
+  menuSaveState: MenuSaveState; menuSaveName: string; onMenuSaveNameChange: (v: string) => void;
+  onMenuSaveStart: () => void; onMenuSaveConfirm: () => void; onMenuSaveCancel: () => void;
 }) {
   return (
     <div className="mx-auto" style={{ maxWidth: 680 }}>
       <Menuekarte data={toMenuekarteDaten(menu)} />
 
-      <div className="flex justify-center gap-3 mt-6 flex-wrap">
-        {saveState === 'saved' && savedProjectId ? (
-          <Link href={`/projekte/${savedProjectId}`}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
-            style={{ background: 'rgba(90,154,88,0.1)', border: '1px solid rgba(90,154,88,0.3)', color: '#5A9A58' }}>
-            <CheckCircle size={14} /> Gespeichert – Projekt ansehen
-          </Link>
-        ) : (
-          <button onClick={onSave} type="button" disabled={saveState === 'saving'}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
-            {saveState === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            {saveState === 'saving' ? 'Wird gespeichert…' : 'Als Projekt speichern'}
+      {menuSaveState === 'naming' ? (
+        <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
+          <input value={menuSaveName} onChange={e => onMenuSaveNameChange(e.target.value)} autoFocus
+            onKeyDown={e => { if (e.key === 'Enter') onMenuSaveConfirm(); if (e.key === 'Escape') onMenuSaveCancel(); }}
+            placeholder="Name für dieses Menü…"
+            className="px-4 py-2.5 rounded-xl text-[13px] outline-none transition-colors"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', minWidth: 240 }} />
+          <button onClick={onMenuSaveConfirm} type="button" disabled={!menuSaveName.trim()}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
+            style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+            <Check size={14} /> Speichern
           </button>
-        )}
-        <button onClick={onReset} type="button"
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
-          style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.25)', color: '#6B3A4B' }}>
-          <RefreshCw size={14} /> Neues Menü komponieren
-        </button>
-      </div>
+          <button onClick={onMenuSaveCancel} type="button"
+            className="px-4 py-2.5 rounded-xl text-[13px] font-medium transition-all"
+            style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+            Abbrechen
+          </button>
+        </div>
+      ) : (
+        <div className="flex justify-center gap-3 mt-6 flex-wrap">
+          {menuSaveState === 'saved' ? (
+            <span className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold"
+              style={{ background: 'rgba(90,154,88,0.1)', border: '1px solid rgba(90,154,88,0.3)', color: '#5A9A58' }}>
+              <CheckCircle size={14} /> Menü gespeichert
+            </span>
+          ) : (
+            <button onClick={onMenuSaveStart} type="button" disabled={menuSaveState === 'saving'}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'var(--surface-2, rgba(107,58,75,0.06))', border: '1px solid var(--border)', color: 'var(--accent)' }}>
+              {menuSaveState === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {menuSaveState === 'saving' ? 'Wird gespeichert…' : 'Menü speichern'}
+            </button>
+          )}
+          {saveState === 'saved' && savedProjectId ? (
+            <Link href={`/projekte/${savedProjectId}`}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
+              style={{ background: 'rgba(90,154,88,0.1)', border: '1px solid rgba(90,154,88,0.3)', color: '#5A9A58' }}>
+              <CheckCircle size={14} /> Gespeichert – Projekt ansehen
+            </Link>
+          ) : (
+            <button onClick={onSave} type="button" disabled={saveState === 'saving'}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
+              {saveState === 'saving' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {saveState === 'saving' ? 'Wird gespeichert…' : 'Als Projekt speichern'}
+            </button>
+          )}
+          <button onClick={onReset} type="button"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-[13px] font-semibold transition-all"
+            style={{ background: 'rgba(107,58,75,0.08)', border: '1px solid rgba(107,58,75,0.25)', color: '#6B3A4B' }}>
+            <RefreshCw size={14} /> Neues Menü komponieren
+          </button>
+        </div>
+      )}
       {saveState === 'error' && (
-        <p className="text-center text-[12px] mt-3" style={{ color: '#C05050' }}>Speichern fehlgeschlagen. Bitte erneut versuchen.</p>
+        <p className="text-center text-[12px] mt-3" style={{ color: '#C05050' }}>Speichern als Projekt fehlgeschlagen. Bitte erneut versuchen.</p>
+      )}
+      {menuSaveState === 'error' && (
+        <p className="text-center text-[12px] mt-3" style={{ color: '#C05050' }}>Menü konnte nicht gespeichert werden. Bitte erneut versuchen.</p>
       )}
     </div>
   );
@@ -314,6 +345,17 @@ function ErrorCard({ error, onBack, onRetry }: { error: ApiError; onBack: () => 
 // ─── Hauptkomponente ────────────────────────────────────────────────────────
 
 export default function MenuegeneratorPage() {
+  return (
+    <Suspense fallback={null}>
+      <MenuegeneratorPageInner />
+    </Suspense>
+  );
+}
+
+function MenuegeneratorPageInner() {
+  const searchParams = useSearchParams();
+  const ladenId = searchParams.get('laden');
+
   const [stage, setStage] = useState<Stage>('dialog');
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -335,6 +377,11 @@ export default function MenuegeneratorPage() {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [savedProjectId, setSavedProjectId] = useState<number | null>(null);
 
+  // "Menü speichern" (public.menus, Galerie) -- unabhaengig vom
+  // "Als Projekt speichern"-Flow oben, siehe MenuSaveState-Kommentar.
+  const [menuSaveState, setMenuSaveState] = useState<MenuSaveState>('idle');
+  const [menuSaveName, setMenuSaveName] = useState('');
+
   useEffect(() => {
     fetch('/api/zutaten')
       .then(r => r.json())
@@ -342,11 +389,59 @@ export default function MenuegeneratorPage() {
       .catch(() => {});
   }, []);
 
+  // Deep-Link aus der Galerie (/menuegenerator?laden=<id>): gespeichertes
+  // Menü laden und direkt in die Ergebnis-Ansicht springen, kein Umweg ueber
+  // den Dialog.
+  useEffect(() => {
+    if (!ladenId) return;
+    setStage('loading');
+    fetch(`/api/menus/${ladenId}`)
+      .then(async r => ({ ok: r.ok, body: await r.json().catch(() => ({})) }))
+      .then(({ ok, body }) => {
+        if (!ok) {
+          setError({ status: 404, message: body.message || body.error || 'Menü nicht gefunden.' });
+          setStage('error');
+          return;
+        }
+        setMenu(body.menu);
+        setMenuSaveState('saved');
+        setStage('result');
+      })
+      .catch(() => {
+        setError({ status: 0, message: 'Netzwerkfehler beim Laden.' });
+        setStage('error');
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ladenId]);
+
+  const handleMenuSaveStart = () => {
+    if (!menu) return;
+    setMenuSaveName(menu.titel);
+    setMenuSaveState('naming');
+  };
+  const handleMenuSaveCancel = () => setMenuSaveState('idle');
+  const handleMenuSaveConfirm = async () => {
+    if (!menu || !menuSaveName.trim()) return;
+    setMenuSaveState('saving');
+    try {
+      const res = await fetch('/api/menus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: menuSaveName.trim(), menu }),
+      });
+      if (!res.ok) throw new Error('save failed');
+      setMenuSaveState('saved');
+    } catch {
+      setMenuSaveState('error');
+    }
+  };
+
   const generate = async () => {
     setStage('loading');
     setError(null);
     setSaveState('idle');
     setSavedProjectId(null);
+    setMenuSaveState('idle');
     try {
       const res = await fetch('/api/menuegenerator', {
         method: 'POST',
@@ -379,6 +474,7 @@ export default function MenuegeneratorPage() {
   const newMenu = () => {
     setStage('dialog'); setStep(1); setMenu(null);
     setSaveState('idle'); setSavedProjectId(null);
+    setMenuSaveState('idle'); setMenuSaveName('');
   };
 
   const handleSave = async () => {
@@ -427,14 +523,21 @@ export default function MenuegeneratorPage() {
   return (
     <PageTransition>
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
-        <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Menüplanung</div>
-          <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-            Menügenerator
-          </h1>
-          <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-            Ein Menü, komponiert aus echten Zutaten, Aromaprofilen und einem durchdachten Spannungsbogen.
-          </p>
+        <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6 flex items-start justify-between gap-4 flex-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
+          <div>
+            <div className="text-[10px] font-semibold tracking-[4px] uppercase mb-2" style={{ color: 'rgba(107,58,75,0.55)' }}>✦ &nbsp;Menüplanung</div>
+            <h1 className="font-heading font-bold leading-none" style={{ fontSize: 28, color: 'var(--text)', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              Menügenerator
+            </h1>
+            <p className="mt-1.5" style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+              Ein Menü, komponiert aus echten Zutaten, Aromaprofilen und einem durchdachten Spannungsbogen.
+            </p>
+          </div>
+          <Link href="/menuegenerator/galerie"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors flex-shrink-0"
+            style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+            <Images size={12} /> Meine Menüs
+          </Link>
         </div>
 
         <div className="px-4 sm:px-8 py-8 sm:py-10" style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -578,7 +681,9 @@ export default function MenuegeneratorPage() {
 
             {stage === 'loading' && <LoadingScene />}
             {stage === 'result' && menu && (
-              <MenuCardResult menu={menu} onReset={newMenu} onSave={handleSave} saveState={saveState} savedProjectId={savedProjectId} />
+              <MenuCardResult menu={menu} onReset={newMenu} onSave={handleSave} saveState={saveState} savedProjectId={savedProjectId}
+                menuSaveState={menuSaveState} menuSaveName={menuSaveName} onMenuSaveNameChange={setMenuSaveName}
+                onMenuSaveStart={handleMenuSaveStart} onMenuSaveConfirm={handleMenuSaveConfirm} onMenuSaveCancel={handleMenuSaveCancel} />
             )}
             {stage === 'error' && error && <ErrorCard error={error} onBack={resetToDialog} onRetry={generate} />}
           </PageTransition>
