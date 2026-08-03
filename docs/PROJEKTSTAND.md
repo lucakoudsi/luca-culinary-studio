@@ -294,6 +294,21 @@ bei Vercel **nicht** benötigt — kein Code-Pfad liest diese Variable, siehe
 
 ## 7. Datenbank: Tabellen & Migrationen
 
+**Zwei unterschiedliche, nicht austauschbare Zugriffsprüfungen — Begriffe
+sauber trennen:**
+- **Owner-Check**: `.eq('user_id', user.id)` in der jeweiligen API-Route —
+  gilt für alle nutzereigenen Ressourcen (Rezepte, Projekte, Tellerdesigns,
+  Menüs, …). Prüft nur „gehört das dem eingeloggten Nutzer", keine
+  Sonderrechte.
+- **Admin-Check**: Vergleich gegen `ADMIN_EMAIL` (`src/config/roles.ts`) —
+  ausschließlich für echte Admin-exklusive Funktionen (Changelog-/
+  Feedback-Verwaltung, Nutzerverwaltung). Kein Bezug zu `user_id`.
+
+Beide laufen über den Service-Role-Client (RLS-Bypass), nie über
+Postgres-Policies (siehe CLAUDE.md) — aber es sind zwei verschiedene
+Prüfungen, „Service-Role-Client" beschreibt nur den DB-Zugriffsweg, nicht
+wer wann durchgelassen wird.
+
 Direkt gegen Supabase verifiziert (nicht nur aus dem Gedächtnis):
 
 | Tabelle | Vorhanden | Bemerkung |

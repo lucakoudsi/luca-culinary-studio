@@ -26,6 +26,7 @@
 --                                                 import-bild/route.ts)
 --   Changelog-KI-Entwurf (nur Admin)              2 Einheiten
 --   Kalorien-Schaetzung (Rezept-Bearbeiten)        2 Einheiten
+--   Menue-Gang gezielt anpassen                    2 Einheiten
 --
 -- Monatslimits pro Abo-Stufe (kalibriert auf ~10,5 % des jeweiligen
 -- Netto-Abopreises als Worst-Case-Kostenanteil, siehe Diskussion in der
