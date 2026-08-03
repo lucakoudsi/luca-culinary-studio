@@ -54,7 +54,7 @@ function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
               <label key={p.id}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-card-hover transition-colors"
                 style={{ background: inProject ? 'rgba(107,58,75,0.08)' : 'transparent' }}>
-                <input type="checkbox" checked={inProject} onChange={() => onToggle(p.id, !inProject)} className="accent-[#6B3A4B]" />
+                <input type="checkbox" checked={inProject} onChange={() => onToggle(p.id, !inProject)} className="accent-[var(--accent-recipes)]" />
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
                 <span className="text-[13px] text-text-primary font-medium truncate">{p.name}</span>
               </label>
@@ -71,7 +71,7 @@ function DisabledActionButton({ icon, label }: { icon: React.ReactNode; label: s
   return (
     <button type="button" disabled title="Bald verfügbar"
       className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold opacity-40 cursor-not-allowed"
-      style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+      style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
       {icon} {label}
     </button>
   );
@@ -85,15 +85,15 @@ function PortionenStepper({ portionen, setPortionen }: { portionen: number; setP
     <div className="flex items-center gap-2">
       <button onClick={() => setPortionen(p => Math.max(1, p - 1))}
         className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-        style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+        style={{ background: 'rgba(107,58,75,0.12)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
         <Minus size={12} />
       </button>
-      <span className="text-[15px] font-bold w-6 text-center tabular-nums" style={{ color: '#6B3A4B' }}>
+      <span className="text-[15px] font-bold w-6 text-center tabular-nums" style={{ color: 'var(--accent-recipes)' }}>
         {portionen}
       </span>
       <button onClick={() => setPortionen(p => Math.min(100, p + 1))}
         className="w-6 h-6 rounded-full flex items-center justify-center transition-all hover:opacity-80"
-        style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+        style={{ background: 'rgba(107,58,75,0.12)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
         <Plus size={12} />
       </button>
     </div>
@@ -150,7 +150,7 @@ export default function RezeptDetailPage() {
   if (loading) {
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent-recipes)' }} />
       </div>
     );
   }
@@ -162,7 +162,7 @@ export default function RezeptDetailPage() {
           <p className="font-heading text-xl mb-4" style={{ color: 'var(--text)' }}>Rezept nicht gefunden</p>
           <button onClick={() => router.push('/rezepte')}
             className="px-5 py-2.5 rounded-xl text-[13px] font-semibold"
-            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+            style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
             ← Zurück zur Übersicht
           </button>
         </div>
@@ -255,7 +255,7 @@ export default function RezeptDetailPage() {
         <div className="min-[900px]:hidden sticky top-[52px] z-20 px-4 py-2 flex items-center justify-between"
           style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: '#6B3A4B' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'var(--accent-recipes)' }}>
               Portionen
             </span>
             <PortionenStepper portionen={portionen} setPortionen={setPortionen} />
@@ -313,7 +313,7 @@ export default function RezeptDetailPage() {
               <div className="hidden min-[900px]:flex mb-6 items-center justify-between rounded-xl px-4 py-3 max-w-md"
                 style={{ background: 'rgba(107,58,75,0.04)', border: '1px solid rgba(107,58,75,0.15)' }}>
                 <div className="flex items-center gap-3">
-                  <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: '#6B3A4B' }}>
+                  <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: 'var(--accent-recipes)' }}>
                     Portionen
                   </span>
                   <PortionenStepper portionen={portionen} setPortionen={setPortionen} />
@@ -322,7 +322,7 @@ export default function RezeptDetailPage() {
                   <button onClick={() => setPortionen(basisPortionen)}
                     className="flex items-center gap-1.5 text-[11px] font-medium transition-colors"
                     style={{ color: 'rgba(107,58,75,0.6)' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#6B3A4B')}
+                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-recipes)')}
                     onMouseLeave={e => (e.currentTarget.style.color = 'rgba(107,58,75,0.6)')}>
                     <RotateCcw size={11} /> umgerechnet · zurücksetzen
                   </button>
@@ -393,7 +393,7 @@ export default function RezeptDetailPage() {
                 {(recipe.schritte ?? []).map((s, i) => (
                   <div key={i} className="flex gap-4">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[13px] font-bold mt-0.5"
-                      style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                      style={{ background: 'rgba(107,58,75,0.12)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
                       {i + 1}
                     </div>
                     <p className="text-[15px] text-text-secondary leading-[1.8] pt-1">{s}</p>
@@ -449,7 +449,7 @@ export default function RezeptDetailPage() {
             <div className="flex flex-wrap gap-2">
               {recipe.tags.map(t => (
                 <span key={t} className="text-[12px] px-3 py-1 rounded-full"
-                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                  style={{ background: 'rgba(107,58,75,0.1)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
                   {t}
                 </span>
               ))}
@@ -482,22 +482,22 @@ export default function RezeptDetailPage() {
         {/* ── Wein-Pairing ─────────────────────────────────────────────────── */}
         <div className="mb-5 rounded-xl p-4 max-w-xl" style={{ background: 'rgba(107,58,75,0.04)', border: '1px solid rgba(107,58,75,0.15)' }}>
           <div className="flex items-center gap-2 mb-3">
-            <Grape size={14} color="#6B3A4B" />
-            <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: '#6B3A4B' }}>Wein-Pairing</span>
+            <Grape size={14} color="var(--accent-recipes)" />
+            <span className="text-[12px] font-semibold uppercase tracking-widest" style={{ color: 'var(--accent-recipes)' }}>Wein-Pairing</span>
           </div>
 
           {!pairingDone && !pairingLoading && (
             recipe.geschmack ? (
               <button onClick={handlePairingFromProfile}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold w-full justify-center transition-all hover:opacity-90"
-                style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
+                style={{ background: 'rgba(107,58,75,0.12)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.3)' }}>
                 <Wine size={14} /> Passenden Wein finden
               </button>
             ) : (
               <div className="space-y-2">
                 <button onClick={handlePairingFromZutaten}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold w-full justify-center transition-all hover:opacity-90"
-                  style={{ background: 'rgba(107,58,75,0.12)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.3)' }}>
+                  style={{ background: 'rgba(107,58,75,0.12)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.3)' }}>
                   <Wine size={14} /> Direkt aus Zutaten berechnen
                 </button>
                 <p className="text-center text-[11px]" style={{ color: 'rgba(107,58,75,0.5)' }}>
@@ -543,7 +543,7 @@ export default function RezeptDetailPage() {
                     <div className="flex flex-wrap gap-1">
                       {gründe.map(g => (
                         <span key={g} className="text-[10px] px-2 py-0.5 rounded-full"
-                          style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                          style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
                           {g}
                         </span>
                       ))}

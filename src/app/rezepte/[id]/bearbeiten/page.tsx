@@ -354,13 +354,13 @@ export default function RezeptBearbeitenPage() {
   const MAKROS = [
     { label: 'Protein', value: displayProtein, color: '#6B8E4E' },
     { label: 'Fett', value: displayFett, color: '#C9A84C' },
-    { label: 'Kohlenhydrate', value: displayKh, color: '#6B3A4B' },
+    { label: 'Kohlenhydrate', value: displayKh, color: 'var(--accent-recipes)' },
   ] as const;
 
   if (loading) {
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin" style={{ color: '#6B3A4B' }} />
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent-recipes)' }} />
       </div>
     );
   }
@@ -372,7 +372,7 @@ export default function RezeptBearbeitenPage() {
           <p className="font-heading text-xl mb-4" style={{ color: 'var(--text)' }}>Rezept nicht gefunden</p>
           <button onClick={() => router.push('/rezepte')}
             className="px-5 py-2.5 rounded-xl text-[13px] font-semibold"
-            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+            style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
             ← Zurück
           </button>
         </div>
@@ -390,7 +390,7 @@ export default function RezeptBearbeitenPage() {
           <button onClick={() => router.back()}
             className="flex items-center gap-2 mb-4 text-[12px] font-medium transition-colors"
             style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = '#6B3A4B'}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-recipes)'}
             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = '#8B7355'}>
             <ArrowLeft size={14} /> Zurück
           </button>
@@ -480,7 +480,7 @@ export default function RezeptBearbeitenPage() {
                   style={{
                     background: season === s ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
                     border:     `1px solid ${season === s ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
-                    color:      season === s ? '#6B3A4B' : '#8B7355',
+                    color:      season === s ? 'var(--accent-recipes)' : '#8B7355',
                   }}>
                   {s}
                 </button>
@@ -496,7 +496,7 @@ export default function RezeptBearbeitenPage() {
                   style={{
                     background: status === s ? 'rgba(107,58,75,0.12)' : 'rgba(0,0,0,0.04)',
                     border:     `1px solid ${status === s ? 'rgba(107,58,75,0.35)' : 'rgba(0,0,0,0.08)'}`,
-                    color:      status === s ? '#6B3A4B' : '#8B7355',
+                    color:      status === s ? 'var(--accent-recipes)' : '#8B7355',
                   }}>
                   {s}
                 </button>
@@ -514,7 +514,7 @@ export default function RezeptBearbeitenPage() {
             <div className="flex flex-wrap gap-1.5 mt-2">
               {tagsInput.split(',').map(t => t.trim()).filter(Boolean).map(t => (
                 <span key={t} className="text-[11px] px-2.5 py-0.5 rounded-full"
-                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                  style={{ background: 'rgba(107,58,75,0.1)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
                   {t}
                 </span>
               ))}
@@ -600,7 +600,7 @@ export default function RezeptBearbeitenPage() {
             {schritte.map((s, i) => (
               <div key={i} className="flex gap-2 items-start">
                 <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold mt-2.5"
-                  style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.2)' }}>
+                  style={{ background: 'rgba(107,58,75,0.1)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
                   {i + 1}
                 </div>
                 <textarea value={s} onChange={e => updSchritt(i, e.target.value)}
@@ -665,7 +665,7 @@ export default function RezeptBearbeitenPage() {
         {/* Geschmacksprofil */}
         <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text)' }}>
-            <Wine size={16} color="#6B3A4B" />
+            <Wine size={16} color="var(--accent-recipes)" />
             <span className="font-heading text-[16px] font-bold">Geschmacksprofil</span>
             <span className="text-[12px] font-normal ml-1" style={{ color: 'var(--text-muted)' }}>· Wein-Pairing</span>
           </div>
@@ -678,7 +678,7 @@ export default function RezeptBearbeitenPage() {
             onClick={handleCompute}
             disabled={zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0)}
             className="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
-            style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+            style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
             <Calculator size={14} /> Aus Zutaten berechnen
           </button>
 
@@ -687,7 +687,7 @@ export default function RezeptBearbeitenPage() {
               style={{ background: 'rgba(107,58,75,0.05)', border: '1px solid rgba(107,58,75,0.15)' }}>
               {matchInfo.matched.length > 0 ? (
                 <>
-                  <span style={{ color: '#6B3A4B', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--accent-recipes)', fontWeight: 600 }}>
                     {matchInfo.matched.length} Zutat{matchInfo.matched.length !== 1 ? 'en' : ''} aus Bibliothek
                   </span>
                   {matchInfo.unmatched.length > 0 && (
@@ -710,7 +710,7 @@ export default function RezeptBearbeitenPage() {
         {/* Kalorien & Nährwerte */}
         <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--text)' }}>
-            <Flame size={16} color="#6B3A4B" />
+            <Flame size={16} color="var(--accent-recipes)" />
             <span className="font-heading text-[16px] font-bold">Kalorien &amp; Nährwerte</span>
             <span className="text-[12px] font-normal ml-1" style={{ color: 'var(--text-muted)' }}>· KI-Schätzung</span>
           </div>
@@ -724,7 +724,7 @@ export default function RezeptBearbeitenPage() {
               onClick={() => handleKalorienBerechnen(false)}
               disabled={kalorienLoading || kalorienGate.blocked || !kalorienGate.ready || (zutaten.length === 0 && komponenten.every(k => k.zutaten.length === 0))}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all disabled:opacity-40"
-              style={{ background: 'rgba(107,58,75,0.08)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+              style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
               {kalorienLoading ? <Loader2 size={14} className="animate-spin" /> : <Flame size={14} />}
               {kalorienLoading ? 'Berechne…' : naehrwerte ? 'Neu berechnen' : 'Kalorien berechnen'}
             </button>
@@ -873,7 +873,7 @@ export default function RezeptBearbeitenPage() {
               </div>
               <Link href="/profil"
                 className="px-4 py-2 rounded-lg text-[12px] font-semibold transition-all"
-                style={{ background: 'rgba(107,58,75,0.1)', color: '#6B3A4B', border: '1px solid rgba(107,58,75,0.25)' }}>
+                style={{ background: 'rgba(107,58,75,0.1)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.25)' }}>
                 Jetzt upgraden
               </Link>
             </div>

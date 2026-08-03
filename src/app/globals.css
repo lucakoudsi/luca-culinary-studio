@@ -42,6 +42,12 @@
     --sidebar-bg:   #F0EBE3;
     --star-filled:  #6B3A4B;
     --star-empty:   #D4C9BC;
+    /* Maroon-Akzent der Rezepte-Flaeche (RecipeDetailModal, Rezept-Detail-
+       und -Bearbeiten-Seite) -- eigene Variable statt --accent, weil
+       --accent im Dark Mode bewusst auf Gold wechselt (siehe unten), die
+       Rezepte-Flaeche aber ihren Maroon-Ton behalten soll. Im Light Mode
+       identisch zum bisherigen festen #6B3A4B. */
+    --accent-recipes: #6B3A4B;
 
     /* RGB-Tripel fuer rgba()-Ueberblendungen (z.B. blurred sticky Header,
        abgestufte Textopazitaeten) */
@@ -80,6 +86,10 @@
     --sidebar-bg:   #111111;
     --star-filled:  #E8C67A;
     --star-empty:   #A89880;
+    /* Aufgehellter Maroon-Ton (gleicher Farbton ~339 Grad, L 32%->63%,
+       S 30%->38%) -- 5.57:1 gegen --surface (#1A1A1A), 4.5:1-Ziel damit
+       erreicht statt der ~1.9:1 des festen #6B3A4B auf dunklem Grund. */
+    --accent-recipes: #C47D96;
 
     --bg-rgb:          10,10,10;
     --surface-rgb:     26,26,26;
