@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { ArrowLeft, Loader2, UtensilsCrossed, Sparkles, Pencil, Trash2, Check, X, Printer } from 'lucide-react';
 import type { SavedMenuRow } from '@/types';
 import { toMenuekarteDaten, MenuekartePrintSheet } from '@/components/Menuekarte';
+import { usePrintOnDemand } from '@/lib/usePrintOnDemand';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -21,19 +22,10 @@ export default function MenuegeneratorGaleriePage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Galerie zeigt nur schlanke Karten (Titel/Anzahl/Datum), keine volle
-  // Menuekarte -- die wird fuers Drucken erst on-demand gemountet, NICHT fuer
-  // alle gespeicherten Menuees gleichzeitig vorgehalten. Der useEffect feuert
-  // erst NACH dem React-Commit, wenn der Druckbereich garantiert im DOM
-  // steht -- ein window.print() direkt im Click-Handler haette noch die
-  // vorherige (leere) Ansicht erwischt.
-  const [printingMenu, setPrintingMenu] = useState<SavedMenuRow | null>(null);
-  useEffect(() => {
-    if (!printingMenu) return;
-    window.print();
-    const reset = () => setPrintingMenu(null);
-    window.addEventListener('afterprint', reset, { once: true });
-    return () => window.removeEventListener('afterprint', reset);
-  }, [printingMenu]);
+  // Menuekarte -- die wird fuers Drucken erst on-demand gemountet (siehe
+  // usePrintOnDemand), NICHT fuer alle gespeicherten Menuees gleichzeitig
+  // vorgehalten.
+  const { printing: printingMenu, triggerPrint: setPrintingMenu } = usePrintOnDemand<SavedMenuRow>();
 
   // Nur fuer den Avatar oben rechts -- dieselbe Quelle wie andere Feature-Seiten.
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);

@@ -269,6 +269,12 @@
     top: 0;
     left: 0;
     width: 100%;
+    /* Gilt fuer JEDES Druckblatt (Menuekarte, kuenftig Tellerdesign, ...) --
+       erzwingt Farben/Akzente trotz der Browser-Einstellung "Hintergrund-
+       grafiken drucken", die sonst standardmaessig aus ist. Bewusst hier auf
+       der generischen Klasse statt pro Feature dupliziert. */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   @page { size: A4; margin: 18mm 16mm; }
@@ -278,15 +284,6 @@
      gastfertigen Druckkarte bewusst weggelassen, wirkt ruhiger/klassischer. */
   .menuekarte-print [data-print-hide] { display: none !important; }
 
-  /* Karten-Optik (Bildschirm-Hintergrund/Rahmen/Schatten) durch reinen
-     Druck-Hintergrund ersetzen -- print-color-adjust erzwingt, dass die
-     Gold-Akzente (Trenner, Roemische Ziffern, Wein-Stern) trotzdem gedruckt
-     werden, auch wenn der Nutzer "Hintergrundgrafiken drucken" nicht
-     aktiviert hat. */
-  .menuekarte-print {
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
   .menuekarte-print > div {
     background: #ffffff !important;
     border: none !important;
