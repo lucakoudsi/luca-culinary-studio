@@ -31,8 +31,8 @@ export default function GalerieDetailOverlay({ design, onClose }: { design: Tell
       {printing && <TellerPrintSheet designs={printing} />}
 
       <div
-        className="relative flex flex-col w-full max-w-[1100px] max-h-[90vh] rounded-2xl overflow-hidden"
-        style={{ background: '#1C1512', border: '1px solid rgba(201,168,76,0.25)' }}
+        className="relative flex flex-col w-full max-h-[90vh] rounded-2xl overflow-hidden"
+        style={{ background: '#1C1512', border: '1px solid rgba(201,168,76,0.25)', maxWidth: 'min(1100px, calc(100vw - 32px))' }}
         onClick={e => e.stopPropagation()}>
         {/* Eigene Kopfzeile ueber der Bild-/Text-Reihe, bleibt beim Scrollen der
          * Textspalte stehen -- Buttons duerfen nicht ueber scrollendem Inhalt
@@ -49,10 +49,13 @@ export default function GalerieDetailOverlay({ design, onClose }: { design: Tell
         </div>
 
         <div className="flex flex-col min-[900px]:flex-row gap-8 px-6 pb-6 flex-1 min-h-0 overflow-y-auto min-[900px]:overflow-hidden">
+          {/* min-w-0 ist zwingend: ohne das schrumpft ein flex-1-Kind nie unter
+           * seine Inhaltsbreite (hier die Bild-Intrinsicbreite), draengt die
+           * Textspalte aus dem Panel und reisst dessen Breite mit auf. */}
           <img
             src={design.bildUrl}
             alt={design.titel}
-            className="min-[900px]:flex-1 min-[900px]:h-full rounded-xl object-contain w-full max-h-[60vh] min-[900px]:max-h-full"
+            className="min-[900px]:flex-1 min-[900px]:h-full min-w-0 rounded-xl object-contain w-full max-w-full max-h-[60vh] min-[900px]:max-h-full"
             style={{ boxShadow: '0 24px 70px rgba(0,0,0,0.55)', border: '1px solid rgba(201,168,76,0.25)' }} />
 
           <div className="w-full min-[900px]:w-[400px] flex-shrink-0 min-h-0 min-[900px]:overflow-y-auto min-[900px]:pr-1">
