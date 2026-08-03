@@ -1,8 +1,10 @@
 'use client';
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Printer } from 'lucide-react';
 import type { TellerDesignRow } from '@/types';
 import DesignInfoBox from './DesignInfoBox';
+import { TellerPrintSheet, tellerDesignRowToPrintDesign, type TellerPrintDesign } from './TellerPrintSheet';
+import { usePrintOnDemand } from '@/lib/usePrintOnDemand';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -17,15 +19,26 @@ export default function GalerieDetailOverlay({ design, onClose }: { design: Tell
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  // Gleicher Hook wie der Menuegenerator-Export (usePrintOnDemand) -- kein
+  // eigener Klick-Handler dupliziert.
+  const { printing, triggerPrint } = usePrintOnDemand<TellerPrintDesign[]>();
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-start justify-center p-6 overflow-y-auto"
       style={{ background: 'rgba(22,13,17,0.94)', backdropFilter: 'blur(8px)' }}
       onClick={onClose}>
-      <button onClick={onClose}
-        className="fixed top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-colors">
-        <X size={18} />
-      </button>
+      <div className="fixed top-5 right-5 flex items-center gap-2.5">
+        <button onClick={e => { e.stopPropagation(); triggerPrint([tellerDesignRowToPrintDesign(design)]); }}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[12px] font-semibold bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-colors">
+          <Printer size={14} /> Als PDF exportieren
+        </button>
+        <button onClick={onClose}
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-colors">
+          <X size={18} />
+        </button>
+      </div>
+      {printing && <TellerPrintSheet designs={printing} />}
 
       <div className="flex flex-col md:flex-row gap-10 max-w-[1100px] w-full my-auto py-10" onClick={e => e.stopPropagation()}>
         <img

@@ -212,7 +212,7 @@ export function MenuekartePrintSheet({ data }: { data: MenuekarteDaten }) {
   return (
     <div className="print-only menuekarte-print">
       <Menuekarte data={data} />
-      <p className="menuekarte-print-footer">✦ Culinary Studio ✦</p>
+      <p className="print-footer">✦ Culinary Studio ✦</p>
     </div>
   );
 }

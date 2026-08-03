@@ -7,6 +7,13 @@
 export type Aufwandsstufe = 'bistro' | 'gehoben' | 'fine_dining';
 export const AUFWANDSSTUFEN: readonly Aufwandsstufe[] = ['bistro', 'gehoben', 'fine_dining'];
 
+// Anzeige-Label -- geteilt zwischen api/tellerdesigner/designs (Galerie-
+// Mapping) und dem Tellerdesigner-Druckblatt, statt zweimal dieselbe
+// 3-Eintraege-Map zu pflegen.
+export const AUFWAND_LABEL: Record<Aufwandsstufe, string> = {
+  bistro: 'Einfach', gehoben: 'Mittel', fine_dining: 'Profi',
+};
+
 const BISTRO_TECHNIKEN = [
   'roh', 'kochen', 'braten', 'backen', 'schmoren', 'grillen',
   'frittieren', 'dämpfen', 'pürieren', 'fermentieren', 'einlegen',

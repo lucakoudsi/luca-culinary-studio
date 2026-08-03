@@ -3,16 +3,12 @@ import { requireTier } from '@/lib/apiAuth';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { STILRICHTUNG_LABEL, type Stilrichtung } from '@/config/tellerStilrichtung';
 import { ANRICHTE_FOKUS_LABEL, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
-import type { Aufwandsstufe } from '@/config/techniken';
+import { AUFWAND_LABEL, type Aufwandsstufe } from '@/config/techniken';
 import type { TellerDesignRow, TellerTechnik } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 const MIN_TIER = 3; // Pro -- gleiche Sperre wie der Rest des Tellerdesigners
-
-const AUFWAND_LABEL: Record<Aufwandsstufe, string> = {
-  bistro: 'Einfach', gehoben: 'Mittel', fine_dining: 'Profi',
-};
 
 type Row = {
   id: string;

@@ -3,16 +3,35 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { createClient } from '@/utils/supabase/client';
-import { Loader2, Bookmark, Share2, Download, CheckCircle, Plus, Images, Sparkles } from 'lucide-react';
+import { Loader2, Bookmark, Share2, Download, CheckCircle, Plus, Images, Sparkles, Printer } from 'lucide-react';
 import ImageLightbox from '@/components/ui/ImageLightbox';
 import { ADMIN_UNLIMITED_IMAGE_LIMIT } from '@/config/imageQuota';
-import { AUFWANDSSTUFEN, type Aufwandsstufe } from '@/config/techniken';
+import { AUFWANDSSTUFEN, AUFWAND_LABEL, type Aufwandsstufe } from '@/config/techniken';
 import { STILRICHTUNGEN, STILRICHTUNG_LABEL, DEFAULT_STILRICHTUNG, type Stilrichtung } from '@/config/tellerStilrichtung';
-import { ANRICHTE_FOKUSSE, DEFAULT_ANRICHTE_FOKUS, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
+import { ANRICHTE_FOKUSSE, ANRICHTE_FOKUS_LABEL, DEFAULT_ANRICHTE_FOKUS, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
 import TellerControls from '@/components/tellerdesigner/TellerControls';
 import TellerStage from '@/components/tellerdesigner/TellerStage';
 import DesignInfoBox from '@/components/tellerdesigner/DesignInfoBox';
+import { TellerPrintSheet, type TellerPrintDesign } from '@/components/tellerdesigner/TellerPrintSheet';
+import { usePrintOnDemand } from '@/lib/usePrintOnDemand';
 import type { RecipeDifficulty, TellerVariante } from '@/types';
+
+// TellerVariante (frisch generiert/ungespeichert) -- andere Eingangsform als
+// TellerDesignRow (Enum-Codes statt fertiger Labels, image ist Data-URL bis
+// zum Speichern), daher eigener, lokaler Mapper auf denselben
+// TellerPrintDesign-Zieltyp wie tellerDesignRowToPrintDesign in
+// TellerPrintSheet.tsx -- ein Render-Pfad, zwei Quellen.
+function tellerVarianteToPrintDesign(v: TellerVariante): TellerPrintDesign {
+  return {
+    id: v.id,
+    bildUrl: v.savedUrl ?? v.image,
+    titel: v.titel?.trim() || 'Ohne Titel',
+    stilrichtung: STILRICHTUNG_LABEL[v.stilrichtung] ?? v.stilrichtung,
+    aufwand: AUFWAND_LABEL[v.aufwand] ?? v.aufwand,
+    anrichteFokus: ANRICHTE_FOKUS_LABEL[v.anrichteFokus] ?? v.anrichteFokus,
+    techniken: v.techniken,
+  };
+}
 
 const AUFWAND_AUS_SCHWIERIGKEIT: Record<RecipeDifficulty, Aufwandsstufe> = {
   Leicht: 'bistro', Mittel: 'gehoben', Schwer: 'fine_dining',
@@ -89,6 +108,8 @@ export default function TellerdesignerPage() {
 
   const selectedRecipe = recipes.find(r => r.id === selectedId);
   const currentVariant = variants.find(v => v.id === currentVariantId) ?? null;
+  // Gleicher Hook wie der Menuegenerator-Export -- kein eigener Klick-Handler dupliziert.
+  const { printing: printingDesigns, triggerPrint: triggerPrintDesigns } = usePrintOnDemand<TellerPrintDesign[]>();
   const isUnlimitedQuota = !!quota && quota.limit >= ADMIN_UNLIMITED_IMAGE_LIMIT;
   const quotaExhausted = !!quota && quota.remaining <= 0;
   const canGenerate = mode === 'rezept' ? !!selectedRecipe : freieBeschreibung.trim().length > 0;
@@ -332,6 +353,11 @@ export default function TellerdesignerPage() {
                     style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
                     <Share2 size={12} /> Teilen
                   </button>
+                  <button onClick={() => triggerPrintDesigns([tellerVarianteToPrintDesign(currentVariant)])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
+                    style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
+                    <Printer size={12} /> Als PDF exportieren
+                  </button>
                   <button onClick={handleDownload}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-colors"
                     style={{ border: '1px solid var(--border)', color: 'var(--text)' }}>
@@ -419,6 +445,7 @@ export default function TellerdesignerPage() {
         onClose={() => setLightboxOpen(false)}
         onNavigate={i => setCurrentVariantId(variants[i]?.id ?? null)}
       />
+      {printingDesigns && <TellerPrintSheet designs={printingDesigns} />}
     </div>
   );
 }
