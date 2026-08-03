@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import { Wand2 } from 'lucide-react';
 import type { FlavorProfile, GeneratedMenuResult } from '@/types';
 
 // ─── Wiederverwendbare Menükarte ────────────────────────────────────────────
@@ -85,7 +87,20 @@ function MiniFlavorBars({ profile }: { profile: MenuekarteGang['geschmacksprofil
   );
 }
 
-export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
+export default function Menuekarte({ data, onGangAnpassen, renderGangExtra }: {
+  data: MenuekarteDaten;
+  /**
+   * Optional -- nur gesetzt fuer gespeicherte Standalone-Menues (siehe
+   * menuegenerator/page.tsx), fehlt bei Print-Sheet/Galerie-Vorschau/
+   * Projekt-Menues automatisch, kein zusaetzliches Ausblenden noetig.
+   * Index in "gaenge", NICHT "nummer" -- die KI-gelieferte "nummer" ist
+   * nicht als eindeutige/stabile Kennung abgesichert (siehe Analyse zu
+   * Menuegenerator-Ausbau Schritt 3).
+   */
+  onGangAnpassen?: (gangIndex: number) => void;
+  /** Rendert zusaetzlichen Inhalt (Instruktions-Eingabe + Diff-Vorschau) direkt unter einem Gang -- die eigentliche Zustandslogik bleibt beim Elternteil, Menuekarte bleibt rein darstellend. */
+  renderGangExtra?: (gangIndex: number) => ReactNode;
+}) {
   return (
     <div className="rounded-2xl px-7 py-11 sm:px-14 sm:py-16" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
       <div className="text-center">
@@ -141,6 +156,17 @@ export default function Menuekarte({ data }: { data: MenuekarteDaten }) {
                   <span style={{ color: '#C9A84C' }}>✦</span> {g.weinName}
                 </p>
               )}
+
+              {onGangAnpassen && (
+                <div className="text-center mt-4" data-print-hide="true">
+                  <button type="button" onClick={() => onGangAnpassen(i)}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-medium transition-colors"
+                    style={{ color: 'var(--accent)' }}>
+                    <Wand2 size={11} /> Gang anpassen
+                  </button>
+                </div>
+              )}
+              {renderGangExtra?.(i)}
             </div>
             {i < data.gaenge.length - 1 && (
               <div className="flex items-center justify-center gap-3">

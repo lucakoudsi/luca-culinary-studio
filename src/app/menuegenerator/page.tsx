@@ -4,12 +4,14 @@ import Menuekarte, { toMenuekarteDaten, MenuekartePrintSheet } from '@/component
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { Ingredient, GeneratedMenuResult } from '@/types';
+import type { Ingredient, GeneratedMenuResult, GeneratedMenuGang } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import {
   Sparkles, UtensilsCrossed, Wine, Calendar, Search, X,
-  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2, Images, Check, Printer,
+  ChevronRight, ChevronLeft, AlertCircle, RefreshCw, Save, CheckCircle, Loader2, Images, Check, Printer, Info,
 } from 'lucide-react';
+import { useTextQuotaGate } from '@/lib/useTextQuotaGate';
+import { TEXT_QUOTA_WEIGHTS } from '@/config/textQuota';
 
 // ─── Optionen & Konstanten ─────────────────────────────────────────────────
 
@@ -81,6 +83,33 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 // Projekt speichern"-Flow (SaveState/savedProjectId) -- beide Aktionen
 // koennen unabhaengig voneinander laufen.
 type MenuSaveState = 'idle' | 'naming' | 'saving' | 'saved' | 'error';
+
+// "Gang gezielt anpassen" (Menuegenerator-Ausbau Schritt 3) -- Diff-Vorschau
+// fuer GENAU EINEN Gang, analog zum Diff-Muster in SousChefPanel.tsx, aber
+// mit eigenen (kleineren) Feld-Labels statt RezeptSnapshot-Feldern.
+type GangDiff = { before: GeneratedMenuGang; patch: Partial<GeneratedMenuGang>; merged: GeneratedMenuGang };
+
+const GANG_FIELD_LABELS: Record<string, string> = {
+  titel: 'Titel', beschreibung: 'Beschreibung', hauptzutaten: 'Hauptzutaten',
+  zubereitungsidee: 'Zubereitungsidee', technik: 'Technik', geschmacksprofil: 'Geschmacksprofil',
+};
+const GANG_GESCHMACK_LABELS: Record<string, string> = {
+  acidity: 'Säure', sweetness: 'Süße', bitterness: 'Bitterkeit', umami: 'Umami', spiciness: 'Schärfe', saltiness: 'Salzigkeit',
+};
+function formatGangFieldValue(key: string, value: unknown): string {
+  if (value === undefined || value === null) return '–';
+  if (key === 'hauptzutaten' && Array.isArray(value)) return value.length > 0 ? value.join(', ') : '–';
+  if (key === 'geschmacksprofil' && typeof value === 'object') {
+    const g = value as Record<string, number>;
+    return Object.entries(GANG_GESCHMACK_LABELS).map(([k, label]) => `${label} ${g[k] ?? 0}`).join(', ');
+  }
+  if (typeof value === 'string') {
+    const t = value.trim();
+    if (!t) return '–';
+    return `„${t.length > 90 ? t.slice(0, 90).trimEnd() + '…' : t}"`;
+  }
+  return String(value);
+}
 
 // ─── Kleine Bausteine ───────────────────────────────────────────────────────
 
@@ -199,15 +228,182 @@ function LoadingScene() {
   );
 }
 
-function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menuSaveState, onMenuSaveNameChange, menuSaveName, onMenuSaveStart, onMenuSaveConfirm, onMenuSaveCancel }: {
+function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menuSaveState, onMenuSaveNameChange, menuSaveName, onMenuSaveStart, onMenuSaveConfirm, onMenuSaveCancel, savedMenuId, onMenuUpdated }: {
   menu: MenuResult; onReset: () => void;
   onSave: () => void; saveState: SaveState; savedProjectId: number | null;
   menuSaveState: MenuSaveState; menuSaveName: string; onMenuSaveNameChange: (v: string) => void;
   onMenuSaveStart: () => void; onMenuSaveConfirm: () => void; onMenuSaveCancel: () => void;
+  savedMenuId: string | null; onMenuUpdated: (menu: MenuResult) => void;
 }) {
+  // ── "Gang gezielt anpassen" (Schritt 3) -- wirkt nur auf ein bereits
+  // gespeichertes Menü (braucht eine menus.id zum Patchen). Zustand bleibt
+  // lokal hier, nicht im Elternteil -- nur das Ergebnis eines uebernommenen
+  // Vorschlags geht per onMenuUpdated nach oben.
+  const [adjustingGangIndex, setAdjustingGangIndex] = useState<number | null>(null);
+  const [adjustInstruction, setAdjustInstruction] = useState('');
+  const [adjustLoading, setAdjustLoading] = useState(false);
+  const [adjustError, setAdjustError] = useState<string | null>(null);
+  const [adjustReply, setAdjustReply] = useState('');
+  const [adjustDiff, setAdjustDiff] = useState<GangDiff | null>(null);
+  const menuAnpassenGate = useTextQuotaGate(TEXT_QUOTA_WEIGHTS.menuGangAnpassen);
+
+  const closeGangAnpassen = () => {
+    setAdjustingGangIndex(null);
+    setAdjustInstruction('');
+    setAdjustError(null);
+    setAdjustReply('');
+    setAdjustDiff(null);
+  };
+  const openGangAnpassen = (index: number) => {
+    // Ungespeichertes Menü: das Icon triggert den Save-Flow statt der
+    // KI-Anpassung -- es gibt noch keine menus.id zum Patchen.
+    if (!savedMenuId) { onMenuSaveStart(); return; }
+    if (adjustingGangIndex === index) { closeGangAnpassen(); return; }
+    setAdjustingGangIndex(index);
+    setAdjustInstruction('');
+    setAdjustError(null);
+    setAdjustReply('');
+    setAdjustDiff(null);
+  };
+  const submitGangAnpassen = async () => {
+    if (adjustingGangIndex === null || !adjustInstruction.trim() || !savedMenuId) return;
+    setAdjustLoading(true);
+    setAdjustError(null);
+    try {
+      const res = await fetch(`/api/menus/${savedMenuId}/gang-anpassen`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gangIndex: adjustingGangIndex, anweisung: adjustInstruction.trim() }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (d.error === 'quota_exceeded') menuAnpassenGate.markExhausted();
+        setAdjustError(d.message || d.error || 'Anpassung fehlgeschlagen.');
+        return;
+      }
+      setAdjustReply(d.reply || '');
+      setAdjustDiff({ before: menu.gaenge[adjustingGangIndex], patch: d.updatedFields ?? {}, merged: d.merged });
+      menuAnpassenGate.consume();
+    } catch {
+      setAdjustError('Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+      setAdjustLoading(false);
+    }
+  };
+  const discardGangAnpassen = () => {
+    setAdjustDiff(null);
+    setAdjustReply('');
+  };
+  const applyGangAnpassen = async () => {
+    if (adjustingGangIndex === null || !adjustDiff || !savedMenuId) return;
+    const updatedMenu: MenuResult = {
+      ...menu,
+      gaenge: menu.gaenge.map((g, i) => i === adjustingGangIndex ? adjustDiff.merged : g),
+    };
+    setAdjustLoading(true);
+    setAdjustError(null);
+    try {
+      const res = await fetch(`/api/menus/${savedMenuId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ menu: updatedMenu }),
+      });
+      if (!res.ok) throw new Error('update failed');
+      onMenuUpdated(updatedMenu);
+      closeGangAnpassen();
+    } catch {
+      setAdjustError('Übernehmen fehlgeschlagen. Bitte erneut versuchen.');
+    } finally {
+      setAdjustLoading(false);
+    }
+  };
+
   return (
     <div className="mx-auto" style={{ maxWidth: 680 }}>
-      <Menuekarte data={toMenuekarteDaten(menu)} />
+      {!savedMenuId && (
+        <p className="flex items-center justify-center gap-1.5 text-center text-[11px] mb-4" style={{ color: 'var(--text-muted)' }}>
+          <Info size={12} /> Speichere das Menü, um einzelne Gänge gezielt mit KI anzupassen.
+        </p>
+      )}
+      <Menuekarte
+        data={toMenuekarteDaten(menu)}
+        onGangAnpassen={openGangAnpassen}
+        renderGangExtra={i => {
+          if (adjustingGangIndex !== i) return null;
+          return (
+            <div className="mt-4 rounded-xl p-3.5 text-left" data-print-hide="true"
+              style={{ background: 'var(--surface-2, rgba(107,58,75,0.06))', border: '1px solid var(--border)' }}>
+              {!adjustDiff ? (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input value={adjustInstruction} onChange={e => setAdjustInstruction(e.target.value)} autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') submitGangAnpassen(); if (e.key === 'Escape') closeGangAnpassen(); }}
+                      placeholder="z.B. „mach ihn vegetarisch“, „leichter“, „mehr Säure“…"
+                      disabled={adjustLoading || menuAnpassenGate.blocked || !menuAnpassenGate.ready}
+                      className="flex-1 min-w-[180px] px-3 py-2 rounded-lg text-[12.5px] outline-none disabled:opacity-50"
+                      style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                    <button onClick={submitGangAnpassen} type="button"
+                      disabled={adjustLoading || !adjustInstruction.trim() || menuAnpassenGate.blocked || !menuAnpassenGate.ready}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold transition-all disabled:opacity-40 flex-shrink-0"
+                      style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                      {adjustLoading ? <Loader2 size={13} className="animate-spin" /> : 'Vorschlagen'}
+                    </button>
+                    <button onClick={closeGangAnpassen} type="button"
+                      className="p-2 rounded-lg flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                  {(menuAnpassenGate.blocked || !menuAnpassenGate.ready) && (
+                    <p className="text-[11px] mt-2" style={{ color: 'var(--text-muted)' }}>{menuAnpassenGate.reason}</p>
+                  )}
+                  {adjustError && <p className="text-[11px] mt-2" style={{ color: '#C05050' }}>{adjustError}</p>}
+                </>
+              ) : (
+                <div className="text-[12.5px]">
+                  {adjustReply && <p className="mb-2.5" style={{ color: 'var(--text)' }}>{adjustReply}</p>}
+                  {Object.keys(adjustDiff.patch).length === 0 ? (
+                    <p style={{ color: 'var(--text-muted)' }}>Keine Änderung vorgeschlagen.</p>
+                  ) : (
+                    <div className="space-y-1.5 mb-3">
+                      {Object.keys(adjustDiff.patch).map(key => (
+                        <div key={key} className="flex flex-col gap-0.5">
+                          <span className="font-semibold text-[10.5px] uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                            {GANG_FIELD_LABELS[key] ?? key}
+                          </span>
+                          <span style={{ color: 'var(--text)' }}>
+                            <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>
+                              {formatGangFieldValue(key, adjustDiff.before[key as keyof GeneratedMenuGang])}
+                            </span>
+                            {' → '}
+                            <span style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                              {formatGangFieldValue(key, adjustDiff.merged[key as keyof GeneratedMenuGang])}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    {Object.keys(adjustDiff.patch).length > 0 && (
+                      <button onClick={applyGangAnpassen} type="button" disabled={adjustLoading}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-semibold transition-all disabled:opacity-40"
+                        style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                        {adjustLoading ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Übernehmen
+                      </button>
+                    )}
+                    <button onClick={discardGangAnpassen} type="button"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11.5px] font-medium"
+                      style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                      <X size={12} /> Verwerfen
+                    </button>
+                  </div>
+                  {adjustError && <p className="text-[11px] mt-2" style={{ color: '#C05050' }}>{adjustError}</p>}
+                </div>
+              )}
+            </div>
+          );
+        }}
+      />
       <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
 
       {menuSaveState === 'naming' ? (
@@ -370,6 +566,10 @@ function MenuegeneratorPageInner() {
   // "Als Projekt speichern"-Flow oben, siehe MenuSaveState-Kommentar.
   const [menuSaveState, setMenuSaveState] = useState<MenuSaveState>('idle');
   const [menuSaveName, setMenuSaveName] = useState('');
+  // id der public.menus-Zeile, sobald das aktuelle Menü gespeichert ist (frisch
+  // gespeichert ODER per ?laden= geladen) -- Voraussetzung fuer "Gang gezielt
+  // anpassen" (Schritt 3), das eine menus.id zum Patchen braucht.
+  const [savedMenuId, setSavedMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/zutaten')
@@ -394,6 +594,7 @@ function MenuegeneratorPageInner() {
         }
         setMenu(body.menu);
         setMenuSaveState('saved');
+        setSavedMenuId(body.id ?? ladenId);
         setStage('result');
       })
       .catch(() => {
@@ -419,6 +620,8 @@ function MenuegeneratorPageInner() {
         body: JSON.stringify({ name: menuSaveName.trim(), menu }),
       });
       if (!res.ok) throw new Error('save failed');
+      const created = await res.json();
+      setSavedMenuId(created.id);
       setMenuSaveState('saved');
     } catch {
       setMenuSaveState('error');
@@ -431,6 +634,7 @@ function MenuegeneratorPageInner() {
     setSaveState('idle');
     setSavedProjectId(null);
     setMenuSaveState('idle');
+    setSavedMenuId(null);
     try {
       const res = await fetch('/api/menuegenerator', {
         method: 'POST',
@@ -464,6 +668,7 @@ function MenuegeneratorPageInner() {
     setStage('dialog'); setStep(1); setMenu(null);
     setSaveState('idle'); setSavedProjectId(null);
     setMenuSaveState('idle'); setMenuSaveName('');
+    setSavedMenuId(null);
   };
 
   const handleSave = async () => {
@@ -672,7 +877,8 @@ function MenuegeneratorPageInner() {
             {stage === 'result' && menu && (
               <MenuCardResult menu={menu} onReset={newMenu} onSave={handleSave} saveState={saveState} savedProjectId={savedProjectId}
                 menuSaveState={menuSaveState} menuSaveName={menuSaveName} onMenuSaveNameChange={setMenuSaveName}
-                onMenuSaveStart={handleMenuSaveStart} onMenuSaveConfirm={handleMenuSaveConfirm} onMenuSaveCancel={handleMenuSaveCancel} />
+                onMenuSaveStart={handleMenuSaveStart} onMenuSaveConfirm={handleMenuSaveConfirm} onMenuSaveCancel={handleMenuSaveCancel}
+                savedMenuId={savedMenuId} onMenuUpdated={setMenu} />
             )}
             {stage === 'error' && error && <ErrorCard error={error} onBack={resetToDialog} onRetry={generate} />}
           </PageTransition>
