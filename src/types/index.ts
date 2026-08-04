@@ -207,6 +207,18 @@ export interface TellerTechnik {
   anleitung: string;
 }
 
+// Eine einzelne Zutat/Komponente mit ihrer vom Textmodell geplanten Position
+// im generierten Bild (Etappe 1 von 4, siehe docs/tellerdesigns-zutaten-
+// migration.sql) -- x/y normalisiert 0..1, BILDBEZOGEN (nicht tellerbezogen),
+// wichtig fuer die spaetere Overlay-Umrechnung bei object-contain (Etappe 2).
+// In dieser Etappe nur Daten-Durchreichung bis zur DB, noch keine Anzeige.
+export interface TellerZutat {
+  name: string;
+  position: { x: number; y: number };
+  rolle: string;
+  kurzsatz: string;
+}
+
 // Eine generierte Bild-Variante innerhalb der aktuellen Sitzung (Client-State,
 // nicht persistiert -- persistiert wird erst per "Speichern" als TellerDesignRow).
 // "toured" steuert, ob TellerStage beim Mounten die gefuehrte Tour abspielt
@@ -215,6 +227,7 @@ export interface TellerVariante {
   id: string;
   image: string;
   techniken: TellerTechnik[];
+  zutaten: TellerZutat[];
   titel?: string;
   aufwand: Aufwandsstufe;
   stilrichtung: Stilrichtung;

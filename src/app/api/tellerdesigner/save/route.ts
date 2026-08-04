@@ -13,8 +13,14 @@ const MIN_TIER = 3; // Pro -- gleiche Sperre wie die Generierung selbst
 const MAX_TITEL_LENGTH = 200;
 const MAX_SAISON_LENGTH = 50;
 const MAX_TECHNIKEN = 20; // grosszuegiger als die 6 Label-Slots der Buehne -- die Galerie hat keine feste Positionsgrenze
+// Bewusst gleich dem Cap in der Generierungsroute (MAX_ZUTATEN dort) --
+// anders als bei techniken gibt es hier kein "die Galerie hat keine feste
+// Positionsgrenze"-Argument, die Erfindungsgefahr bei zu vielen verlangten
+// Zutaten-Positionen gilt fuers Speichern genauso wie fuers Generieren.
+const MAX_ZUTATEN = 6;
 
 type Technik = { schlagwort: string; kurzsatz: string; anleitung: string };
+type Zutat = { name: string; position: { x: number; y: number }; rolle: string; kurzsatz: string };
 
 type Body = {
   image?: string;
@@ -27,6 +33,7 @@ type Body = {
   zubereitungszeit?: number | null;
   saison?: string | null;
   techniken?: Technik[];
+  zutaten?: Zutat[];
 };
 
 function sanitizeTechniken(input: unknown): Technik[] {
@@ -40,6 +47,32 @@ function sanitizeTechniken(input: unknown): Technik[] {
     }))
     .filter(t => t.schlagwort && t.kurzsatz)
     .slice(0, MAX_TECHNIKEN);
+}
+
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
+
+// Eigene Trust-Boundary -- der Client koennte theoretisch direkt /save
+// aufrufen, ohne vorher /generate durchlaufen zu haben, deshalb hier
+// nochmal vollstaendig sanitizen statt der bereits (in der Generierungs-
+// route) sanitizten Daten zu vertrauen. Gleiches Muster wie sanitizeTechniken.
+function sanitizeZutaten(input: unknown): Zutat[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((z): z is Record<string, unknown> => !!z && typeof z === 'object')
+    .map(z => {
+      const pos = z.position as Record<string, unknown> | undefined;
+      const x = typeof pos?.x === 'number' ? pos.x : null;
+      const y = typeof pos?.y === 'number' ? pos.y : null;
+      if (x === null || y === null) return null; // fehlende Position -> verwerfen, NICHT auffuellen
+      return {
+        name: typeof z.name === 'string' ? z.name.trim().slice(0, 100) : '',
+        position: { x: clamp01(x), y: clamp01(y) },
+        rolle: typeof z.rolle === 'string' ? z.rolle.trim().slice(0, 60) : '',
+        kurzsatz: typeof z.kurzsatz === 'string' ? z.kurzsatz.trim().slice(0, 200) : '',
+      };
+    })
+    .filter((z): z is Zutat => z !== null && !!z.name)
+    .slice(0, MAX_ZUTATEN);
 }
 
 // Save-on-demand: Generierte Bilder kommen als b64 zurueck und werden NUR
@@ -111,6 +144,7 @@ export async function POST(req: NextRequest) {
     saison = typeof body.saison === 'string' && body.saison.trim() ? body.saison.trim().slice(0, MAX_SAISON_LENGTH) : null;
   }
   const techniken = sanitizeTechniken(body.techniken);
+  const zutaten = sanitizeZutaten(body.zutaten);
 
   try {
     const db = createAdminClient();
@@ -141,6 +175,7 @@ export async function POST(req: NextRequest) {
         zubereitungszeit,
         saison,
         techniken,
+        zutaten,
       })
       .select('id, created_at')
       .single();

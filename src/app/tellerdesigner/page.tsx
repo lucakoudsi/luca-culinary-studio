@@ -161,6 +161,7 @@ export default function TellerdesignerPage() {
         id: crypto.randomUUID(),
         image: d.image,
         techniken: d.techniken ?? [],
+        zutaten: d.zutaten ?? [],
         titel: d.titel,
         aufwand: d.aufwand,
         stilrichtung: d.stilrichtung,
@@ -223,6 +224,7 @@ export default function TellerdesignerPage() {
           zubereitungszeit: mode === 'rezept' ? selectedRecipe?.time ?? null : null,
           saison: mode === 'rezept' ? selectedRecipe?.season ?? null : null,
           techniken: currentVariant.techniken,
+          zutaten: currentVariant.zutaten,
         }),
       });
       const d = await res.json().catch(() => ({}));
