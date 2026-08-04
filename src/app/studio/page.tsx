@@ -16,7 +16,7 @@ const CAPABILITIES = [
 export default async function StudioPage() {
   const authState = await getMarketingAuthState();
   return (
-    <MarketingPageShell eyebrow="Studio" title="Deine digitale Küche" heroAccent authState={authState}>
+    <MarketingPageShell eyebrow="Creator Studio" title="Deine digitale Küche" heroAccent authState={authState}>
       <p style={{ fontSize: 16, color: MARKETING_CREAM_MUTED, lineHeight: 1.75, maxWidth: 640 }}>
         Das Studio ist dein persönlicher Arbeitsplatz. Hier entwickelst du Rezepte, planst Menüs, sammelst Ideen und behältst deine Projekte im Blick. Jede Kreation wird gespeichert, jede Idee bleibt griffbereit. Melde dich an und öffne dein Studio — kostenlos, jederzeit erweiterbar.
       </p>

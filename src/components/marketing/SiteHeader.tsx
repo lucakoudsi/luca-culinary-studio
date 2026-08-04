@@ -10,7 +10,7 @@ import {
 
 const NAV_ITEMS = [
   { href: '/features', label: 'Features' },
-  { href: '/studio', label: 'Studio' },
+  { href: '/studio', label: 'Creator Studio' },
   { href: '/preise', label: 'Preise' },
   { href: '/ueber-uns', label: 'Über uns' },
 ];
