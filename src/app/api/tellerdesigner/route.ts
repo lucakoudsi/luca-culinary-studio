@@ -49,19 +49,39 @@ const AUFWAND_STIL: Record<Aufwandsstufe, string> = {
   fine_dining: 'Fine-Dining-Anrichteweise: kunstvoll plattiert, jede Komponente präzise platziert, minimalistisch-elegant, bewusst genutzter Weißraum auf dem Teller, feine Saucenspiegel/Punkte/Wischer -- Sterneküchen-Niveau.',
 };
 
+const MAX_KOMPONENTEN = 8;
+const MAX_ZUTATEN_PRO_KOMPONENTE = 6; // begrenzt pro Komponente, damit die Beschreibung nicht ausufert
+const MAX_HAUPTZUTATEN = 8;
+
+// Vorher: bei Komponenten wurde NUR k.name gelistet (z.B. "Sauce", "Beilage"),
+// die tatsaechlichen Zutaten je Komponente (k.zutaten) wurden nie gelesen --
+// das Textmodell bekam dadurch teils kaum echte Zutatennamen und konnte das
+// "zutaten"-Feld (Etappe 1, Positionen) nicht befuellen, ohne gegen die
+// "nichts erfinden"-Vorgabe zu verstossen. Jetzt: Komponenten UND
+// Hauptzutaten koennen gemeinsam im Text stehen (kein else-if mehr), pro
+// Komponente werden ihre eigenen Zutaten mit aufgelistet.
 function buildDishDescription(body: Body): string | null {
   if (body.mode === 'rezept') {
     const titel = (body.rezeptTitel ?? '').trim();
     if (!titel) return null;
     const teile = [`Gericht: "${titel}"`];
-    const komponenten = (body.rezeptKomponenten ?? []).filter(k => k.name?.trim());
+    const komponenten = (body.rezeptKomponenten ?? []).filter(k => k.name?.trim()).slice(0, MAX_KOMPONENTEN);
     const zutaten = (body.rezeptZutaten ?? []).filter(z => z.name?.trim());
+
     if (komponenten.length > 0) {
-      teile.push(`Bestehend aus den Komponenten: ${komponenten.map(k => k.name.trim()).join(', ')}.`);
-    } else if (zutaten.length > 0) {
-      teile.push(`Hauptzutaten: ${zutaten.slice(0, 8).map(z => z.name.trim()).join(', ')}.`);
+      const komponentenText = komponenten
+        .map(k => {
+          const kZutaten = (k.zutaten ?? []).filter(z => z.name?.trim()).slice(0, MAX_ZUTATEN_PRO_KOMPONENTE);
+          const zutatenSuffix = kZutaten.length > 0 ? ` (${kZutaten.map(z => z.name.trim()).join(', ')})` : '';
+          return `${k.name.trim()}${zutatenSuffix}`;
+        })
+        .join('; ');
+      teile.push(`Bestehend aus den Komponenten: ${komponentenText}.`);
     }
-    return teile.join(' ');
+    if (zutaten.length > 0) {
+      teile.push(`Hauptzutaten: ${zutaten.slice(0, MAX_HAUPTZUTATEN).map(z => z.name.trim()).join(', ')}.`);
+    }
+    return teile.join(' ').slice(0, MAX_DESCRIPTION_LENGTH);
   }
   const text = (body.freieBeschreibung ?? '').trim();
   return text ? text.slice(0, MAX_DESCRIPTION_LENGTH) : null;
