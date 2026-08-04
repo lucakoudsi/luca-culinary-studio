@@ -36,15 +36,25 @@ function wait(ms: number): Promise<void> {
 // Halbgroesse, in dieselbe Richtung wie das Label) -- nicht am aeusseren
 // Rand (Linie wuerde den Teller nicht erreichen) und nicht nahe am Zentrum
 // (Linie wuerde quer ueber das Gericht laufen).
+//
+// vAlign steuert die vertikale Verankerung (transform translateY) UND in
+// welche Richtung das Label wachsen darf: obere Slots (y=3, nur ~18px vom
+// Stage-Rand) duerfen nur nach UNTEN wachsen (top), untere Slots (y=97)
+// nur nach OBEN (bottom) -- sonst wuerde ein aktivierter Slot ueber den
+// Stage-Rand hinauswachsen (Bug: Schlagwort verschwand oben aus dem
+// sichtbaren Bereich). Mittlere Slots (y=50) haben genug Puffer in beide
+// Richtungen und bleiben bei "middle" (-50%, wie bisher).
 type Align = 'left' | 'right';
+type VAlign = 'top' | 'middle' | 'bottom';
+const V_TRANSFORM: Record<VAlign, string> = { top: '0%', middle: '-50%', bottom: '-100%' };
 const IMG = { x1: 42, y1: 17, x2: 108, y2: 83, cx: 75, cy: 50 };
-const SLOTS: { label: { x: number; y: number }; target: { x: number; y: number }; align: Align }[] = [
-  { label: { x: 18, y: 3 }, target: { x: 58, y: 34 }, align: 'right' }, // oben links
-  { label: { x: 132, y: 3 }, target: { x: 92, y: 34 }, align: 'left' }, // oben rechts
-  { label: { x: 8, y: 50 }, target: { x: 52, y: 50 }, align: 'right' }, // links
-  { label: { x: 142, y: 50 }, target: { x: 98, y: 50 }, align: 'left' }, // rechts
-  { label: { x: 18, y: 97 }, target: { x: 58, y: 66 }, align: 'right' }, // unten links
-  { label: { x: 132, y: 97 }, target: { x: 92, y: 66 }, align: 'left' }, // unten rechts
+const SLOTS: { label: { x: number; y: number }; target: { x: number; y: number }; align: Align; vAlign: VAlign }[] = [
+  { label: { x: 18, y: 3 }, target: { x: 58, y: 34 }, align: 'right', vAlign: 'top' },     // oben links
+  { label: { x: 132, y: 3 }, target: { x: 92, y: 34 }, align: 'left', vAlign: 'top' },     // oben rechts
+  { label: { x: 8, y: 50 }, target: { x: 52, y: 50 }, align: 'right', vAlign: 'middle' },  // links
+  { label: { x: 142, y: 50 }, target: { x: 98, y: 50 }, align: 'left', vAlign: 'middle' }, // rechts
+  { label: { x: 18, y: 97 }, target: { x: 58, y: 66 }, align: 'right', vAlign: 'bottom' }, // unten links
+  { label: { x: 132, y: 97 }, target: { x: 92, y: 66 }, align: 'left', vAlign: 'bottom' }, // unten rechts
 ];
 
 export type TellerStageProps = {
@@ -177,24 +187,30 @@ function TellerStageContent({ variant, onTourComplete }: { variant: TellerVarian
               style={{
                 left: `${(slot.label.x / 150) * 100}%`, top: `${slot.label.y}%`,
                 width: 150,
-                transform: `translate(${slot.align === 'right' ? '-100%' : '0%'}, -50%)`,
+                transform: `translate(${slot.align === 'right' ? '-100%' : '0%'}, ${V_TRANSFORM[slot.vAlign]})`,
                 textAlign: slot.align,
               }}>
               <div className="font-heading font-bold text-[12.5px] uppercase transition-colors"
                 style={{ color: isActive ? '#6B3A4B' : 'var(--text)', letterSpacing: '1.5px' }}>
                 {t.schlagwort}
               </div>
-              <div className="text-[11px] leading-snug mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                {t.kurzsatz}
-              </div>
-              {isActive && t.anleitung && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                  transition={{ duration: 0.25 }}
-                  className="text-[10.5px] italic leading-snug mt-1.5 pt-1.5"
-                  style={{ color: '#9B7A2A', borderTop: '1px solid rgba(201,168,76,0.3)' }}>
-                  {t.anleitung}
-                </motion.div>
-              )}
+              {/* Feste Hoehe (~3 Zeilen) statt frei wachsend -- Kurzsatz wird
+               * beim Aktivieren durch die Anleitung ERSETZT statt ergaenzt,
+               * line-clamp faengt auch sehr lange Anleitungen ab. Dadurch
+               * aendert sich die Boxhoehe nie, die Verankerung oben/unten
+               * (V_TRANSFORM) muss nie auf wachsenden Inhalt reagieren --
+               * kein Springen beim Hovern, kein Herauswachsen ueber den Rand. */}
+              <motion.div key={isActive && t.anleitung ? 'anleitung' : 'kurzsatz'}
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}
+                className="text-[11px] leading-snug mt-0.5"
+                style={{
+                  color: isActive && t.anleitung ? '#9B7A2A' : 'var(--text-muted)',
+                  fontStyle: isActive && t.anleitung ? 'italic' : 'normal',
+                  height: 46, overflow: 'hidden',
+                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                }}>
+                {isActive && t.anleitung ? t.anleitung : t.kurzsatz}
+              </motion.div>
             </motion.div>
           );
         })}
