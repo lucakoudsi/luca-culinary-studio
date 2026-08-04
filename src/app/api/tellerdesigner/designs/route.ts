@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase-admin';
 import { STILRICHTUNG_LABEL, type Stilrichtung } from '@/config/tellerStilrichtung';
 import { ANRICHTE_FOKUS_LABEL, type AnrichteFokus } from '@/config/tellerAnrichteFokus';
 import { AUFWAND_LABEL, type Aufwandsstufe } from '@/config/techniken';
-import type { TellerDesignRow, TellerTechnik } from '@/types';
+import type { TellerDesignRow, TellerTechnik, TellerZutat } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +23,7 @@ type Row = {
   zubereitungszeit: number | null;
   saison: string | null;
   techniken: TellerTechnik[] | null;
+  zutaten: TellerZutat[] | null;
 };
 
 // Nur reine Leseabfrage fuer die "Meine Designs"-Galerie -- INSERT passiert
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
   const db = createAdminClient();
   const { data, error } = await db
     .from('tellerdesigns')
-    .select('id, created_at, bild_url, titel, rezept_id, modus, stilrichtung, aufwand, anrichte_fokus, zubereitungszeit, saison, techniken')
+    .select('id, created_at, bild_url, titel, rezept_id, modus, stilrichtung, aufwand, anrichte_fokus, zubereitungszeit, saison, techniken, zutaten')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest) {
     saison: row.saison,
     anrichteFokus: ANRICHTE_FOKUS_LABEL[row.anrichte_fokus] ?? row.anrichte_fokus,
     techniken: Array.isArray(row.techniken) ? row.techniken : [],
+    zutaten: Array.isArray(row.zutaten) ? row.zutaten : [],
     modus: row.modus,
   }));
 

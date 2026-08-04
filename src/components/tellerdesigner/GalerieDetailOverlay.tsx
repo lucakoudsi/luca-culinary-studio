@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { X, Printer } from 'lucide-react';
 import type { TellerDesignRow } from '@/types';
 import DesignInfoBox from './DesignInfoBox';
+import TellerZutatenDots from './TellerZutatenDots';
 import { TellerPrintSheet, tellerDesignRowToPrintDesign, type TellerPrintDesign } from './TellerPrintSheet';
 import { usePrintOnDemand } from '@/lib/usePrintOnDemand';
 
@@ -60,12 +61,19 @@ export default function GalerieDetailOverlay({ design, onClose }: { design: Tell
           <div className="flex flex-col min-[900px]:flex-row gap-8 px-6 pb-6 flex-1 min-h-0 overflow-y-auto min-[900px]:overflow-hidden">
             {/* min-w-0 ist zwingend: ohne das schrumpft ein flex-1-Kind nie unter
              * seine Inhaltsbreite (hier die Bild-Intrinsicbreite), draengt die
-             * Textspalte aus dem Panel und reisst dessen Breite mit auf. */}
-            <img
-              src={design.bildUrl}
+             * Textspalte aus dem Panel und reisst dessen Breite mit auf.
+             * max-w-[480px] deckelt die (quadratische, aspect-ratio:1/1) Box
+             * hart, damit ihre Hoehe (= Breite) bei kurzen Viewports nicht
+             * ueber das max-h-[90vh]-Budget des Panels hinauswaechst. Kein
+             * eigener Rahmen/Schatten mehr (anders als vorher) -- die
+             * teller-image-mask sorgt jetzt genau wie in TellerStage fuer
+             * das freischwebende Bild, ein zusaetzlicher harter Rahmen
+             * drumherum wuerde dem widersprechen. */}
+            <TellerZutatenDots
+              image={design.bildUrl}
               alt={design.titel}
-              className="min-[900px]:flex-1 min-[900px]:h-full min-w-0 rounded-xl object-contain w-full max-w-full max-h-[60vh] min-[900px]:max-h-full"
-              style={{ boxShadow: '0 24px 70px rgba(0,0,0,0.55)', border: '1px solid rgba(201,168,76,0.25)' }} />
+              zutaten={design.zutaten}
+              className="min-[900px]:flex-1 min-w-0 w-full max-w-[480px]" />
 
             <div className="w-full min-[900px]:w-[400px] flex-shrink-0 min-h-0 min-[900px]:overflow-y-auto min-[900px]:pr-1">
               <h2 className="font-heading font-bold text-[22px] leading-snug text-white">{design.titel}</h2>

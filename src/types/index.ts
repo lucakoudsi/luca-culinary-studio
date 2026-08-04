@@ -208,10 +208,12 @@ export interface TellerTechnik {
 }
 
 // Eine einzelne Zutat/Komponente mit ihrer vom Textmodell geplanten Position
-// im generierten Bild (Etappe 1 von 4, siehe docs/tellerdesigns-zutaten-
-// migration.sql) -- x/y normalisiert 0..1, BILDBEZOGEN (nicht tellerbezogen),
-// wichtig fuer die spaetere Overlay-Umrechnung bei object-contain (Etappe 2).
-// In dieser Etappe nur Daten-Durchreichung bis zur DB, noch keine Anzeige.
+// im generierten Bild (Etappe 1: docs/tellerdesigns-zutaten-migration.sql,
+// Etappe 2: Anzeige als Hotspot-Punkt, siehe TellerZutatenDots) -- x/y
+// normalisiert 0..1, BILDBEZOGEN (nicht tellerbezogen). Das gerenderte
+// Bild-Element ist immer exakt quadratisch (Bildgroesse 1024x1024 fest in
+// route.ts) UND wird selbst quadratisch dargestellt, object-contain
+// letterboxt deshalb nie -- direktes x*100%/y*100%-Mapping ist korrekt.
 export interface TellerZutat {
   name: string;
   position: { x: number; y: number };
@@ -252,5 +254,9 @@ export interface TellerDesignRow {
   saison: string | null;
   anrichteFokus: string | null;
   techniken: TellerTechnik[];
+  /** Etappe 2: Zutaten-Positionen fuer die Hotspot-Punkte auf der Buehne.
+   * Leer bei Designs vor Etappe 1 oder wenn der Textcall damals fehlschlug
+   * -- dann werden schlicht keine Punkte gezeigt (siehe TellerZutatenDots). */
+  zutaten: TellerZutat[];
   modus: 'rezept' | 'frei';
 }

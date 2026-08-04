@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Palette } from 'lucide-react';
 import type { TellerVariante } from '@/types';
+import TellerZutatenDots from './TellerZutatenDots';
 
 const LOADING_MESSAGES = [
   'Analysiere Rezept…',
@@ -12,69 +13,10 @@ const LOADING_MESSAGES = [
 ];
 
 const TOUR_START_DELAY_MS = 2000; // wartet, bis Bild-Entrance + Kamera-Zoom sich beruhigt haben
-const TOUR_STEP_GAP_MS = 650; // Abstand zwischen dem Einblenden zweier Labels
+const TOUR_STEP_GAP_MS = 650; // Abstand zwischen dem Einblenden zweier Zutaten-Punkte
 
 function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Stage-Koordinatenraum 0-150 (breit) x 0-100 (hoch) -- das quadratische Bild
-// sitzt zentriert darin (x 42-108, y 17-83, Zentrum 75/50, Halbgroesse 33).
-//
-// Bild bewusst kleiner als frueher (Halbgroesse 40 -> 33): bei voller Groesse
-// sassen die oberen/unteren Labels nur 4 Einheiten von der Bildkante entfernt
-// (y 6 vs. Bildkante y 10) -- sichtbar gedraengt, im Widerspruch zur Vision
-// ("Der Teller bekommt Platz zum Atmen"). Jetzt betraegt der Abstand y 3 vs.
-// Bildkante y 17 = 14 Einheiten, spuerbar mehr Weissraum zwischen Beschriftung
-// und Gericht, bei weiterhin gut lesbarer Tellergroesse.
-//
-// Sechs feste Label-Positionen rings um den Teller (oben links/rechts, links,
-// rechts, unten links/rechts) -- die echte Bildposition der Komponenten kennen
-// wir nicht (kein Vision-Feedback ueber generierte Bilder), das ist bewusst
-// synthetisch statt "richtig" platziert. "target" liegt knapp INNERHALB des
-// Tellerrands, auf der dem Label zugewandten Seite (Radius ca. 23 von 33
-// Halbgroesse, in dieselbe Richtung wie das Label) -- nicht am aeusseren
-// Rand (Linie wuerde den Teller nicht erreichen) und nicht nahe am Zentrum
-// (Linie wuerde quer ueber das Gericht laufen).
-//
-// vAlign steuert die vertikale Verankerung (transform translateY) UND in
-// welche Richtung das Label wachsen darf: obere Slots (y=3, nur ~18px vom
-// Stage-Rand) duerfen nur nach UNTEN wachsen (top), untere Slots (y=97)
-// nur nach OBEN (bottom) -- sonst wuerde ein aktivierter Slot ueber den
-// Stage-Rand hinauswachsen (Bug: Schlagwort verschwand oben aus dem
-// sichtbaren Bereich). Mittlere Slots (y=50) haben genug Puffer in beide
-// Richtungen und bleiben bei "middle" (-50%, wie bisher).
-//
-// Horizontal dasselbe Problem: links-Slots wuchsen (bei fixer 150px-Breite)
-// komplett nach links vom Anker weg, rechts-Slots komplett nach rechts --
-// bei den mittleren Slots (frueher x=8/142, nur 5,3% vom Rand) ragte die
-// Box weit ueber die Stage hinaus und ueberlappte Nachbar-UI (z.B. die
-// Formularspalte links). x der mittleren Slots deshalb auf 16/134
-// verschoben (10,7% vom Rand, vergleichbar den 12% der Eck-Slots bei
-// x=18/132) UND die Labelbreite per min(150px, verfuegbarer%) hart
-// gedeckelt (siehe labelWidthPct unten) -- garantiert unabhaengig von der
-// tatsaechlichen (variablen) Stage-Breite, dass keine Box je ueber x=0
-// oder x=150 hinauswaechst.
-type Align = 'left' | 'right';
-type VAlign = 'top' | 'middle' | 'bottom';
-const V_TRANSFORM: Record<VAlign, string> = { top: '0%', middle: '-50%', bottom: '-100%' };
-const IMG = { x1: 42, y1: 17, x2: 108, y2: 83, cx: 75, cy: 50 };
-const SLOTS: { label: { x: number; y: number }; target: { x: number; y: number }; align: Align; vAlign: VAlign }[] = [
-  { label: { x: 18, y: 3 }, target: { x: 58, y: 34 }, align: 'right', vAlign: 'top' },     // oben links
-  { label: { x: 132, y: 3 }, target: { x: 92, y: 34 }, align: 'left', vAlign: 'top' },     // oben rechts
-  { label: { x: 16, y: 50 }, target: { x: 52, y: 50 }, align: 'right', vAlign: 'middle' }, // links
-  { label: { x: 134, y: 50 }, target: { x: 98, y: 50 }, align: 'left', vAlign: 'middle' }, // rechts
-  { label: { x: 18, y: 97 }, target: { x: 58, y: 66 }, align: 'right', vAlign: 'bottom' }, // unten links
-  { label: { x: 132, y: 97 }, target: { x: 92, y: 66 }, align: 'left', vAlign: 'bottom' }, // unten rechts
-];
-
-// Verfuegbarer Platz vom Anker bis zum jeweiligen Stage-Rand, als Prozent der
-// Stage-Breite -- links waechst nach links (Platz bis x=0), rechts waechst
-// nach rechts (Platz bis x=150). Als CSS min() mit 150px kombiniert: auf
-// sehr breiten Bildschirmen bleibt es bei der bisherigen 150px-Breite, auf
-// schmalen greift der Prozentwert und deckelt hart.
-function labelWidthPct(slot: { label: { x: number }; align: Align }): number {
-  return slot.align === 'right' ? (slot.label.x / 150) * 100 : ((150 - slot.label.x) / 150) * 100;
 }
 
 export type TellerStageProps = {
@@ -124,13 +66,14 @@ export default function TellerStage({ loading, variant, onTourComplete }: Teller
 
 /** Separat, damit ein Variantenwechsel (Remount ueber key={variant.id} beim Aufrufer) sauber frischen State bekommt. */
 function TellerStageContent({ variant, onTourComplete }: { variant: TellerVariante; onTourComplete: () => void }) {
-  const { techniken } = variant;
-  const n = techniken.length;
+  const { zutaten, techniken } = variant;
+  // Tour ist jetzt von den Zutaten-Punkten getrieben (dem Star der Buehne),
+  // nicht mehr von den Techniken -- die Techniken-Liste daneben blendet als
+  // Block ein, kein einzeln gestaffeltes Erscheinen mehr noetig, sie ist
+  // jetzt Beiwerk statt der eigentliche Kranz.
+  const n = zutaten.length;
   const initialRevealed = variant.toured || n === 0 ? n : 0;
   const [revealedCount, setRevealedCount] = useState(initialRevealed);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [pinnedIndex, setPinnedIndex] = useState<number | null>(null);
-  const activeIndex = hoveredIndex ?? pinnedIndex;
 
   useEffect(() => {
     if (initialRevealed >= n) return;
@@ -156,84 +99,48 @@ function TellerStageContent({ variant, onTourComplete }: { variant: TellerVarian
         </h2>
       )}
 
-      <div className="relative mx-auto" style={{ width: '100%', maxWidth: 920, aspectRatio: '150 / 100' }}>
-        {/* Bild -- bewusst OHNE Rahmen/Karte, weiche radiale Maske loest die
-            Bildkante auf (der generierte Creme-Ton trifft nie exakt den
-            Seitenhintergrund, ein harter Rand waere sonst sichtbar). */}
-        <motion.img
-          key={variant.id}
-          src={variant.image}
+      <div className="flex flex-col min-[900px]:flex-row gap-8 items-start">
+        <TellerZutatenDots
+          image={variant.image}
           alt={variant.titel || 'Generierte Anrichtung'}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="absolute teller-image-mask"
-          style={{
-            top: `${IMG.y1}%`, left: `${IMG.x1 / 1.5}%`, width: `${(IMG.x2 - IMG.x1) / 1.5}%`, height: `${IMG.y2 - IMG.y1}%`,
-            objectFit: 'contain',
-          }} />
+          zutaten={zutaten}
+          revealedCount={revealedCount}
+          className="flex-1 min-w-0" />
 
-        {/* Duenne, durchgehende Verbindungslinien (motion.path statt line --
-            zuverlaessigere pathLength-Unterstuetzung), gedaempftes Grau. */}
-        <svg viewBox="0 0 150 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
-          {SLOTS.slice(0, n).map((slot, i) => {
-            if (i >= revealedCount) return null;
-            const isActive = activeIndex === i;
-            return (
-              <motion.path key={i}
-                d={`M ${slot.label.x} ${slot.label.y} L ${slot.target.x} ${slot.target.y}`}
-                stroke={isActive ? '#6B3A4B' : 'rgba(154,128,112,0.55)'}
-                strokeWidth={0.25}
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }} />
-            );
-          })}
-        </svg>
-
-        {/* Labels */}
-        {SLOTS.slice(0, n).map((slot, i) => {
-          if (i >= revealedCount) return null;
-          const t = techniken[i];
-          const isActive = activeIndex === i;
-          return (
-            <motion.div key={i}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={e => { e.stopPropagation(); setPinnedIndex(prev => prev === i ? null : i); }}
-              className="absolute cursor-pointer"
-              style={{
-                left: `${(slot.label.x / 150) * 100}%`, top: `${slot.label.y}%`,
-                width: `min(150px, ${labelWidthPct(slot)}%)`,
-                transform: `translate(${slot.align === 'right' ? '-100%' : '0%'}, ${V_TRANSFORM[slot.vAlign]})`,
-                textAlign: slot.align,
-              }}>
-              <div className="font-heading font-bold text-[12.5px] uppercase transition-colors"
-                style={{ color: isActive ? '#6B3A4B' : 'var(--text)', letterSpacing: '1.5px' }}>
-                {t.schlagwort}
+        {/* Techniken als ruhige Liste daneben -- kein Kranz mehr, kein
+         * Hover-Tausch kurzsatz/anleitung: anleitung ist der informative
+         * Kern (aufrecht, gut lesbar), kurzsatz das nachgeordnete Beiwerk
+         * (klein, kursiv, gedaempft) -- gleicher Stil wie im
+         * Galerie-Detail-Overlay, nur in den Farben des hellen App-Themes. */}
+        {techniken.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}
+            className="w-full min-[900px]:w-[280px] flex-shrink-0 space-y-5">
+            {techniken.map((t, i) => (
+              <div key={i}>
+                {/* var(--accent), NICHT fix #6B3A4B: das Schlagwort ist jetzt
+                 * dauerhaft sichtbar (kein Hover-Zustand mehr wie frueher,
+                 * wo der feste Wert nur kurz beim Hovern auftauchte) --
+                 * fix #6B3A4B haette auf dunklem App-Hintergrund zu wenig
+                 * Kontrast (dasselbe Problem wie bei den Rezepten). --accent
+                 * ist bereits theme-bewusst: Bordeaux im Light Mode (exakt
+                 * der bisherige Wert), Gold im Dark Mode. */}
+                <div className="font-heading font-bold text-[12.5px] uppercase" style={{ color: 'var(--accent)', letterSpacing: '1.5px' }}>
+                  {t.schlagwort}
+                </div>
+                {t.anleitung && (
+                  <div className="text-[13px] leading-[1.6] mt-1.5" style={{ color: 'var(--text)' }}>
+                    {t.anleitung}
+                  </div>
+                )}
+                {t.kurzsatz && (
+                  <div className="text-[11px] italic leading-snug mt-1" style={{ color: 'var(--text-muted)' }}>
+                    {t.kurzsatz}
+                  </div>
+                )}
               </div>
-              {/* Feste Hoehe (~3 Zeilen) statt frei wachsend -- Kurzsatz wird
-               * beim Aktivieren durch die Anleitung ERSETZT statt ergaenzt,
-               * line-clamp faengt auch sehr lange Anleitungen ab. Dadurch
-               * aendert sich die Boxhoehe nie, die Verankerung oben/unten
-               * (V_TRANSFORM) muss nie auf wachsenden Inhalt reagieren --
-               * kein Springen beim Hovern, kein Herauswachsen ueber den Rand. */}
-              <motion.div key={isActive && t.anleitung ? 'anleitung' : 'kurzsatz'}
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}
-                className="text-[11px] leading-snug mt-0.5"
-                style={{
-                  color: isActive && t.anleitung ? '#9B7A2A' : 'var(--text-muted)',
-                  fontStyle: isActive && t.anleitung ? 'italic' : 'normal',
-                  height: 46, overflow: 'hidden',
-                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                }}>
-                {isActive && t.anleitung ? t.anleitung : t.kurzsatz}
-              </motion.div>
-            </motion.div>
-          );
-        })}
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );
