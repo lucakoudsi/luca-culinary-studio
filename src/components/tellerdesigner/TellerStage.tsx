@@ -44,6 +44,17 @@ function wait(ms: number): Promise<void> {
 // Stage-Rand hinauswachsen (Bug: Schlagwort verschwand oben aus dem
 // sichtbaren Bereich). Mittlere Slots (y=50) haben genug Puffer in beide
 // Richtungen und bleiben bei "middle" (-50%, wie bisher).
+//
+// Horizontal dasselbe Problem: links-Slots wuchsen (bei fixer 150px-Breite)
+// komplett nach links vom Anker weg, rechts-Slots komplett nach rechts --
+// bei den mittleren Slots (frueher x=8/142, nur 5,3% vom Rand) ragte die
+// Box weit ueber die Stage hinaus und ueberlappte Nachbar-UI (z.B. die
+// Formularspalte links). x der mittleren Slots deshalb auf 16/134
+// verschoben (10,7% vom Rand, vergleichbar den 12% der Eck-Slots bei
+// x=18/132) UND die Labelbreite per min(150px, verfuegbarer%) hart
+// gedeckelt (siehe labelWidthPct unten) -- garantiert unabhaengig von der
+// tatsaechlichen (variablen) Stage-Breite, dass keine Box je ueber x=0
+// oder x=150 hinauswaechst.
 type Align = 'left' | 'right';
 type VAlign = 'top' | 'middle' | 'bottom';
 const V_TRANSFORM: Record<VAlign, string> = { top: '0%', middle: '-50%', bottom: '-100%' };
@@ -51,11 +62,20 @@ const IMG = { x1: 42, y1: 17, x2: 108, y2: 83, cx: 75, cy: 50 };
 const SLOTS: { label: { x: number; y: number }; target: { x: number; y: number }; align: Align; vAlign: VAlign }[] = [
   { label: { x: 18, y: 3 }, target: { x: 58, y: 34 }, align: 'right', vAlign: 'top' },     // oben links
   { label: { x: 132, y: 3 }, target: { x: 92, y: 34 }, align: 'left', vAlign: 'top' },     // oben rechts
-  { label: { x: 8, y: 50 }, target: { x: 52, y: 50 }, align: 'right', vAlign: 'middle' },  // links
-  { label: { x: 142, y: 50 }, target: { x: 98, y: 50 }, align: 'left', vAlign: 'middle' }, // rechts
+  { label: { x: 16, y: 50 }, target: { x: 52, y: 50 }, align: 'right', vAlign: 'middle' }, // links
+  { label: { x: 134, y: 50 }, target: { x: 98, y: 50 }, align: 'left', vAlign: 'middle' }, // rechts
   { label: { x: 18, y: 97 }, target: { x: 58, y: 66 }, align: 'right', vAlign: 'bottom' }, // unten links
   { label: { x: 132, y: 97 }, target: { x: 92, y: 66 }, align: 'left', vAlign: 'bottom' }, // unten rechts
 ];
+
+// Verfuegbarer Platz vom Anker bis zum jeweiligen Stage-Rand, als Prozent der
+// Stage-Breite -- links waechst nach links (Platz bis x=0), rechts waechst
+// nach rechts (Platz bis x=150). Als CSS min() mit 150px kombiniert: auf
+// sehr breiten Bildschirmen bleibt es bei der bisherigen 150px-Breite, auf
+// schmalen greift der Prozentwert und deckelt hart.
+function labelWidthPct(slot: { label: { x: number }; align: Align }): number {
+  return slot.align === 'right' ? (slot.label.x / 150) * 100 : ((150 - slot.label.x) / 150) * 100;
+}
 
 export type TellerStageProps = {
   loading: boolean;
@@ -186,7 +206,7 @@ function TellerStageContent({ variant, onTourComplete }: { variant: TellerVarian
               className="absolute cursor-pointer"
               style={{
                 left: `${(slot.label.x / 150) * 100}%`, top: `${slot.label.y}%`,
-                width: 150,
+                width: `min(150px, ${labelWidthPct(slot)}%)`,
                 transform: `translate(${slot.align === 'right' ? '-100%' : '0%'}, ${V_TRANSFORM[slot.vAlign]})`,
                 textAlign: slot.align,
               }}>
