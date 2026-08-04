@@ -18,11 +18,10 @@ import { diffColor, statusColor, TYP_COLOR, TYP_LABELS } from '@/components/reci
 const labelCls = "block text-[11px] text-[#A89880] font-semibold mb-1.5 uppercase tracking-wider";
 
 // ─── Projekt-Auswahl (Mehrfachzuordnung) ──────────────────────────────────────
-// Duplikat von ProjectPickerModal in RecipeDetailModal.tsx -- das Overlay wird
-// in dieser Etappe bewusst nicht angefasst (siehe Etappen-Plan), daher hier
-// noch keine gemeinsame Extraktion. Bei Etappe 3 (Overlay auf Schnellblick
-// reduzieren) sollte das zusammengelegt werden, sobald beide Stellen ohnehin
-// angefasst werden.
+// War bis Etappe 3 als Duplikat auch in RecipeDetailModal.tsx vorhanden --
+// mit dem Overlay-Umbau auf Schnellblick (Etappe 3) ist die Projekte-
+// Zuordnung dort komplett entfallen (steht nur noch hier), keine Duplizierung
+// mehr aufzuloesen. Diese Kopie bleibt die einzige.
 function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
   projects: Project[]; recipeId: number; onClose: () => void; onToggle: (projectId: number, add: boolean) => void;
 }) {

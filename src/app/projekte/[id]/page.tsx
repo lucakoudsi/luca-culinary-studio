@@ -164,7 +164,7 @@ export default function ProjectDetailPage() {
     projects, recipes, fetchProjects, fetchRecipes,
     addProjectNote, updateProjectNote, deleteProjectNote,
     addRecipeToProject, removeRecipeFromProject,
-    addMenu, deleteMenu, deleteProject, deleteRecipe,
+    addMenu, deleteMenu, deleteProject,
   } = useStore();
 
   const [loading, setLoading] = useState(true);
@@ -397,7 +397,6 @@ export default function ProjectDetailPage() {
         <RecipeDetail
           recipe={viewingRecipe}
           onClose={() => setViewingRecipe(null)}
-          onDelete={() => { deleteRecipe(viewingRecipe.id); setViewingRecipe(null); }}
         />
       )}
       {editingMenu && (

@@ -184,7 +184,6 @@ export default function RezeptePage() {
         <RecipeDetail
           recipe={selected}
           onClose={() => setSelected(null)}
-          onDelete={() => deleteRecipe(selected.id)}
         />
       )}
     </div>
