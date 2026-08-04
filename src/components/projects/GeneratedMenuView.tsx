@@ -33,28 +33,35 @@ export default function GeneratedMenuView({ menu, onClose, onEdit }: {
   menu: ProjectMenu; onClose: () => void; onEdit: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-end gap-2 mb-3">
-          <button onClick={() => window.print()} type="button"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
-            style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
-            <Printer size={13} /> Als PDF exportieren
-          </button>
-          <button onClick={onEdit} type="button"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
-            style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
-            <Pencil size={13} /> Bearbeiten
-          </button>
-          <button onClick={onClose} type="button"
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(255,255,255,0.12)', color: '#FFFFFF' }}>
-            <X size={16} />
-          </button>
+    <>
+      {/* Als Geschwister ausserhalb des fixed-Wrappers -- siehe Warnhinweis an
+       * .print-only in globals.css. Gleicher Bug wie GalerieDetailOverlay:
+       * als Kind des fixed-Modal-Wrappers verankerte sich der Inhalt bei
+       * mehrseitigem Druck auf jeder Seite neu. */}
+      <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
+
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
+        <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-end gap-2 mb-3">
+            <button onClick={() => window.print()} type="button"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
+              style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
+              <Printer size={13} /> Als PDF exportieren
+            </button>
+            <button onClick={onEdit} type="button"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-colors"
+              style={{ background: 'rgba(255,255,255,0.95)', color: '#562E3C' }}>
+              <Pencil size={13} /> Bearbeiten
+            </button>
+            <button onClick={onClose} type="button"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: 'rgba(255,255,255,0.12)', color: '#FFFFFF' }}>
+              <X size={16} />
+            </button>
+          </div>
+          <Menuekarte data={toMenuekarteDaten(menu)} />
         </div>
-        <Menuekarte data={toMenuekarteDaten(menu)} />
-        <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
       </div>
-    </div>
+    </>
   );
 }
