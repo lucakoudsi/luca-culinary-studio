@@ -20,6 +20,11 @@
 .DS_Store
 *.pem
 
+# unkomprimierte Bild-Originale (lokale Sicherung vor sharp-Kompression,
+# siehe public/*.jpg) -- bleiben auf der Platte, nicht im Repo (mehrere MB
+# pro Bild, die Git dauerhaft mitschleppen wuerde)
+/originals
+
 # debug
 npm-debug.log*
 yarn-debug.log*
