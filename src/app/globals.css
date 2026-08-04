@@ -267,7 +267,15 @@
    selbst mit einer .no-print-Klasse zu versehen -- funktioniert automatisch
    auch fuer kuenftig neu hinzukommende UI. .print-only bleibt auf dem
    Bildschirm immer unsichtbar, unabhaengig davon wo im DOM es sitzt (siehe
-   MenuekartePrintSheet in src/components/Menuekarte.tsx). */
+   MenuekartePrintSheet in src/components/Menuekarte.tsx).
+
+   WICHTIG beim Einbinden: als Geschwister/Top-Level rendern, NIEMALS als
+   Kind eines Elements mit position:fixed/absolute/relative/sticky oder
+   transform (z.B. PageTransition) -- .print-only positioniert sich im
+   Druck per position:absolute gegen den naechsten solchen Vorfahren.
+   Landet es versehentlich darin, verankert sich der Inhalt bei
+   mehrseitigem Druck auf jeder Seite neu statt normal weiterzulaufen
+   (siehe GalerieDetailOverlay-Fix, Commit 8ae6a29). */
 .print-only { display: none; }
 
 @media print {
