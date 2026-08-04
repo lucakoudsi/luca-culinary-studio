@@ -404,7 +404,6 @@ function MenuCardResult({ menu, onReset, onSave, saveState, savedProjectId, menu
           );
         }}
       />
-      <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />
 
       {menuSaveState === 'naming' ? (
         <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
@@ -715,7 +714,15 @@ function MenuegeneratorPageInner() {
   };
 
   return (
-    <PageTransition>
+    <>
+      {/* Als Geschwister ausserhalb BEIDER PageTransition-Wrapper unten --
+       * siehe Warnhinweis an .print-only in globals.css. PageTransition
+       * setzt transform, das haengt als Containing Block genauso fest wie
+       * position:fixed; nur ausserhalb beider verschachtelter Wrapper
+       * positioniert sich .print-only wieder gegen den Dokument-Root. */}
+      {stage === 'result' && menu && <MenuekartePrintSheet data={toMenuekarteDaten(menu)} />}
+
+      <PageTransition>
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
         <div className="px-4 sm:px-8 pt-6 sm:pt-8 pb-6 flex items-start justify-between gap-4 flex-wrap" style={{ borderBottom: '1px solid var(--border)' }}>
           <div>
@@ -884,6 +891,7 @@ function MenuegeneratorPageInner() {
           </PageTransition>
         </div>
       </div>
-    </PageTransition>
+      </PageTransition>
+    </>
   );
 }
