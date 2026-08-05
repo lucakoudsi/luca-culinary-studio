@@ -361,9 +361,6 @@ auf die dortige Struktur:
   (Weg zum Launch, Rechtliches, Post-Launch-Features, Aufräumen), siehe
   Abschnitt 8
 - `CLAUDE.md` — Konventionen, Architektur-Grundregeln
-- `TO_CHANGE.md` — älteres, chronologisches Backlog-Log (Stand
-  2026-07-15, größtenteils durch diese Datei und master-aufgabenliste.md
-  überholt)
 - `docs/abo-konzept.md` — Herleitung der 4 Abo-Stufen, Preise, Marge
 - `docs/stripe-plan.md` — vollständige Stripe-Architektur
 - `docs/registrierung-plan.md` — vollständige Registrierungs-Architektur

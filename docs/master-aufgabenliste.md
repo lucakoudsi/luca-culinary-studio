@@ -10,6 +10,16 @@
 > CLAUDE.md, TO_CHANGE.md). Dedupliziert, mit Status und Phase. Ersetzt die
 > frühere, unvollständige launch-checkliste.md.
 >
+> Ergänzt 2026-08-05: „Gang gezielt anpassen" nachgezogen (war bereits gebaut,
+> Doku stand nach); 3F erweitert um Tellerdesigner Zutaten-Positionen/Hotspots/
+> Verschieben, Tellerdesigner-PDF-Export, Rezept-Detailseite,
+> Overlay-Reduktion; neue Abschnitte 3G (Rezepte-Detailseite-Roadmap) und 3H
+> (Chef Academy); Teil 4 um Performance-Befunde, tote Dateien und
+> Seed-Routen-Frage ergänzt. **`TO_CHANGE.md` aufgelöst** — ihr einziger nicht
+> anderswo erfasster Inhalt (Backend-Altlasten) ist jetzt Teil dieser Datei,
+> die Datei selbst wurde gelöscht. Diese Datei ist ab sofort die einzige
+> laufende Aufgabenliste.
+>
 > Legende: [ ] offen · [~] teilweise/unklar · [x] erledigt (zur Info gelistet)
 
 ═══════════════════════════════════════════════════════════════════════
@@ -149,8 +159,9 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [x] **Schritt 1: Menüs speicherbar & wiederaufrufbar machen** — umgesetzt,
   siehe 3F.
 - [ ] **Schritt 2: PDF-Export/Druck** der Menükarte (mehrfach genannt, weiterhin offen).
-- [ ] **Schritt 3: Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne
-  Fisch") — braucht ganzes Menü als Kontext.
+- [x] **Schritt 3: Gang gezielt anpassen** („mach Gang 3 vegetarisch", „leichter", „ohne
+  Fisch") — umgesetzt, siehe 3F. War hier noch als offen gelistet, obwohl
+  bereits vollständig gebaut und verdrahtet war (Doku-Nachzug 2026-08-05).
 - [ ] **Verlinkung** Stammbaum/Zutatenbibliothek aus den Gängen heraus.
 - [ ] Einkaufsliste automatisch aus Gängen ableiten?
 - [ ] Portionen/Mengen mit ausgeben oder nur Konzept?
@@ -163,11 +174,22 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [ ] Mehrere Kameraperspektiven (Top, 45°, Detail).
 - [ ] Vorher/Nachher-Vergleich.
 - [ ] Anrichteschritte als Animation.
-- [ ] Zutaten-Hotspots mit Beschreibungen.
-- [ ] PDF-Export im W²-Stil.
-- [ ] Designhistorie.
+- [~] **Zutaten-Hotspots mit Positionen** — Punkte + Namen umgesetzt (Etappen
+  1–3, siehe 3F). Das pro Zutat generierte/gespeicherte `kurzsatz`-Feld
+  (Kurzbeschreibung) wird bislang NIRGENDS angezeigt — bei den Techniken wird
+  `kurzsatz` gerendert, bei den Zutaten nicht. „...mit Beschreibungen" aus der
+  Vision daher nur teilweise erfüllt.
+- [x] **PDF-Export im W²-Stil** — umgesetzt, siehe 3F.
 - [ ] Variantenvergleich nebeneinander.
 - [x] Speichern von Designs (Galerie mit Persistenz existiert).
+- [ ] **Cross-Highlighting Technik↔Zutat** (aus tellerdesigner-vision.md,
+  Abschnitt „Mikroanimationen": Hover auf Annotation hebt die Komponente auf
+  dem Teller hervor und umgekehrt) — braucht einen Datenbezug (techniken →
+  zutat), der aktuell nicht existiert. In der Zutaten-Hotspot-Etappenreihe
+  bewusst zurückgestellt.
+- [ ] **Zurücksetzen auf die generierten Positionen** (Gegenstück zum
+  manuellen Verschieben, siehe 3F) — bewusst nicht gebaut, erst wenn sich
+  zeigt, dass es gebraucht wird.
 
 ### 3E. Sonstige Feature-/Design-Punkte
 - [x] **Saison-Karten Redesign** (Dashboard-Seitenleiste) — umgesetzt, siehe
@@ -215,8 +237,70 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
   `/menuegenerator/galerie` (Umbenennen/Löschen), Deep-Link `?laden=<id>`
   lädt ein gespeichertes Menü direkt in die Ergebnis-Ansicht. Kein
   Kontingent-Verbrauch (reines Speichern/Laden, kein OpenAI-Call).
-  PDF-Export (Schritt 2) und „Gang gezielt anpassen" (Schritt 3) bleiben
-  offen, siehe 3C.
+  PDF-Export (Schritt 2) bleibt offen, siehe 3C. „Gang gezielt anpassen"
+  (Schritt 3) ist inzwischen ebenfalls umgesetzt (siehe unten).
+- [x] **Gang gezielt anpassen** (Menügenerator-Ausbau Schritt 3) — eigene
+  Route `/api/menus/[id]/gang-anpassen`, wirkt nur auf ein bereits
+  gespeichertes Menü (braucht eine `menus.id` zum Patchen). Freitext-
+  Anweisung pro Gang („mach Gang 3 vegetarisch", „leichter", …), Diff-
+  Vorschau (Übernehmen/Verwerfen) wie beim Rezept-Sous-Chef, eigenes
+  Kontingent-Gewicht `menuGangAnpassen`. War in dieser Liste noch als offen
+  geführt, obwohl bereits gebaut und in `menuegenerator/page.tsx` verdrahtet
+  war (Doku-Nachzug 2026-08-05).
+- [x] **Tellerdesigner — Zutaten-Positionen, Hotspots, Verschieben**
+  (Etappen 1–3 eines vierteiligen Plans, Etappe 4 nicht spezifiziert) —
+  Etappe 1: Zutaten mit Bild-relativer Position (x/y 0..1) werden vom
+  Textmodell im selben Call wie die Techniken geplant und gespeichert
+  (`tellerdesigns.zutaten` jsonb, `layout_version`, `positionen_korrigiert`
+  angelegt). Etappe 2: Zutaten erscheinen als Hotspot-Punkte auf dem
+  Tellerbild (`TellerZutatenDots`, gemeinsam genutzt von `TellerStage` und
+  `GalerieDetailOverlay`), Techniken als ruhige Liste daneben statt im
+  Label-Kranz. Etappe 3: Punkte sind im Galerie-Overlay per Maus/Touch
+  verschiebbar (nächstgelegener Punkt bei überlappenden Trefferflächen,
+  Auto-Save beim Loslassen, `positionen_korrigiert` wird dabei gesetzt) —
+  nur bei gespeicherten Designs, auf `/tellerdesigner` selbst (vor dem
+  Speichern) bewusst nicht aktiv. Einschränkung siehe 3D (`kurzsatz` pro
+  Zutat wird nicht angezeigt).
+- [x] **Tellerdesigner-PDF-Export** — „Als PDF exportieren" im
+  Galerie-Detail-Overlay, `TellerPrintSheet` + `usePrintOnDemand` (gleicher
+  Mechanismus wie der Menükarten-Export).
+- [x] **Rezept-Detailseite** (`/rezepte/[id]`) — vollständige Ansicht
+  (Zutaten, Komponenten, Zubereitung, Wein-Pairing, Nährwerte, Chef-Tipps,
+  Tags, Projekte, Bewertung, Löschen mit Bestätigung, Portionsrechner).
+- [x] **Rezept-Overlay auf Schnellblick reduziert** (Etappe 3 eines
+  dreiteiligen Plans, Voraussetzung war die Detailseite oben) — das
+  Overlay (`RecipeDetailModal.tsx`) zeigt nur noch Bild, Titel,
+  Status/Kategorie, Beschreibungssatz, die drei Kennzahlen und einen
+  „Rezept öffnen"-Knopf zur Detailseite; alles Weitere lebt dort. Dabei
+  zwei Folgefehler behoben: (1) `PageTransition` hielt permanent ein
+  `transform` im Ruhezustand, das brach den Containing Block für
+  `fixed`-Overlays darunter (nicht nur dieses) — jetzt verschwindet
+  `transform` nach der Eintritts-Animation. (2) Scroll-Lock ergänzt, das
+  Hintergrund-Grid war bei offenem Overlay weiterhin scroll-/klickbar.
+- [x] **Landing-Page redesignt** — Auswahlkarten „Studio" (bestehendes
+  Produkt, klickbar) und „Chef Academy" (existiert noch nicht, „In
+  Kürze"-Badge, bewusst nicht klickbar), siehe 3H für den Stand von Chef
+  Academy selbst.
+
+### 3G. Rezepte — Detailseite-Roadmap (Etappe 4/5 eines Etappenplans)
+> Etappe 3 (Overlay-Reduktion) ist umgesetzt, siehe 3F. Etappe 4/5 sind
+> bislang nur als deaktivierter Knopf im Code sichtbar
+> (`DisabledActionButton` in `src/app/rezepte/[id]/page.tsx`, Tooltip „Bald
+> verfügbar") — kein Dokument beschreibt den Umfang genauer als die beiden
+> Knopf-Beschriftungen.
+- [ ] **Kochmodus starten** — Umfang nicht spezifiziert.
+- [ ] **Rezept als PDF exportieren** — Umfang nicht spezifiziert. Anderes
+  Feature als der Menükarten-PDF-Export (3C) und der Tellerdesigner-PDF-
+  Export (3F/3D) — nicht verwechseln.
+
+### 3H. Chef Academy (neuer Baustein, noch nicht begonnen)
+> Bislang existiert nur die Auswahlkarte auf der Landing-Page (siehe 3F) —
+> „In Kürze"-Badge, bewusst nicht klickbar, kein Backend, keine Seite, kein
+> Konzeptdokument. Ein Etappenplan für den Aufbau wurde noch nicht
+> festgelegt.
+- [ ] Etappenplan definieren (Umfang, Reihenfolge).
+- [ ] Konzept/Anforderungen festhalten (analog zu `community-konzept.md`
+  oder `menuegenerator-konzept.md`).
 
 ═══════════════════════════════════════════════════════════════════════
 ## TEIL 4 — AUFRÄUMEN & TECHNISCHE SCHULD (unkritisch, jederzeit)
@@ -248,6 +332,44 @@ Teil 2 (Gewerbe/Rechtstexte) und die aktive Kaufsperre**
 - [ ] **Next.js 14 → 16 migrieren** (eigenes Migrationsprojekt, Breaking
   Changes in App Router/Middleware/Caching; die verbleibende
   postcss-Schwachstelle hängt daran).
+- [ ] **Backend-Altlasten entfernen** (aus `TO_CHANGE.md` übernommen, dort
+  einziger nicht anderswo erfasster Punkt): `backend/`-Ordner,
+  `database.sqlite` im Repo-Root, sowie `sequelize`/`sqlite3` in
+  `package.json` sind Reste des verworfenen früheren Ansatzes (siehe
+  CLAUDE.md, Commit `0194939`). Vom aktuellen `src/`-Code nicht
+  referenziert, noch nicht entfernt.
+- [ ] **Performance-Befunde aus der Analyse vom 2026-08-05** (Analyse
+  gemacht, noch nichts umgesetzt):
+  - `/api/profil` wird pro Seite doppelt geladen — einmal global über
+    `Sidebar.tsx` (Teil von `AppShell`, auf jeder Seite gemountet), zusätzlich
+    nochmal einzeln in ~9 Seiten für eigenes Tier-Gating/Anzeige. Läuft
+    komplett am Zustand-Store vorbei (roher `fetch`, kein Cache), betrifft
+    auch Produktion.
+  - `GET /api/rezepte` liefert mit `select('*')` alle Felder inkl.
+    `zutaten`/`komponenten`/`schritte`/`geschmack`/`naehrwerte` (teils große
+    JSON-Payloads) für jedes Rezept — die Übersichtskarte (`RecipeCard`)
+    nutzt davon nur `image`/`status`/`views`/`title`/`time`/`description`/
+    `tags`/`difficulty`/`category`/`rating`.
+  - Tellerdesigner-Galerie und Rezept-Karten laden Bilder als rohe `<img
+    src>`-URLs, `next/image` wird nur auf den Marketing-Seiten genutzt —
+    insbesondere die generierten Tellerbilder (1024×1024) laufen dadurch
+    unkomprimiert/unskaliert durch jede Galerie-Kachel.
+  - **Offene Frage, nicht geklärt:** ist `recipes.user_id` indiziert? Für
+    `tellerdesigns` und `menus` ist ein Index in den jeweiligen
+    `docs/*.sql`-Migrationen bestätigt, für `recipes` existiert gar keine
+    eigene Migrationsdatei (Tabelle stammt aus der Zeit vor dieser
+    Konvention) — lässt sich ohne direkten Datenbankzugriff nicht aus dem
+    Code beantworten.
+- [ ] **Tote Dateien:** `src/components/ui/sheet.tsx` und
+  `src/components/ui/dialog.tsx` — kein einziger Import im gesamten Repo
+  (Fund aus Code-Suche 2026-08-05), vermutlich shadcn-Gerüst, nie in Nutzung
+  genommen.
+- [ ] **Seed-Routen prüfen:** `/api/seed`, `/api/seed-mehr-zutaten`,
+  `/api/seed-weine`, `/api/seed-zutaten` — alle vier sind Admin-only
+  geschützt (`getRequestUser` + exakter `ADMIN_EMAIL`-Abgleich vor jedem
+  `POST`, verifiziert 2026-08-05), also nicht offen erreichbar. Offen ist
+  nur, ob sie als einmalige Bau-Hilfen inzwischen überflüssig sind und
+  entfernt werden können.
 
 ═══════════════════════════════════════════════════════════════════════
 ## TEIL 5 — BEWUSST OFFEN GELASSEN (kein To-do, nur Dokumentation)

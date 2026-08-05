@@ -14,7 +14,7 @@ export const IMAGE_QUOTA_BY_TIER: Record<number, number> = {
   3: 150, // Pro
   4: 350, // Team (gesenkt von 500 -- Marge fiel bei voller Ausschoepfung auf ~44%,
           // siehe abo-konzept.md Abschnitt 11. Aktuell pro Nutzer, nicht
-          // geteilt -- siehe TO_CHANGE.md und die offene Team-Frage ebenda.)
+          // geteilt -- siehe die offene Team-Frage in abo-konzept.md Abschnitt 10.)
 };
 
 const TEAM_TIER = 4;

@@ -70,4 +70,4 @@ als aktive Datenquelle behandeln.
 
 ## Offene Aufgaben
 
-Siehe `TO_CHANGE.md` im Projektroot für offene Aufgaben/Notizen.
+Siehe `docs/master-aufgabenliste.md` für offene Aufgaben/Notizen.

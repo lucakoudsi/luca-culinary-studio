@@ -213,7 +213,7 @@ Nachdem das Text-Kontingent (`docs/text-quota.sql`, gewichtet, Basic 150 / Pro 3
 | Pro | 21,00 € | 2,63 $ | 6,00 $ | 0,60 € | 1,00 € | **10,22** | **10,78 €** | **51,3 %** |
 | Team (500 Bilder) | 50,41 € | 6,30 $ | 20,00 $ | 1,09 € | 1,00 € | **28,39** | **22,02 €** | **43,7 %** |
 
-Team fiel damit unter 50 % Marge -- Pro lag mit 51,3 % ebenfalls schon hauchdünn über der Linie. Zusätzlicher Fund: Das Bildkontingent wird aktuell **pro Nutzer, nicht geteilt** vergeben (siehe TO_CHANGE.md) -- bei einem echten Mehrbenutzer-Team (siehe die offene Frage in Abschnitt 10) hätte sich das Kontingent potenziell vervielfacht statt geteilt, was das reale Risiko über diese Einzelnutzer-Rechnung hinaus vergrößert.
+Team fiel damit unter 50 % Marge -- Pro lag mit 51,3 % ebenfalls schon hauchdünn über der Linie. Zusätzlicher Fund: Das Bildkontingent wird aktuell **pro Nutzer, nicht geteilt** vergeben (siehe `IMAGE_QUOTA_BY_TIER` in `src/config/imageQuota.ts`) -- bei einem echten Mehrbenutzer-Team (siehe die offene Frage in Abschnitt 10) hätte sich das Kontingent potenziell vervielfacht statt geteilt, was das reale Risiko über diese Einzelnutzer-Rechnung hinaus vergrößert.
 
 **Geprüfte Optionen für Team:**
 
