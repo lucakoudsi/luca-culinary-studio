@@ -271,11 +271,20 @@
 
    WICHTIG beim Einbinden: als Geschwister/Top-Level rendern, NIEMALS als
    Kind eines Elements mit position:fixed/absolute/relative/sticky oder
-   transform (z.B. PageTransition) -- .print-only positioniert sich im
-   Druck per position:absolute gegen den naechsten solchen Vorfahren.
-   Landet es versehentlich darin, verankert sich der Inhalt bei
-   mehrseitigem Druck auf jeder Seite neu statt normal weiterzulaufen
-   (siehe GalerieDetailOverlay-Fix, Commit 8ae6a29). */
+   transform -- .print-only positioniert sich im Druck per position:absolute
+   gegen den naechsten solchen Vorfahren. Landet es versehentlich darin,
+   verankert sich der Inhalt bei mehrseitigem Druck auf jeder Seite neu statt
+   normal weiterzulaufen (siehe GalerieDetailOverlay-Fix, Commit 8ae6a29).
+
+   PageTransition ist SEIT seinem eigenen Fix (siehe Kommentar dort) KEIN
+   Dauer-Verdaechtiger mehr -- es haelt sein transform nur noch fuer die
+   ~250-400ms der Eintritts-Animation, nicht mehr fuer die Lebensdauer der
+   Seite. Ein .print-only, das erst durch einen Nutzerklick entsteht (z.B.
+   "Als PDF exportieren", praktisch immer der Fall), liegt also laengst nach
+   dem Abklingen. Die Regel oben gilt trotzdem uneingeschraenkt weiter, u.a.
+   fuer echte position:fixed-Vorfahren wie Modal-Wrapper (siehe GeneratedMenuView-
+   Fix, Commit 252e660 -- dort war NICHT PageTransition die Ursache, sondern
+   der Modal-eigene fixed-Wrapper, den nichts "abklingen" laesst). */
 .print-only { display: none; }
 
 @media print {
