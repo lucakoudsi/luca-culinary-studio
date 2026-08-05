@@ -14,6 +14,8 @@ import { computeRecipeFlavorProfile } from '@/lib/recipeFlavorUtils';
 import { scaleMenge } from '@/lib/portionen';
 import { StarRating } from '@/components/ui/StarRating';
 import { diffColor, statusColor, TYP_COLOR, TYP_LABELS } from '@/components/recipes/RecipeDetailModal';
+import { RecipePrintSheet, type RecipePrintData } from '@/components/recipes/RecipePrintSheet';
+import { usePrintOnDemand } from '@/lib/usePrintOnDemand';
 
 const labelCls = "block text-[11px] text-[#A89880] font-semibold mb-1.5 uppercase tracking-wider";
 
@@ -146,6 +148,10 @@ export default function RezeptDetailPage() {
   const [portionen, setPortionen] = useState(4);
   useEffect(() => { if (recipe) setPortionen(recipe.portionen || 4); }, [recipe?.id]);
 
+  // Gleicher Hook wie Tellerdesigner-Galerie/Menuegenerator-Export -- kein
+  // eigener Klick-Handler dupliziert.
+  const { printing, triggerPrint } = usePrintOnDemand<RecipePrintData[]>();
+
   if (loading) {
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh' }} className="flex items-center justify-center">
@@ -231,7 +237,15 @@ export default function RezeptDetailPage() {
   };
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <>
+      {/* Als Geschwister ausserhalb des Seiten-Roots -- diese Seite nutzt
+       * kein PageTransition und hat auch sonst keinen Vorfahren mit
+       * position:fixed/absolute/relative/sticky oder transform, waere hier
+       * also ohnehin unproblematisch (siehe Warnhinweis an .print-only in
+       * globals.css) -- Platzierung als Geschwister trotzdem aus Konsistenz
+       * mit GalerieDetailOverlay/MenuegeneratorPageInner. */}
+      {printing && <RecipePrintSheet recipes={printing} />}
+      <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       {/* Header */}
       <div className="px-8 pt-8 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <button onClick={() => router.push('/rezepte')}
@@ -336,7 +350,25 @@ export default function RezeptDetailPage() {
                 <Pencil size={14} /> Bearbeiten
               </button>
               <DisabledActionButton icon={<Utensils size={14} />} label="Kochmodus starten" />
-              <DisabledActionButton icon={<Printer size={14} />} label="Als PDF exportieren" />
+              <button
+                onClick={() => triggerPrint([{
+                  id: recipe.id,
+                  image: recipe.image,
+                  title: recipe.title,
+                  description: recipe.description,
+                  difficulty: recipe.difficulty,
+                  time: recipe.time,
+                  season: recipe.season,
+                  portionen,
+                  zutaten: scaledZutaten,
+                  komponenten: scaledKomponenten,
+                  schritte: recipe.schritte ?? [],
+                  chefTipps: recipe.chefTipps ?? '',
+                }])}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-80"
+                style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
+                <Printer size={14} /> Als PDF exportieren
+              </button>
             </div>
           </div>
         </div>
@@ -578,6 +610,7 @@ export default function RezeptDetailPage() {
         <ProjectPickerModal projects={projects} recipeId={recipe.id} onClose={() => setShowProjectPicker(false)}
           onToggle={(pid, add) => add ? addRecipeToProject(pid, recipe.id) : removeRecipeFromProject(pid, recipe.id)} />
       )}
-    </div>
+      </div>
+    </>
   );
 }
