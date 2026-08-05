@@ -9,6 +9,11 @@ const AUTH_PATHS = ['/login', '/register'];
 // Oeffentliche Marketing-Unterseiten der Landing-Page -- gleiche
 // Chrome-lose Behandlung wie /login, /register.
 const MARKETING_PATHS = ['/features', '/studio', '/preise', '/ueber-uns'];
+// Kochmodus (/rezepte/<id>/kochen) -- Vollbild-Fokus fuers Handy neben dem
+// Herd, keine Sidebar/Navigation. Dynamisches Segment, deshalb ein Muster
+// statt eines festen Pfads -- muss NUR "/rezepte/<id>/kochen" treffen,
+// nicht "/rezepte", "/rezepte/<id>" oder "/rezepte/<id>/bearbeiten".
+const KOCHMODUS_PATH_RE = /^\/rezepte\/[^/]+\/kochen$/;
 
 const BOTTOM_NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -26,7 +31,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (
     pathname === '/' ||
     AUTH_PATHS.some(p => pathname.startsWith(p)) ||
-    MARKETING_PATHS.some(p => pathname.startsWith(p))
+    MARKETING_PATHS.some(p => pathname.startsWith(p)) ||
+    KOCHMODUS_PATH_RE.test(pathname)
   ) {
     return <>{children}</>;
   }

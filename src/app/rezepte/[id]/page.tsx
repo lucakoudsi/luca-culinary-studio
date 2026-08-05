@@ -67,17 +67,6 @@ function ProjectPickerModal({ projects, recipeId, onClose, onToggle }: {
   );
 }
 
-// ─── Deaktivierter Aktionsknopf (Kochmodus/PDF -- Funktion folgt in Etappe 4/5) ─
-function DisabledActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button type="button" disabled title="Bald verfügbar"
-      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold opacity-40 cursor-not-allowed"
-      style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
-      {icon} {label}
-    </button>
-  );
-}
-
 // ─── Portionen +/- Stepper -- gemeinsamer Kern fuer die volle Box (ab 900px,
 // Teil des oberen Blocks) und die schmale sticky Leiste (unter 900px), damit
 // beide Darstellungen garantiert denselben Zustand/dieselbe Logik nutzen. ──
@@ -349,7 +338,11 @@ export default function RezeptDetailPage() {
                 style={{ background: 'linear-gradient(135deg, #562E3C, #7D4558)', color: '#FFFFFF' }}>
                 <Pencil size={14} /> Bearbeiten
               </button>
-              <DisabledActionButton icon={<Utensils size={14} />} label="Kochmodus starten" />
+              <button onClick={() => router.push(`/rezepte/${recipe.id}/kochen?portionen=${portionen}`)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-80"
+                style={{ background: 'rgba(107,58,75,0.08)', color: 'var(--accent-recipes)', border: '1px solid rgba(107,58,75,0.2)' }}>
+                <Utensils size={14} /> Kochmodus starten
+              </button>
               <button
                 onClick={() => triggerPrint([{
                   id: recipe.id,
