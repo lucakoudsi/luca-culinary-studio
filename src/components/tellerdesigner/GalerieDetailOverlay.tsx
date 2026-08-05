@@ -13,7 +13,20 @@ const DATE_FORMAT = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: 'l
  * zurueckhaltende Bildschirm-Sprache wie ImageLightbox (statt eines
  * Dashboard-Modals mit Karten-Chrome), damit sich die Galerie wie eine
  * Fortsetzung der Buehne anfuehlt statt wie eine separate Verwaltungsseite. */
-export default function GalerieDetailOverlay({ design, onClose }: { design: TellerDesignRow; onClose: () => void }) {
+export default function GalerieDetailOverlay({ design, onClose, onPositionChange, dragError }: {
+  design: TellerDesignRow;
+  onClose: () => void;
+  /** Etappe 3: Zutaten-Punkt verschoben -- optimistisches Update + PATCH
+   * liegt beim Aufrufer (galerie/page.tsx), der sowohl `selected` als auch
+   * die Liste dahinter aktualisieren muss. Nur bei gespeicherten Designs
+   * gesetzt (die hier immer vorliegen, anders als TellerVariante auf
+   * /tellerdesigner), deshalb ist Ziehen hier immer aktiv. */
+  onPositionChange: (index: number, position: { x: number; y: number }) => void;
+  /** Kurzlebige Fehlermeldung, falls das Speichern einer verschobenen
+   * Position fehlschlug -- Ruecksprung passiert beim Aufrufer, hier nur die
+   * dezente Anzeige. */
+  dragError?: string | null;
+}) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -69,11 +82,18 @@ export default function GalerieDetailOverlay({ design, onClose }: { design: Tell
              * teller-image-mask sorgt jetzt genau wie in TellerStage fuer
              * das freischwebende Bild, ein zusaetzlicher harter Rahmen
              * drumherum wuerde dem widersprechen. */}
-            <TellerZutatenDots
-              image={design.bildUrl}
-              alt={design.titel}
-              zutaten={design.zutaten}
-              className="min-[900px]:flex-1 min-w-0 w-full max-w-[480px]" />
+            <div className="min-[900px]:flex-1 min-w-0 w-full max-w-[480px] flex flex-col gap-2">
+              <TellerZutatenDots
+                image={design.bildUrl}
+                alt={design.titel}
+                zutaten={design.zutaten}
+                draggable
+                onPositionChange={onPositionChange}
+                className="w-full" />
+              {dragError && (
+                <p className="text-[11.5px] text-center" style={{ color: '#E08585' }}>{dragError}</p>
+              )}
+            </div>
 
             <div className="w-full min-[900px]:w-[400px] flex-shrink-0 min-h-0 min-[900px]:overflow-y-auto min-[900px]:pr-1">
               <h2 className="font-heading font-bold text-[22px] leading-snug text-white">{design.titel}</h2>

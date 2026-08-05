@@ -13,6 +13,7 @@ export default function TellerdesignerGaleriePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<TellerDesignRow | null>(null);
+  const [dragError, setDragError] = useState<string | null>(null);
 
   // Nur fuer den Avatar oben rechts -- dieselbe Quelle wie die Haupt-Seite/Sidebar.tsx.
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -38,6 +39,35 @@ export default function TellerdesignerGaleriePage() {
       }).catch(() => {});
     }).catch((e) => console.warn('[Tellerdesigner-Galerie] Auth-Check fehlgeschlagen:', e));
   }, []);
+
+  // Etappe 3: Zutaten-Punkt im Overlay verschoben -- optimistisches Update
+  // in BEIDEN Stellen (selected fuer die offene Ansicht, designs fuer den
+  // Fall, dass dasselbe Design ohne Reload erneut geoeffnet wird), PATCH im
+  // Hintergrund, Ruecksprung auf die vorherige Position bei Fehlschlag.
+  const handlePositionChange = async (index: number, position: { x: number; y: number }) => {
+    const designId = selected?.id;
+    if (!designId) return;
+    const previous = selected.zutaten;
+    const updated = previous.map((z, i) => i === index ? { ...z, position } : z);
+
+    setSelected(prev => prev && prev.id === designId ? { ...prev, zutaten: updated } : prev);
+    setDesigns(prev => prev.map(d => d.id === designId ? { ...d, zutaten: updated } : d));
+    setDragError(null);
+
+    try {
+      const res = await fetch(`/api/tellerdesigner/designs/${designId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zutaten: updated }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setSelected(prev => prev && prev.id === designId ? { ...prev, zutaten: previous } : prev);
+      setDesigns(prev => prev.map(d => d.id === designId ? { ...d, zutaten: previous } : d));
+      setDragError('Position konnte nicht gespeichert werden.');
+      setTimeout(() => setDragError(null), 3000);
+    }
+  };
 
   return (
     <div style={{ background: 'var(--bg)' }} className="min-h-screen">
@@ -113,7 +143,13 @@ export default function TellerdesignerGaleriePage() {
         )}
       </div>
 
-      {selected && <GalerieDetailOverlay design={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <GalerieDetailOverlay
+          design={selected}
+          onClose={() => setSelected(null)}
+          onPositionChange={handlePositionChange}
+          dragError={dragError} />
+      )}
     </div>
   );
 }
