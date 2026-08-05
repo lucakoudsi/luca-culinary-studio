@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import type { Recipe } from '@/types';
 import { BookOpen, X } from 'lucide-react';
@@ -25,9 +26,22 @@ export const statusColor: Record<string, string> = { Fertig: '#7CB87A', 'In Bear
  * Loeschen, Portionsrechner) steht dort -- gegengeprueft, nichts davon
  * wird durchs Eindampfen unerreichbar.
  *
- * Kein lokaler State mehr noetig (keine Interaktion ausser Schliessen/
- * Weiterklicken) -- deshalb kein useState/useEffect/useStore mehr hier. */
+ * Kein lokaler UI-State noetig (keine Interaktion ausser Schliessen/
+ * Weiterklicken) -- der einzige useEffect hier ist der Scroll-Lock unten,
+ * kein useState/useStore. */
 export default function RecipeDetailModal({ recipe, onClose }: { recipe: Recipe; onClose: () => void }) {
+  // Scroll-Lock: solange das Overlay offen ist, darf das Grid dahinter nicht
+  // scrollbar sein -- sonst laesst sich (jetzt wo .fixed wieder echt gegen
+  // den Viewport verankert ist, siehe PageTransition-Fix) am Overlay
+  // vorbeiscrollen. Vorherigen Wert sichern statt hart auf 'visible'
+  // zurueckzusetzen, falls beim Aufraeumen bereits etwas anderes overflow
+  // gesetzt hat.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-6" onClick={onClose}>
       {/* Hoehenbudget rechnerisch gegen die eigene p-6-Polsterung des
